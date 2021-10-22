@@ -1,0 +1,31 @@
+{
+    "dark": {
+        "bg":               "#1D1D1D",
+        "fg":               "#ffffff",
+        "ok":               "#8bb174",
+        "warning":          "#ffb30f",
+        "error":            "#db504a"
+    },
+    "light": {
+        "key":              "light",
+        "bg":               "#FFFFFF",
+        "fg":               "#1A090D",
+        "ok":               "#8bb174",
+        "warning":          "#ffb30f",
+        "error":            "#db504a"
+    },
+    "gray":                 "#5c5c5c",
+    "accent":               "#0081AF",
+    "padding": {
+        "x":                20,
+        "y":                10
+    },
+    "font": {
+        "font_face":        "Montserrat",
+
+        "title_size":       28,
+        "sttl_size":        15,
+        "big_para_size":    13,
+        "main_size":        10
+    }
+}

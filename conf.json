@@ -1,0 +1,20 @@
+{
+    "theme": {
+        "theme_file": ".\\theme_conf.json",
+        "default_mode": "light",
+        "user_can_config": true,
+        "custom_config_file": "user_theme.json"
+    },
+    "container_data": {
+        "general": {
+            "title": "Application Starter Script"
+        }
+    },
+    "app_data": {
+        "build": {
+            "build_id": "00",
+            "version_id": "b0.1",
+            "build_type": "b"
+        }
+    }
+}
