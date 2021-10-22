@@ -13,7 +13,7 @@ class Convert:
 
     @staticmethod
     def IntToRGB(irgb: int):
-        return (irgb // 256 // 256 % 256, irgb // 256 % 256 // irgb // 256)
+        return irgb // 256 // 256 % 256, irgb // 256 % 256 // irgb // 256
 
     @staticmethod
     def RGBToHex(rgb: tuple):
@@ -38,8 +38,6 @@ class Fade:
         deltas = (*[edRGB[i] - stRGB[i] for i in range(3)], )
         steps = abs(sorted(deltas)[-1])
         o = [start]
-
-        print(deltas, steps)
 
         for step in range(steps):
             # o = [*o, (*[(int(clamp(0, o[step-1][j] + deltas[j]/steps, 255))) for j in range(3)], )]

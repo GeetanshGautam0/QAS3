@@ -221,7 +221,7 @@ class FileCodes:
 
 class URL:
     bug_report = "https://geetanshgautam.wixsite.com/database/qas-bug-report-form"
-    version_check = "https://raw.githubusercontent.com/GeetanshGautam0/cmfvers/master/qas/qas.json"
+    version_check = "https://raw.githubusercontent.com/GeetanshGautam0/cmfvers/master/qas/v3.json"
 
 
 class Control:

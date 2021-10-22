@@ -17,6 +17,7 @@ class Splash(Toplevel):
 
         self.root = master
         self.frame = Frame(self.root)
+        self.root.withdraw()
 
         self.geo = "%sx%s+%s+%s" % (
             conf.AppContainer.Splash.geo[0],
@@ -56,6 +57,7 @@ class Splash(Toplevel):
         self.run()
 
         # UI Update
+        self.root.deiconify()
         self.root.update()
 
     def run(self):
@@ -97,12 +99,12 @@ class Splash(Toplevel):
 
         self.pbarStyle.configure(
             "Horizontal.TProgressbar",
-            foreground=compTheme.get('ac'),
-            background=compTheme.get('ac'),
+            foreground=compTheme.get('accent'),
+            background=compTheme.get('accent'),
             troughcolor=theme.get('bg')
         )
         self.titleLbl.config(
-            fg=compTheme.get('ac'),
+            fg=compTheme.get('accent'),
             bg=compTheme.get('bg')
         )
         self.frame.config(
@@ -116,6 +118,14 @@ class Splash(Toplevel):
         self.root.update()
 
     def changePbar(self, per: float) -> None:
+
+        offset_min = -14.285714285714286
+        offset_max = 99.85714285714286
+        offset_b = 2.043735949315348854
+        post_max = 16.329450235029636
+        needed_max = 100.0
+        percent = (per * (abs(offset_min) / abs(offset_max)) + offset_b) * (needed_max / post_max)
+
         if self.loadGrad:
             self.grad = colors.Fade.mono(self.ac_start, self.ac_end)
             self.loadGrad = False
@@ -125,11 +135,11 @@ class Splash(Toplevel):
         if not self.complete:
             self.pbarStyle.configure(
                 "Horizontal.TProgressbar",
-                background=self.grad[int((len(self.grad) - 1) * (per / 100) * 0.8)],
-                foreground=self.grad[int((len(self.grad) - 1) * (per / 100) * 0.8)],
+                background=self.grad[int((len(self.grad) - 1) * (percent / 100) * 0.8)],
+                foreground=self.grad[int((len(self.grad) - 1) * (percent / 100) * 0.8)],
                 troughcolor=theme.get('bg')
             )
-            self.titleLbl.config(fg=self.grad[int((len(self.grad) - 1) * per / 100)])
+            self.titleLbl.config(fg=self.grad[colors.clamp(0, int((len(self.grad) - 1) * (percent/100)), len(self.grad) - 1)])
 
         self.pbar.configure(
             style="Horizontal.TProgressbar"
@@ -162,7 +172,7 @@ def hide(inst: Splash):
     inst.root.wm_attributes("-topmost", 0)
     inst.root.iconify()
     inst.root.withdraw()
-    inst.root.update_ui()
+    inst.root.update()
     return
 
 
@@ -173,7 +183,7 @@ def show(inst: Splash):
     inst.root.overrideredirect(True)
     inst.root.deiconify()
     inst.root.wm_attributes("-topmost", 1)
-    inst.root.update_ui()
+    inst.root.update()
     return
 
 
@@ -190,9 +200,25 @@ def set_smooth_progress(inst: Splash, ind, boot_steps, resolution=100):
         return
 
     total_boot_steps = len(boot_steps)
-    inst.setInfo(boot_steps[ind+1])
+
+    if ind == -1:
+        inst.completeColor()
+        inst.setInfo("Completed Boot Process")
+
+        index = total_boot_steps
+        for i in range(index * resolution, (total_boot_steps + 1) * resolution):
+            for _ in range(20): pass
+            inst.changePbar((i / (total_boot_steps + 1)) / (resolution / 100))
+        time.sleep(0.5)
+
+        destroy(inst)
+
+        return
+
+    inst.setInfo(boot_steps[ind])
+
     index = ind - 1
-    prev = ind - 1 if ind > 0 else ind
+    prev = index - 1
 
     colors.clamp(0, index, len(boot_steps) - 1)
     colors.clamp(0, prev, len(boot_steps) - 1)
@@ -200,18 +226,5 @@ def set_smooth_progress(inst: Splash, ind, boot_steps, resolution=100):
     for i in range(prev*resolution, ind*resolution):
         for _ in range(20): pass
 
-        inst.changePbar((i/total_boot_steps)/(resolution/100))
+        inst.changePbar((i/(total_boot_steps + 1))/(resolution/100))
 
-    print(prev, index, ind, total_boot_steps)
-
-    if ind >= total_boot_steps - 1:
-        inst.completeColor()
-        inst.setInfo("Completed Boot Process")
-
-        index = total_boot_steps - 1
-        for i in range(index*resolution, total_boot_steps*resolution):
-            for _ in range(20): pass
-            inst.changePbar((i / total_boot_steps) / (resolution / 100))
-        time.sleep(0.5)
-
-        destroy(inst)

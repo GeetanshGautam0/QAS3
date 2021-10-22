@@ -17,9 +17,10 @@
     },
     "app_data": {
         "build": {
-            "build_id": "01",
-            "version_id": "b3.1",
-            "build_type": "b",
+            "build_id": "x01.01.00.03",
+            "version_id": "b3.1.2",
+            "build_type": "beta",
+            "frame_vid": "b3.1",
             "file_compatibility": 3
         }
     }
