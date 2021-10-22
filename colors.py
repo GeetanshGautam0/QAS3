@@ -36,8 +36,10 @@ class Fade:
 
         # Deltas
         deltas = (*[edRGB[i] - stRGB[i] for i in range(3)], )
-        steps = abs(sorted(deltas)[0])
+        steps = abs(sorted(deltas)[-1])
         o = [start]
+
+        print(deltas, steps)
 
         for step in range(steps):
             # o = [*o, (*[(int(clamp(0, o[step-1][j] + deltas[j]/steps, 255))) for j in range(3)], )]
@@ -50,5 +52,5 @@ class Fade:
         return o
 
 
-def clamp(min: int, actual: int, max: int) -> int:
-    return min if actual < min else max if actual > max else actual
+def clamp(minimum: int, actual: int, maximum: int) -> int:
+    return minimum if actual < minimum else maximum if actual > maximum else actual

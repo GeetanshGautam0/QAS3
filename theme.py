@@ -1,6 +1,4 @@
 from appfunctions import *
-# import prconf as _prconf
-from appfunctions import *
 import conf, os,  user_pref
 
 _prconf = protected_conf
@@ -61,6 +59,9 @@ class Theme:
         @staticmethod
         def m(mode):
             global _theme_file
+
+            if mode == 'l': mode = 'light'
+            elif mode == 'd': mode = 'dark'
 
             reload_theme()
 

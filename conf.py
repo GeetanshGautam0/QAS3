@@ -2,7 +2,7 @@ import json, appdirs
 
 
 class ConfigFile:
-    name = "Default.json"
+    name = "conf.json"
     raw = {}
 
     @staticmethod
@@ -25,6 +25,8 @@ class Application:
 
 
 class Encryption:
+    key = "eAxD42i8pmgu8ocHwYNZnn27tj9MIDuuUZ2t-TwJDmE="
+
     file = {
         'qaQuiz':       b"pFeOoK28eCvrCUrQd9XilUFEMPagUKXwkcD7GMqKDMI=",
         'qaEnc':        b"wpmvp-EMJbBta7BDYhH1cKHVWeue0k93XrizQdYG2t8=",
@@ -41,6 +43,9 @@ class AppContainer:
 
     class Prompts:
         def_ws = (400, 450)
+
+    class Splash:
+        geo = [600, 225]
 
 
 class Exceptions:
