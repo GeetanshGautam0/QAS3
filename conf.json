@@ -1,19 +1,24 @@
 {
     "theme": {
-        "theme_file": ".\\theme_conf.json",
+        "theme_file": ".\\.themes\\Default\\theme.json",
         "default_mode": "light",
         "user_can_config": true,
-        "custom_config_file": "user_theme.json"
+        "custom_config_file": "user_theme.json",
+        "pallet_name": {
+            "d":    "pal_dark",
+            "l":    "pal_light",
+            "type": "png"
+        }
     },
     "container_data": {
         "general": {
-            "title": "Application Starter Script"
+            "title": "Quizzing Application 3"
         }
     },
     "app_data": {
         "build": {
-            "build_id": "00",
-            "version_id": "b0.1",
+            "build_id": "01",
+            "version_id": "b3.1",
             "build_type": "b"
         }
     }

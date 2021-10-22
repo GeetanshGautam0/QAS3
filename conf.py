@@ -3,7 +3,7 @@ import appdirs
 
 
 class ConfigFile:
-    name = "conf.json"
+    name = "theme.json"
     raw = {}
 
     @staticmethod
@@ -17,7 +17,7 @@ ConfigFile.reload_raw()
 
 
 class Application:
-    app_name = "Application Starter Script"
+    app_name = "Quizzing Application 3"
     app_author = "Coding Made Fun"
     version_str = ConfigFile.raw['app_data']['build']['version_id']
     AppDataLoc = appdirs.user_data_dir(appname=app_name, appauthor=app_author, version=version_str, roaming=False)
@@ -26,7 +26,14 @@ class Application:
 
 
 class Encryption:
-    key = b"eAxD42i8pmgu8ocHwYNZnn27tj9MIDuuUZ2t-TwJDmE="
+    file = {
+        'qaQuiz':   b"pFeOoK28eCvrCUrQd9XilUFEMPagUKXwkcD7GMqKDMI=",
+        'qaEnc':    b"wpmvp-EMJbBta7BDYhH1cKHVWeue0k93XrizQdYG2t8=",
+        'qaLog':    b"7FubkLxSSHAbk7-7uSojdsDDSKBsOHkUqGZmKs49g28=",
+        'qaFile':   b"SG6BBQdMsYNk9cllqQEpqRzJKACev8OAYtjX2fYvagI=",
+        'qaScore':  b"eAU71fQ61n0wAiDhV5W6L0_JTk-RWxQ6d-WgqUEJ0k4=",
+        'qaExport': b"QsZe516byVY8Siv-nFyWRisw3O-Cl05yndFmW41pSIE="
+    }
 
 
 class AppContainer:
@@ -65,5 +72,23 @@ class Exceptions:
 
         'SC::U_PREF;;FUNC::S_T_MPref::VAR::MODE[user_inp[0]]': 'U_PREF>>S_T_MPREF[1]>>NAME::MODE>>TYPE::STR[accp]<<Exp:[user_inp[0]>>[~-1]',
         'SC::U_PREF;;FUNC::G_T_MPref::VAR::DEF[user_inp[0]]':  'U_PREF>>G_T_MPREF[1]>>NAME::DEFAULT>>TYPE::STR[accp]<<Exp:[user_inp[0]>>[~-2]'
+    }
+
+
+class Files:
+    configuration = {"filename": "user_config.qaFile"}
+    questions_and_answers = {"filename": "qas.qaFile"}
+    scores = {"folder_name": ".local_scores"}
+    theme = {
+        "default": {
+            "filename": ConfigFile.raw['theme']['theme_file']
+        },
+        "userPref": {
+            "filename": ConfigFile.raw['theme']['custom_config_file']
+        }
+    }
+    fts = {
+        'folder_name': '.fts',
+        'files_req': [configuration['filename'], questions_and_answers['filename']]
     }
 

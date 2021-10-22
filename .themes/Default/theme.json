@@ -1,6 +1,12 @@
 {
+    "information": {
+        "author":           "Geetansh Gautam",
+        "name":             "Default",
+        "avial_modes":      ["d", "l"]
+    },
     "dark": {
-        "bg":               "#1D1D1D",
+        "key":              "dark",
+        "bg":               "#202020",
         "fg":               "#ffffff",
         "ok":               "#8bb174",
         "warning":          "#ffb30f",
@@ -9,13 +15,13 @@
     "light": {
         "key":              "light",
         "bg":               "#FFFFFF",
-        "fg":               "#1A090D",
+        "fg":               "#000000",
         "ok":               "#8bb174",
         "warning":          "#ffb30f",
         "error":            "#db504a"
     },
     "gray":                 "#5c5c5c",
-    "accent":               "#0081AF",
+    "accent":               "#008888",
     "padding": {
         "x":                20,
         "y":                10
@@ -27,5 +33,9 @@
         "sttl_size":        15,
         "big_para_size":    13,
         "main_size":        10
+    },
+    "border": {
+        "width": 0,
+        "color": "#ffffff"
     }
 }

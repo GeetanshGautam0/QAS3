@@ -17,13 +17,16 @@ def find_preference() -> str:
     TMODE = user_pref.Get.Theme.mode_pref(default)
     return TMODE
 
+
 def reload_theme() -> None:
     global _theme_data, _theme_file
     find_preference()
     _theme_data = AFJSON(_theme_file.uid).load_file()
 
+
 def set_preference(mode) -> None:
     TMODE = user_pref.Set.Theme.mode_pref(mode)
+
 
 reload_theme()
 
