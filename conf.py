@@ -2,7 +2,7 @@ import json, appdirs
 
 
 class ConfigFile:
-    name = "theme.json"
+    name = "Default.json"
     raw = {}
 
     @staticmethod
