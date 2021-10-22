@@ -2,25 +2,34 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a238f823-c8a7-4518-a85f-c6dc933ab501" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps_adminTools.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/colors.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/splash_screen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/cmfbackup_16.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/cmfbackup_32.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/cmfbackup_64.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/cmfbackup.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/cmflog_64.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/cmflog.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/favicon_package_v0.16.zip" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/favicon.zip" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/qaFile_64.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/qaFile.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/qa_export.ico" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/qaExport.ico" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.src/.icons/qa_export.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/qaExport.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/conf.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="ProjectId" id="1zs5WRubBNdcjAwh755zLnFIpA8" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
