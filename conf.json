@@ -19,7 +19,8 @@
         "build": {
             "build_id": "01",
             "version_id": "b3.1",
-            "build_type": "b"
+            "build_type": "b",
+            "file_compatibility": 3
         }
     }
 }

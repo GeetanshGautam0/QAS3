@@ -2,14 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a238f823-c8a7-4518-a85f-c6dc933ab501" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.themes/Default/pal_dark.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.themes/Default/pal_light.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.themes/Default/theme.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/cmfbackup_16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/cmfbackup_32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/cmfbackup_64.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/cmfbackup.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/cmflog_64.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/cmflog.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/favicon_package_v0.16.zip" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/favicon.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/qaFile_64.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/qaFile.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/qa_export.ico" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/qaExport.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.src/.icons/qa_export.png" beforeDir="false" afterPath="$PROJECT_DIR$/.src/.icons/qaExport.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/conf.json" beforeDir="false" afterPath="$PROJECT_DIR$/conf.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/theme.py" beforeDir="false" afterPath="$PROJECT_DIR$/theme.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/theme_conf.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,6 +33,11 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
   </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\User Files\OneDrive\Documents\2. Electronics\1. Python\QAS 3\.src\.icons" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -40,5 +48,16 @@
       <updated>1634923985880</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

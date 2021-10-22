@@ -1,5 +1,4 @@
-import json
-import appdirs
+import json, appdirs
 
 
 class ConfigFile:
@@ -27,12 +26,13 @@ class Application:
 
 class Encryption:
     file = {
-        'qaQuiz':   b"pFeOoK28eCvrCUrQd9XilUFEMPagUKXwkcD7GMqKDMI=",
-        'qaEnc':    b"wpmvp-EMJbBta7BDYhH1cKHVWeue0k93XrizQdYG2t8=",
-        'qaLog':    b"7FubkLxSSHAbk7-7uSojdsDDSKBsOHkUqGZmKs49g28=",
-        'qaFile':   b"SG6BBQdMsYNk9cllqQEpqRzJKACev8OAYtjX2fYvagI=",
-        'qaScore':  b"eAU71fQ61n0wAiDhV5W6L0_JTk-RWxQ6d-WgqUEJ0k4=",
-        'qaExport': b"QsZe516byVY8Siv-nFyWRisw3O-Cl05yndFmW41pSIE="
+        'qaQuiz':       b"pFeOoK28eCvrCUrQd9XilUFEMPagUKXwkcD7GMqKDMI=",
+        'qaEnc':        b"wpmvp-EMJbBta7BDYhH1cKHVWeue0k93XrizQdYG2t8=",
+        'qaLog':        b"7FubkLxSSHAbk7-7uSojdsDDSKBsOHkUqGZmKs49g28=",
+        'qaFile':       b"SG6BBQdMsYNk9cllqQEpqRzJKACev8OAYtjX2fYvagI=",
+        'qaScore':      b"eAU71fQ61n0wAiDhV5W6L0_JTk-RWxQ6d-WgqUEJ0k4=",
+        'qaExport':     b"QsZe516byVY8Siv-nFyWRisw3O-Cl05yndFmW41pSIE=",
+        'cmfbackup':    b"-ngoLsvLprDiEdkSzO2lEGUaSSd0PHRI_Svpe33exBo="
     }
 
 
@@ -85,10 +85,139 @@ class Files:
         },
         "userPref": {
             "filename": ConfigFile.raw['theme']['custom_config_file']
+        },
+        'presets': {
+            'folder_name': "\\".join(s for s in ConfigFile.raw['theme']['theme_file'].split('\\')[0::])
         }
     }
+
     fts = {
         'folder_name': '.fts',
         'files_req': [configuration['filename'], questions_and_answers['filename']]
     }
 
+    app_icons = {
+        'theming_util': {
+            'ico': '.src\\.icons\\themer.ico',
+            'png': '.src\\.icons\\themer.png'
+        },
+        'recovery_util': {
+            'ico': '.src\\.icons\\ftsra.ico',
+            'png': '.src\\.icons\\ftsra.png'
+        },
+        'quizzing_tool': {
+            'ico': '.src\\.icons\\quizzing_tool.ico',
+            'png': '.src\\.icons\\quizzing_tool.png'
+        },
+        'admin_tools': {
+            'ico': '.src\\.icons\\admin_tools.ico',
+            'png': '.src\\.icons\\admin_tools.png'
+        },
+        'installer': {
+            'ico': '.src\\.icons\\setup.ico',
+            'png': '.src\\.icons\\setup.png'
+        }
+    }
+
+    global_enco = 'utf-8'
+
+    files = {
+        'cmfbackup': {
+            'ico':      '.src\\.icons\\cmfbackup.ico',
+            'png':      '.src\\.icons\\cmfbackup.png',
+            'encrypt':  True,
+            'encoding': global_enco
+        },
+        'cmflog': {
+            'ico': '.src\\.icons\\cmflog.ico',
+            'png': '.src\\.icons\\cmflog.png',
+            'encrypt': False,
+            'encoding': global_enco
+        },
+        '$favicon': {
+            'ico': '.src\\.icons\\favicon.ico',
+            'png': '.src\\.icons\\favicon.png',
+            'zip': '.src\\.icons\\favicon.zip'
+        },
+        'qaExport': {
+            'ico': '.src\\.icons\\qaExport.ico',
+            'png': '.src\\.icons\\qaExport.png',
+            'encrypt': True,
+            'encoding': global_enco
+        },
+        'qaEnc': {
+            'ico': '.src\\.icons\\qaEnc.ico',
+            'png': '.src\\.icons\\qaEnc.png',
+            'encrypt': True,
+            'encoding': global_enco
+        },
+        'qaFile': {
+            'ico': '.src\\.icons\\qaFile.ico',
+            'png': '.src\\.icons\\qaFile.png',
+            'encrypt': True,
+            'encoding': global_enco
+        },
+        'qaLog': {
+            'ico': '.src\\.icons\\qaLog.ico',
+            'png': '.src\\.icons\\qaLog.png',
+            'encrypt': False,
+            'encoding': global_enco
+        },
+        'qaQuiz': {
+            'ico': '.src\\.icons\\qaQuiz.ico',
+            'png': '.src\\.icons\\qaQuiz.png',
+            'encrypt': True,
+            'encoding': global_enco
+        },
+        'qaScore': {
+            'ico': '.src\\.icons\\qaScore.ico',
+            'png': '.src\\.icons\\qaScore.png',
+            'encrypt': True,
+            'encoding': global_enco
+        }
+    }
+
+    sfx = {
+        'error': {
+            'file': '.src\\.sfx\\error.mp3'
+        }
+    }
+
+    help = {
+        'recovery_utilities': '.aid\\recov_util.pdf',
+        'question_entry':     '.aid\\admt_q-add_aid.pdf'
+    }
+
+    extensions = {
+        'export':       'qaExport',
+        'quiz_file':    'qaQuiz',
+        'score_db':     'qaScore'
+    }
+
+
+class FileCodes:
+    file_header = "<<QA::COMPATIBILITY::VERSION :: %s>>" % str(ConfigFile.raw['app_data']['build']['file_compatibility'])
+
+    question_separators = {
+        'nl':       '<<%%QA::0&000001%%>>',
+        'qas':      '<<%%QA::0&000002%%>>',
+        'space':    '<<%%QA::0&000003%%>>'
+    }
+
+    question_codes = {
+        'normal':       '<<%%QA::QUESTION::TYPE::NM%%>>',
+        'mc': {
+            'question': '<<%%QA::QUESTION::TYPE::MC%%>>',
+            'option':   '[Option]'
+        },
+        'true_false':   '<<%%QA::QUESTION::TYPE::TF%%>>'
+    }
+
+
+class URL:
+    bug_report = "https://geetanshgautam.wixsite.com/database/qas-bug-report-form"
+    version_check = "https://raw.githubusercontent.com/GeetanshGautam0/cmfvers/master/qas/qas.json"
+
+
+class Control:
+    doNotUseSplash = False
