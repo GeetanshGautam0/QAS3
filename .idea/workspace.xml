@@ -2,13 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a238f823-c8a7-4518-a85f-c6dc933ab501" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/pdf_gen.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/questions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.themes/Default/Default.json" beforeDir="false" afterPath="$PROJECT_DIR$/.themes/Default/Default.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/_prompts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps_adminTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps_adminTools.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/colors.py" beforeDir="false" afterPath="$PROJECT_DIR$/colors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online_version_check.py" beforeDir="false" afterPath="$PROJECT_DIR$/online_version_check.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/prompts.pyd" beforeDir="false" afterPath="$PROJECT_DIR$/prompts.pyd" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/splash_screen.py" beforeDir="false" afterPath="$PROJECT_DIR$/splash_screen.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

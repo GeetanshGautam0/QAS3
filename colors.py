@@ -60,4 +60,4 @@ class Functions:
 
 
 def clamp(minimum: int, actual: int, maximum: int) -> int:
-    return minimum if actual < minimum else maximum if actual > maximum else actual
+    return minimum if (actual < minimum) else (maximum if (actual > maximum) else actual)

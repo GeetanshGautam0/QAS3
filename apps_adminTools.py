@@ -1,8 +1,6 @@
 import conf, splash_screen
 import tkinter as tk
 
-app_title = f"Administrator Tools {conf.ConfigFile.raw['app_data']['build']['frame_vid']}"
-
 boot_steps = {
     1: "Importing modules",
     2: "Loading Variables",
@@ -15,7 +13,7 @@ boot_steps = {
 _bg_frame = tk.Tk()
 _bg_frame.deiconify()
 _bg_frame.withdraw()
-_bg_frame.title(app_title + " - Background Frame")
+_bg_frame.title("QA Administrator Tools - Background Frame")
 
 if not conf.Control.doNotUseSplash:
     splRoot = tk.Toplevel()
@@ -23,6 +21,7 @@ if not conf.Control.doNotUseSplash:
     splObj.setTitle("Administrator Tools")
 else:
     splObj = None
+
 
 def _set_boot_progress(index):
     if not conf.Control.doNotUseSplash:
@@ -35,13 +34,26 @@ _set_boot_progress(1)
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
 from tkinter import filedialog as tkfldl
-import sys, os, json, online_version_check
-import _prompts as prompts
+import threading, shutil, traceback, json, time, random, subprocess, sys, os, exceptions
+import exceptions, prompts, pdf_gen, log_cleaner
+from appfunctions import *
+import online_version_check as ovcc
 
+
+_set_boot_progress(2)
+
+app_title = f"Administrator Tools {conf.ConfigFile.raw['app_data']['build']['frame_vid']}"
+
+_set_boot_progress(3)
+
+_set_boot_progress(4)
+
+_set_boot_progress(5)
 
 _set_boot_progress(6)
-online_version_check.Check.check(splObj)
-version_notes = online_version_check.Check.find_comments()
+
+ovcc.Check.check(splObj)
+version_notes = ovcc.Check.find_comments()
 if version_notes is not None:
     if len(version_notes) > 0:
 
@@ -62,7 +74,6 @@ if version_notes is not None:
                 )
 
         splash_screen.show(splObj)
-
 
 splash_screen.set_smooth_progress(splObj, -1, boot_steps)
 

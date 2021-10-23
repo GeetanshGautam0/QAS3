@@ -218,11 +218,13 @@ def set_smooth_progress(inst: Splash, ind, boot_steps, resolution=100):
 
     inst.setInfo(boot_steps[ind])
 
-    index = ind - 1
+    index = ind
     prev = index - 1
 
     colors.clamp(0, index, len(boot_steps) - 1)
     colors.clamp(0, prev, len(boot_steps) - 1)
+
+    # print(prev, index, sep=">>")
 
     for i in range(prev*resolution, ind*resolution):
         for _ in range(20): pass

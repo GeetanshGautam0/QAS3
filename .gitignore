@@ -4,3 +4,4 @@ __pycache__/*
 *.un~
 test.py
 *.xml
+conversion_chamber/build/*
