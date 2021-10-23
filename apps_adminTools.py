@@ -30,7 +30,6 @@ def _set_boot_progress(index):
 
 _set_boot_progress(1)
 
-
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
 from tkinter import filedialog as tkfldl

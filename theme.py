@@ -1,4 +1,4 @@
-from _appfunctions import *
+from appfunctions import *
 import conf, os,  user_pref
 
 _prconf = protected_conf

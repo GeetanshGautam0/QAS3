@@ -16,7 +16,7 @@ if prconf.dsb_mod_run_stdnalone and __name__ == "__main__":
 v = "!~0010.00101.-3"
 
 if v != pr_conf.r_prompts_version_id:
-    raise Exception("Failed to init _prompts.py; invalid script version.")
+    raise Exception("Failed to init prompts.py; invalid script version.")
 
 with open("low.json", 'r') as file:
     _l_json = json.loads(file.read())

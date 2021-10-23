@@ -2,8 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a238f823-c8a7-4518-a85f-c6dc933ab501" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/question_view_form.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_appfunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/appfunctions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/prompts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_protected_conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/protected_conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/appfunctions.pyd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/low.json" beforeDir="false" afterPath="$PROJECT_DIR$/low.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prompts.pyd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/protected_conf.pyd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/question_entry_form.py" beforeDir="false" afterPath="$PROJECT_DIR$/question_entry_form.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/theme.py" beforeDir="false" afterPath="$PROJECT_DIR$/theme.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,5 +100,6 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>

@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
-import threading, os, sys, theme, conf, questions, _prompts, colors
-from _appfunctions import *
+import threading, os, sys, theme, conf, questions, prompts, colors
+from appfunctions import *
 
 
 class UI(threading.Thread):
@@ -408,7 +408,7 @@ class UI(threading.Thread):
 
         AFFileIO(file.uid).save('')
 
-        _prompts.TextPrompts.BasicTextPrompt(
+        prompts.TextPrompts.BasicTextPrompt(
             "Successfully deleted all questions.",
             degree="Deleted Questions",
             accent_key="ok"
@@ -424,7 +424,7 @@ class UI(threading.Thread):
         a = self.answer_entry.get("1.0", "end-1c").strip()
 
         if not(len(q) and len(a)):
-            _prompts.TextPrompts.ErrorPrompt.Handled(
+            prompts.TextPrompts.ErrorPrompt.Handled(
                 "Error: Please enter a question and an answer.\n\nIf you wish to cancel, you can close the ui by clicking the 'X' button on the top of the ui.",
                 use_tk=False
             )
