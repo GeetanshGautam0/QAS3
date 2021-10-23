@@ -28,9 +28,9 @@ class Convert:
         return Convert.RGBToHex(Convert.IntToRGB(Int))
 
 
-class Fade:
+class Functions:
     @staticmethod
-    def mono(start: str, end: str):
+    def fade(start: str, end: str):
         stRGB = Convert.HexToRGB(start)
         edRGB = Convert.HexToRGB(end)
 
@@ -48,6 +48,15 @@ class Fade:
         # o = (*[Convert.RGBToHex(i) for i in o], end)
         o = (*o, end)
         return o
+
+    @staticmethod
+    def calculate_nearer(one, two, color):
+        o = Convert.HexToInt(one)
+        t = Convert.HexToInt(two)
+        c = Convert.HexToInt(color)
+        max_diff = sorted((abs(c - o), abs(c - t)))[-1]
+        m = {abs(c - o): one, abs(c - t): two}
+        return m[max_diff]
 
 
 def clamp(minimum: int, actual: int, maximum: int) -> int:

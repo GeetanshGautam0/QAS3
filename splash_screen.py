@@ -101,7 +101,9 @@ class Splash(Toplevel):
             "Horizontal.TProgressbar",
             foreground=compTheme.get('accent'),
             background=compTheme.get('accent'),
-            troughcolor=theme.get('bg')
+            troughcolor=theme.get('bg'),
+            borderwidth=0,
+            thickness=2
         )
         self.titleLbl.config(
             fg=compTheme.get('accent'),
@@ -127,7 +129,7 @@ class Splash(Toplevel):
         percent = (per * (abs(offset_min) / abs(offset_max)) + offset_b) * (needed_max / post_max)
 
         if self.loadGrad:
-            self.grad = colors.Fade.mono(self.ac_start, self.ac_end)
+            self.grad = colors.Functions.fade(self.ac_start, self.ac_end)
             self.loadGrad = False
 
         self.pbar['value'] = per
@@ -137,13 +139,11 @@ class Splash(Toplevel):
                 "Horizontal.TProgressbar",
                 background=self.grad[int((len(self.grad) - 1) * (percent / 100) * 0.8)],
                 foreground=self.grad[int((len(self.grad) - 1) * (percent / 100) * 0.8)],
-                troughcolor=theme.get('bg')
+                troughcolor=theme.get('bg'),
+                borderwidth=0,
+                thickness=2
             )
             self.titleLbl.config(fg=self.grad[colors.clamp(0, int((len(self.grad) - 1) * (percent/100)), len(self.grad) - 1)])
-
-        self.pbar.configure(
-            style="Horizontal.TProgressbar"
-        )
 
         self.root.update()
 
@@ -161,7 +161,8 @@ class Splash(Toplevel):
         self.root.update()
 
 
-def Pass(): pass
+def Pass():
+    pass
 
 
 def hide(inst: Splash):

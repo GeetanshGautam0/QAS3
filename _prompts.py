@@ -1,12 +1,15 @@
 from appfunctions import *
-import conf, re, theme, os, sys, shutil
-from threading import Thread
+
+import colors
+import conf, re, theme, os, sys, shutil, random, json
 import tkinter as tk
 from tkinter import ttk as ttk
 from shared_memory_dict import SharedMemoryDict
+from threading import Thread
+from tkinter import messagebox as tkmsb
+
 
 TMODE = theme.TMODE 
-
 prconf = protected_conf
 
 if prconf.dsb_mod_run_stdnalone and __name__ == "__main__":
@@ -20,6 +23,7 @@ if v != pr_conf.r_prompts_version_id:
 with open("low.json", 'r') as file:
     _l_json = json.loads(file.read())
     file.close()
+
 
 def _update_sc_bar(bar, canvas, root):
     canvas.yview_scroll(1, "units")
@@ -62,15 +66,14 @@ class SMem:
 
 
 class TextPrompts:
-    class BasicTextPrompt(Thread):
+    class BasicTextPrompt:
         def __init__(self, data, use_tk=True, button_text="Okay", degree='Notice',
                      title=conf.AppContainer.general_title, accent_key='accent', contrast_key=-1):
             global TMODE
             TMODE = theme.TMODE
 
-            super().__init__()
-            self.thread = Thread
-            self.thread.__init__(self)
+            # self.thread = Thread
+            # self.thread.__init__(self)
 
             if use_tk:
                 self.root = tk.Tk()
@@ -106,7 +109,8 @@ class TextPrompts:
             self.theme = {}
             self.theme_mode = TMODE
 
-            self.start()
+            # self.start()
+            self.run()
             self.root.deiconify()
             self.root.wm_attributes('-topmost', 1)
             self.root.mainloop()
@@ -114,7 +118,13 @@ class TextPrompts:
         def __on_window_close__(self):
             self.ok_button.config(state=tk.DISABLED)
             self.root.title("CMF - BasicTextPrompt - Closed - Waiting for main app to close")
-            self.root.after(0, self.root.destroy)
+            # self.root.after(0, self.root.destroy)
+            self.root.withdraw()
+            self.root.quit()
+            # self.thread.join(self, 0)
+
+        def __okay(self):
+            self.__on_window_close__()
 
         def run(self):
             _Basic.OnStart.init()
@@ -125,12 +135,14 @@ class TextPrompts:
                 self.theme = theme.Theme.UserPref.light_mode()
 
             if self.contrast_key == -1:
-                # Tuned per accent colour
+                # Calculated
+                _m = {
+                    self.theme['fg']: 'fg',
+                    self.theme['bg']: 'bg'
+                }
 
-                if self.theme_mode == 'd':
-                    self.contrast_key = 'fg'
-                else:
-                    self.contrast_key = 'bg'
+                _res = colors.Functions.calculate_nearer(*_m.keys(), self.theme[self.accent_key])
+                self.contrast_key = _m[_res]
 
             self.root.geometry(
                 "%sx%s+%s+%s" % (self.ws[0], self.ws[1], self.wp[0], self.wp[1])
@@ -230,8 +242,9 @@ class TextPrompts:
             # The absolute legend that created the following code for MyTScrollbar.trough
             # can be found at:
             # https://stackoverflow.com/questions/28375591/changing-the-appearance-of-a-scrollbar-in-tkinter-using-ttk-styles
+            if 'My.Scrollbar.trough' not in sStyle.element_names():
+                sStyle.element_create("My.Scrollbar.trough", "from", ttktheme)
 
-            sStyle.element_create("My.Scrollbar.trough", "from", ttktheme)
             sStyle.layout("My.TScrollbar",
                           [('My.Scrollbar.trough', {'children':
                               [
@@ -295,11 +308,9 @@ class TextPrompts:
             """
             self.data_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-        def __okay(self):
-            self.__on_window_close__()
-
         def __del__(self):
-            self.thread.join(self, 0)
+            # self.thread.join(self, 0)
+            pass
 
     class ErrorPrompt:
 
@@ -356,7 +367,8 @@ class TextPrompts:
                 else:
                     self.ok_button.config(state=tk.DISABLED)
                     self.root.title("CMF - BasicTextPrompt - Closed - Waiting for main app to close")
-                    self.root.after(0, self.root.destroy)
+                    self.root.withdraw()
+                    self.root.quit()
 
             def run(self):
                 _Basic.OnStart.init()
@@ -367,12 +379,13 @@ class TextPrompts:
                     self.theme = theme.Theme.UserPref.light_mode()
 
                 if self.contrast_key == -1:
-                    # Tuned per accent colour
+                    _m = {
+                        self.theme['fg']: 'fg',
+                        self.theme['bg']: 'bg'
+                    }
 
-                    if self.theme_mode == 'd':
-                        self.contrast_key = 'fg'
-                    else:
-                        self.contrast_key = 'bg'
+                    _res = colors.Functions.calculate_nearer(*_m.keys(), self.theme[self.accent_key])
+                    self.contrast_key = _m[_res]
 
                 self.root.geometry(
                     "%sx%s+%s+%s" % (self.ws[0], self.ws[1], self.wp[0], self.wp[1])
@@ -547,28 +560,32 @@ class TextPrompts:
 
         @staticmethod
         def Fatal(*args, **kwargs):
-            cont_ttl = conf.AppContainer.general_title + " - Fatal Error"
-            ttl = "Fatal Error"
-            btn_txt = "Exit"
+            try:
+                cont_ttl = conf.AppContainer.general_title + " - Fatal Error"
+                ttl = "Fatal Error"
+                btn_txt = "Exit"
 
-            kwargs['button_text'] = btn_txt
-            kwargs['degree'] = ttl
-            kwargs['title'] = cont_ttl
-            kwargs['fatal'] = True
+                kwargs['button_text'] = btn_txt
+                kwargs['degree'] = ttl
+                kwargs['title'] = cont_ttl
+                kwargs['fatal'] = True
 
-            TextPrompts.ErrorPrompt._ErrRoot(*args, **kwargs)
+                TextPrompts.ErrorPrompt._ErrRoot(*args, **kwargs)
+            except:
+                tkmsb.showerror("Quizzing Application - Fatal Error", "The application has encountered a fatal error; terminating.")
+                sys.exit(-1)
 
 
 class InputPrompts:
-    class BasicInput(Thread):
+    class BasicInput:
         def __init__(self, s_mem_addr_inst: SMem, **kwargs):
             global TMODE
             TMODE = theme.TMODE
 
             # Functional Objects
-            super().__init__()
-            self.thread = Thread
-            self.thread.__init__(self)
+            # super().__init__()
+            # self.thread = Thread
+            # self.thread.__init__(self)
 
             self.smai = s_mem_addr_inst
             self._shared_mem_dict_args = {}
@@ -587,7 +604,7 @@ class InputPrompts:
                 "contrast_key": [-1, str, False, True]
             }
 
-            self.fls = AF_DATA.Functions.flags(fls, kwargs)
+            self.fls = AFDATA.Functions.flags(fls, kwargs)
             self._smd = SharedMemoryDict(**self._shared_mem_dict_args)
 
             # UI Objects
@@ -634,13 +651,15 @@ class InputPrompts:
                 self.ss[1] // 2 - self.ws[1] // 2
             )
 
-            self.start()
+            # self.start()
+            self.run()
             self.root.deiconify()
             self.root.attributes('-topmost', 1)
             self.root.mainloop()
 
         def __on_window_close__(self):
-            self.root.after(0, self.root.destroy)
+            self.root.withdraw()
+            self.root.quit()
 
         def __set__(self, data, *args, **kwargs):
             self._smd[self._smai_key] = kwargs['data01']
@@ -675,12 +694,13 @@ class InputPrompts:
                 self.theme = theme.Theme.UserPref.light_mode()
 
             if self.contrast_key == -1:
-                # Tuned per accent colour
+                _m = {
+                    self.theme['fg']: 'fg',
+                    self.theme['bg']: 'bg'
+                }
 
-                if self.theme_mode == 'd':
-                    self.contrast_key = 'fg'
-                else:
-                    self.contrast_key = 'bg'
+                _res = colors.Functions.calculate_nearer(*_m.keys(), self.theme[self.accent_key])
+                self.contrast_key = _m[_res]
 
             self.root.geometry(
                 "%sx%s+%s+%s" % (self.ws[0], self.ws[1], self.wp[0], self.wp[1])
@@ -889,7 +909,8 @@ class InputPrompts:
             self.description_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
         def __del__(self):
-            self.thread.join(self, 0)
+            # self.thread.join(self, 0)
+            pass
 
         def _create_sm_args(self):
             _t0 = SMem._pro_000_s_mem_addr_0_size()

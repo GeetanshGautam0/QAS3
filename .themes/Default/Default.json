@@ -1,8 +1,8 @@
 {
-    "information": {
-        "author":           "Geetansh Gautam",
-        "name":             "Default",
-        "avial_modes":      ["d", "l"]
+    "$information": {
+        "$author":           "Geetansh Gautam",
+        "$name":             "Default",
+        "$avail_modes":      ["d", "l"]
     },
     "dark": {
         "key":              "dark",

@@ -4,7 +4,6 @@ import tkinter as tk
 
 _bg = tk.Tk()
 _bg.withdraw()
-_bg.deiconify()
 _bg.title("Quizzing Application - Version Checker")
 
 url = conf.URL.version_check
@@ -17,7 +16,7 @@ http = urllib3.PoolManager(
 class Check:
     @staticmethod
     def latest():
-        global url
+        global url, http
 
         curr = conf.ConfigFile.raw['app_data']['build']['version_id']
 
@@ -39,7 +38,7 @@ class Check:
 
     @staticmethod
     def check(splash=None):
-        global url
+        global url, http
 
         curr = conf.ConfigFile.raw['app_data']['build']['version_id']
 
@@ -115,5 +114,17 @@ class Check:
 
     @staticmethod
     def find_comments():
-        pass
+        global url, http
 
+        try:
+            REQ = http.request('GET', url)
+        except:
+            return None
+
+        curr = conf.ConfigFile.raw['app_data']['build']['version_id']
+
+        _data = REQ.data
+        _r = json.loads(_data)
+        _notes = _r['notes'][_r['map'][curr[0]]].get(curr)
+
+        return _notes
