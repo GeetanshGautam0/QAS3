@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 
-name = "prompts.pyx"
+name = "appfunctions.pyx"
 
 directives = {'linetrace': False, 'language_level': 3}
 setup(

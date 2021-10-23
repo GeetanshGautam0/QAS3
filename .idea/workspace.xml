@@ -2,16 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a238f823-c8a7-4518-a85f-c6dc933ab501" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.aid/admt_q-add_aid.pdf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.aid/recov_util.pdf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/question_entry_form.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/_appfunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/_appfunctions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/_prompts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/colors.py" beforeDir="false" afterPath="$PROJECT_DIR$/colors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pr_conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/pr_conf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/theme.py" beforeDir="false" afterPath="$PROJECT_DIR$/theme.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/appfunctions.pyd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/conversion_chamber/PyxToPyd.py" beforeDir="false" afterPath="$PROJECT_DIR$/conversion_chamber/PyxToPyd.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prompts.pyd" beforeDir="false" afterPath="$PROJECT_DIR$/prompts.pyd" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

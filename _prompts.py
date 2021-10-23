@@ -1,4 +1,4 @@
-from _appfunctions import *
+from appfunctions import *
 import conf, re, theme, os, sys, shutil, random, json, colors
 import tkinter as tk
 from tkinter import ttk as ttk
