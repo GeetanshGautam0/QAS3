@@ -2,13 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a238f823-c8a7-4518-a85f-c6dc933ab501" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pdf_gen.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/questions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.aid/admt_q-add_aid.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.aid/recov_util.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/question_entry_form.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps_adminTools.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps_adminTools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_appfunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/_appfunctions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/_prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/_prompts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/colors.py" beforeDir="false" afterPath="$PROJECT_DIR$/colors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/splash_screen.py" beforeDir="false" afterPath="$PROJECT_DIR$/splash_screen.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pr_conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/pr_conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/theme.py" beforeDir="false" afterPath="$PROJECT_DIR$/theme.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,10 +45,13 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/apps_adminTools.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.aid" />
     <property name="settings.editor.selected.configurable" value="configurable.group.appearance" />
   </component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\User Files\OneDrive\Documents\2. Electronics\1. Python\QAS 3\.aid" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\User Files\OneDrive\Documents\2. Electronics\1. Python\QAS 3\.src\.icons" />
     </key>

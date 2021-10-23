@@ -1,7 +1,5 @@
-from appfunctions import *
-
-import colors
-import conf, re, theme, os, sys, shutil, random, json
+from _appfunctions import *
+import conf, re, theme, os, sys, shutil, random, json, colors
 import tkinter as tk
 from tkinter import ttk as ttk
 from shared_memory_dict import SharedMemoryDict
@@ -15,7 +13,7 @@ prconf = protected_conf
 if prconf.dsb_mod_run_stdnalone and __name__ == "__main__":
     sys.exit("cannot run module standalone.")
 
-v = "!~0010.00101.-2"
+v = "!~0010.00101.-3"
 
 if v != pr_conf.r_prompts_version_id:
     raise Exception("Failed to init _prompts.py; invalid script version.")
@@ -67,7 +65,7 @@ class SMem:
 
 class TextPrompts:
     class BasicTextPrompt:
-        def __init__(self, data, use_tk=True, button_text="Okay", degree='Notice',
+        def __init__(self, data, use_tk=False, button_text="Okay", degree='Notice',
                      title=conf.AppContainer.general_title, accent_key='accent', contrast_key=-1):
             global TMODE
             TMODE = theme.TMODE
@@ -315,7 +313,7 @@ class TextPrompts:
     class ErrorPrompt:
 
         class _ErrRoot:
-            def __init__(self, data, use_tk=True, button_text="Okay", degree='ERROR',
+            def __init__(self, data, use_tk=False, button_text="Okay", degree='ERROR',
                          title=conf.AppContainer.general_title + " - Error", accent_key='error', contrast_key=-1,
                          fatal=False):
                 global TMODE
@@ -483,8 +481,9 @@ class TextPrompts:
                 # The absolute legend that created the following code for MyTScrollbar.trough
                 # can be found at:
                 # https://stackoverflow.com/questions/28375591/changing-the-appearance-of-a-scrollbar-in-tkinter-using-ttk-styles
+                if 'My.Scrollbar.trough' not in sStyle.element_names():
+                    sStyle.element_create("My.Scrollbar.trough", "from", ttktheme)
 
-                sStyle.element_create("My.Scrollbar.trough", "from", ttktheme)
                 sStyle.layout("My.TScrollbar",
                               [('My.Scrollbar.trough', {'children':
                                   [

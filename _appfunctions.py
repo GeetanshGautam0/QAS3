@@ -15,7 +15,7 @@ for_log = "%Z(%z)::%w %d %m %y - %H:%M:%S::%f (%j) [%c]"
 # for_log_name = "%Z%z%w %d%m%y%H%M%S%f%j%c"
 for_log_name = "%Z%z%w %d %m %y %H %M %S %f %j %c"
 
-version_id = "!~0010.00101.-7"
+version_id = "!~0010.00101.-8"
 
 with open("low.json", 'r') as file:
     _l_json = json.loads(file.read())
@@ -615,6 +615,7 @@ class AFIOObject:
 
     def _load_flags(self, user_in, template: dict = None) -> None:
         global _SELF_LOG
+
         if self._read_only:
             E = Exception("This instance cannot be modified (set as read-only.)")
 
@@ -635,20 +636,24 @@ class AFIOObject:
                 if k not in self._protected_flags:
                     self.flags[k] = nv
                 else:
-                    self._protected_flags[k] = n_flags
+                    self._protected_flags[k] = nv
 
         self.flags['encoding'] = AFDATA.Functions.check_blacklist(self.flags['encoding'],
                                                                   AFDATA.Data.blacklists['encoding'],
                                                                   AFDATA.Data.defaults['encoding'])
         self.flags['re_type'] = AFDATA.Functions.check_blacklist(self.flags['re_type'], ["!!", [str, bytes]], str)
+
         if not self.flags_loaded:
             self._protected_flags = {'enc_key': self.flags['enc_key']}
             self.flags_loaded = True
+
         for _pflag in self._protected_flags:
-            if _pflag in self.flags: self.flags.pop(_pflag)
+            if _pflag in self.flags:
+                self.flags.pop(_pflag)
 
         if self.flags['encrypt']:
             if type(self._protected_flags['enc_key']) is not bytes:
+
                 E = TypeError(
                     "Expected type 'bytes' for flag 'enc_key;' got %s" % str(type(self._protected_flags['enc_key'])))
 

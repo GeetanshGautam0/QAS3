@@ -25,7 +25,7 @@ class Application:
 
 
 class Encryption:
-    key = "eAxD42i8pmgu8ocHwYNZnn27tj9MIDuuUZ2t-TwJDmE="
+    key = b"eAxD42i8pmgu8ocHwYNZnn27tj9MIDuuUZ2t-TwJDmE="
 
     file = {
         'qaQuiz':       b"pFeOoK28eCvrCUrQd9XilUFEMPagUKXwkcD7GMqKDMI=",
@@ -46,6 +46,13 @@ class AppContainer:
 
     class Splash:
         geo = [600, 225]
+
+    class Apps:
+        admin_tools = {
+            'question_entry': {
+                'ws': [840, 800]
+            }
+        }
 
 
 class Exceptions:
@@ -215,7 +222,7 @@ class FileCodes:
             'question': '<<%%QA::QUESTION::TYPE::MC%%>>',
             'option':   '[Option]'
         },
-        'true_false':   '<<%%QA::QUESTION::TYPE::TF%%>>'
+        'tf':   '<<%%QA::QUESTION::TYPE::TF%%>>'
     }
 
 
