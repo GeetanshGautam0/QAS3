@@ -329,7 +329,8 @@ class UI(threading.Thread):
             font=(
                 self.theme.get('font').get('font_face'),
                 11
-            )
+            ),
+            insertbackground=self.theme.get('accent')
         )
 
         self.answer_entry.config(
@@ -339,7 +340,8 @@ class UI(threading.Thread):
             font=(
                 self.theme.get('font').get('font_face'),
                 11
-            )
+            ),
+            insertbackground=self.theme.get('accent')
         )
 
     def update(self):
@@ -431,6 +433,15 @@ class UI(threading.Thread):
 
             return
 
+        _ok = _check_question(
+            (mc_code if self.mc else tf_code if self.tf else nm_code) + " " + q,
+            a
+        )
+
+        if not _ok[0]:
+            prompts.TextPrompts.ErrorPrompt.Handled(_ok[1], degree='Error', accent_key='warning')
+            return
+
         data = questions.Conversions.convertToQuestionStr(
             ((mc_code if self.mc else tf_code if self.tf else nm_code) + " " + q),
             a
@@ -486,6 +497,65 @@ class UI(threading.Thread):
 
     def __del__(self):
         self.thread.join(self, 0)
+
+
+def _check_question(question, answer) -> list:
+    try:
+        def token_type(_token, tok_ls, _is_word=True) -> bool:
+            # return not((False if (Type == 'word') else True) ^ (token in tok_ls))
+            return not ((not _is_word) ^ (_token in tok_ls))
+
+        q_tokens, a_tokens, output = (*question.split(),), (*answer.split(),), ()
+
+        assert len(conf.FileCodes.question_codes) == 3, "Update _check_question function (viewing form)"
+
+        mc_q_tok = conf.FileCodes.question_codes['mc']['question']
+        mc_a_tok = conf.FileCodes.question_codes['mc']['option']
+        tf_q_tok = conf.FileCodes.question_codes['tf']
+        nm_q_tok = conf.FileCodes.question_codes['normal']
+
+        tokens_list = (mc_q_tok, tf_q_tok, nm_q_tok, mc_a_tok, *list(conf.FileCodes.question_separators.items()))
+
+        assert q_tokens[0] in (mc_q_tok, tf_q_tok, nm_q_tok), "Question must start with question type data."
+        assert not((q_tokens[0] == mc_q_tok) ^ (mc_a_tok in q_tokens)), "Question must contain options."
+
+        if q_tokens[0] == tf_q_tok:
+            assert ('t' in answer.lower()) ^ ('f' in answer.lower()), "Answer to a true/false question can only be one of the aforementioned options, not both."
+
+        elif q_tokens[0] == mc_q_tok:
+            mc_a_stack = ()
+            # Find the options' indexes
+            for index, token in enumerate(q_tokens):
+                if token_type(token, tokens_list, False):
+                    if token == mc_a_tok:
+                        mc_a_stack = (*mc_a_stack, index)
+
+            assert len(mc_a_stack) >= 2, "You must add at least two options to a multiple choice question."
+
+            option_handles = ()
+            for index in mc_a_stack:
+                assert len(q_tokens) >= (index + 1), "Unable to extract option data from the question; please define the question properly. (1)"
+
+                handle = q_tokens[index + 1]
+                assert handle[0] == '[' and handle[-1] == ']', "Unable to extract option data from the question; please define the question properly. (2)"
+
+                handle = handle.lstrip('[').rstrip(']')
+                assert len(handle) > 0, "Please ensure that you've defined all options properly."
+
+                option_handles = (*option_handles, handle.strip())
+
+            assert answer.lower().strip() in option_handles, "The answer provided has not been referenced in the question."
+
+        elif q_tokens[0] == nm_q_tok:
+            pass
+
+        else:
+            raise Exception
+
+        return [True, ""]
+
+    except Exception as E:
+        return [False, E.__str__(), ]
 
 
 if __name__ == "__main__":

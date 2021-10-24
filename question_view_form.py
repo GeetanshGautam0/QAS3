@@ -85,7 +85,11 @@ class UI(threading.Thread):
         self.loadingLbl.config(text="Inserting questions into UI...")
 
         for i in self.rec_questions:
-            _format = _format_question(i.strip(), self.rec_questions.get(i).strip())
+            try:
+                _format = _format_question(i.strip(), self.rec_questions.get(i).strip())
+            except Exception as E:
+                print(traceback.format_exc())
+                _format = ("Error", E.__str__(), "Error")
             print(_format)
             tempQuestionNumberLbl = tk.Label(
                 self.frame,
@@ -98,7 +102,7 @@ class UI(threading.Thread):
             tempQuestionNumberLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=(15, 5))
 
             self.update_lbl.append(tempQuestionNumberLbl)
-            self.update_text_font[tempQuestionNumberLbl] = (self.theme.get('font')['font_face'], 14)
+            self.update_text_font[tempQuestionNumberLbl] = (self.theme.get('font')['font_face'], self.theme['font']['big_para_size'])
             self.update_accent_foreground.append(tempQuestionNumberLbl)
 
             tempTypeLbl = tk.Label(
@@ -112,7 +116,7 @@ class UI(threading.Thread):
             tempTypeLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
 
             self.update_lbl.append(tempTypeLbl)
-            self.update_text_font[tempTypeLbl] = (self.theme.get('font')['font_face'], 14)
+            self.update_text_font[tempTypeLbl] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
 
             tempQuestionLbl = tk.Label(
                 self.frame,
@@ -125,7 +129,7 @@ class UI(threading.Thread):
             tempQuestionLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
 
             self.update_lbl.append(tempQuestionLbl)
-            self.update_text_font[tempQuestionLbl] = (self.theme.get('font').get('font_face'), 14)
+            self.update_text_font[tempQuestionLbl] = (self.theme.get('font').get('font_face'), self.theme['font']['main_size'])
 
             tempAnswerLbl = tk.Label(
                 self.frame,
@@ -157,7 +161,9 @@ class UI(threading.Thread):
             self.config_rm_button(remButton, i)
 
             self.update_lbl.append(tempAnswerLbl)
-            self.update_text_font[tempAnswerLbl] = (self.theme.get('font')['font_face'], 14)
+            self.update_text_font[tempAnswerLbl] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
+
+            self.update_text_font[remButton] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
             # self.update_accent_foreground.append(tempAnswerLbl)
 
             # sep = ttk.Separator(self.frame)
@@ -318,14 +324,14 @@ def _format_question(question, answer) -> tuple:
     q_tokens, a_tokens, output = (*question.split(),), (*answer.split(),), ()
     q_raw = a_raw = ""
 
-    assert len(conf.FileCodes.question_codes) == 3, "Update _formar_question function (viewing form)"
+    assert len(conf.FileCodes.question_codes) == 3, "Update _format_question function (viewing form)"
 
     mc_q_tok = conf.FileCodes.question_codes['mc']['question']
     mc_a_tok = conf.FileCodes.question_codes['mc']['option']
     tf_q_tok = conf.FileCodes.question_codes['tf']
     nm_q_tok = conf.FileCodes.question_codes['normal']
 
-    tokens_list = (mc_q_tok, tf_q_tok, nm_q_tok, mc_a_tok, *list(conf.FileCodes.question_separators.items()))
+    tokens_list = (mc_q_tok, tf_q_tok, nm_q_tok, mc_a_tok, *list(conf.FileCodes.question_separators.keys()))
 
     assert q_tokens[0] in (mc_q_tok, tf_q_tok, nm_q_tok), "Question must start with question type data."
     assert not((q_tokens[0] == mc_q_tok) ^ (mc_a_tok in q_tokens)), "Question must contain options."
@@ -361,13 +367,27 @@ def _format_question(question, answer) -> tuple:
 
         # Compile them into a string
         pre = q_tokens[:mc_a_stack[0]]
-        print(pre)
         options = ()
         for s_index, index in enumerate(mc_a_stack):
             if index < mc_a_stack[-1]:
                 options = (*options, " ".join(i for i in q_tokens[index:mc_a_stack[s_index+1]]))
             else:
                 options = (*options, " ".join(i for i in q_tokens[index::]))
+
+        # Find the options
+        option_handles = ()
+        for index in mc_a_stack:
+            assert len(q_tokens) >= (index + 1), "Question not defined properly. (1)"
+
+            handle = q_tokens[index + 1]
+            assert handle[0] == '[' and handle[-1] == ']', "Question not defied properly. (2)"
+
+            handle = handle.lstrip('[').rstrip(']')
+            assert len(handle) > 0, "Question not defined properly. (3)"
+
+            option_handles = (*option_handles, handle.strip())
+
+        assert answer.lower().strip() in option_handles, "Question not defined properly. (4)"
 
         # Compile the previous tuples into strings
         pre_compiled = " ".join(_ for _ in pre).strip()
@@ -400,6 +420,11 @@ def _format_question(question, answer) -> tuple:
     )
     question_compiled = question_compiled.strip()
     compiled_answer = compiled_answer.strip()
+
+    for token in tokens_list:
+        assert type(token) is str, "%s token is not str" % str(token)
+        question_compiled = question_compiled.replace(token, "")
+        compiled_answer = compiled_answer.replace(token, "")
 
     q_type = {
         mc_q_tok: 'Multiple Choice',

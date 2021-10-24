@@ -403,7 +403,9 @@ class TextPrompts:
                     wraplength=self.ws[0] - 3.5 * self.theme['padding']['x'],
                     fg=self.theme['fg'],
                     bg=self.theme['bg'],
-                    font=(self.theme['font']['font_face'], self.theme['font']['main_size'])
+                    font=(self.theme['font']['font_face'], self.theme['font']['main_size']),
+                    anchor=tk.W,
+                    justify=tk.LEFT
                 )
                 self.data_label.pack(
                     fill=tk.BOTH,
@@ -802,7 +804,9 @@ class InputPrompts:
                     wraplength=self.ws[0] - 3.5 * self.theme['padding']['x'],
                     fg=self.theme['fg'],
                     bg=self.theme['bg'],
-                    font=(self.theme['font']['font_face'], self.theme['font']['main_size'])
+                    font=(self.theme['font']['font_face'], self.theme['font']['main_size']),
+                    anchor=tk.W,
+                    justify=tk.LEFT
                 )
                 self.description_label.pack(
                     fill=tk.BOTH,
