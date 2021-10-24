@@ -34,7 +34,7 @@ from tkinter import ttk
 from tkinter import messagebox as tkmsb
 from tkinter import filedialog as tkfldl
 import threading, shutil, traceback, json, time, random, subprocess, sys, os, exceptions
-import exceptions, prompts, pdf_gen, log_cleaner
+import exceptions, prompts, pdf_gen, log_cleaner, nv_flags_system, diagnostics
 from appfunctions import *
 import online_version_check as ovcc
 

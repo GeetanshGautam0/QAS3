@@ -1,0 +1,29 @@
+{
+  "all": {
+    "num": 0,
+    "list": [
+      ".\\appfunctions.py",
+      ".\\apps_adminTools.py",
+      ".\\apps_quizzingTool.py",
+      ".\\apps_themingUtility.py",
+      ".\\apps_recoveryUtilities.py",
+      ".\\colors.py",
+      ".\\conf.py",
+      ".\\diagnostics.py",
+      ".\\exceptions.py",
+      ".\\log_cleaner.py",
+      ".\\nv_flags_system.py",
+      ".\\online_version_check.py",
+      ".\\pdf_gen.py",
+      ".\\pr_conf.py",
+      ".\\prompts.py",
+      ".\\protected_conf.py",
+      ".\\question_entry_form.py",
+      ".\\question_view_form.py",
+      ".\\questions.py",
+      ".\\splash_screen.py",
+      ".\\theme.py",
+      ".\\user_pref.py"
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 {
     "theme": {
         "theme_file": ".\\.themes\\Default\\Default.json",
+        "theme_root": ".\\.themes",
         "default_mode": "light",
         "user_can_config": true,
         "custom_config_file": "user_theme.json",
