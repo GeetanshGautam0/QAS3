@@ -1,4 +1,4 @@
-import os, conf, theme, json, re
+import os, conf, theme, json, re, protected_conf
 import traceback
 
 FALSE = 0
@@ -328,53 +328,22 @@ class DataDiagnostics:
             }
 
         @staticmethod
-        def check_defaults() -> tuple:
+        def _check(source, jump_to_file_in_first_dir=False) -> tuple:
+            if not os.path.exists(source):
+                return ((), ("FAILURE: No such directory/file exists"), (), )
+
             failed = passed = violations = ()
-            for item in os.listdir(conf.ConfigFile.raw['theme']['theme_root']):
-                item = os.path.join(
-                    conf.ConfigFile.raw['theme']['theme_root'],
-                    item
-                )
 
-                if os.path.isdir(item):
-                    for file in os.listdir(item):
-                        print(item)
+            for item in os.listdir(source):
+                item_og = item
+                item = os.path.join(source, item)
 
-                        file = os.path.join(
-                            item,
-                            file
-                        )
+                if os.path.isdir(item) and not jump_to_file_in_first_dir:
+                    passed, failed, violations = _theme_check_final_call(os.path.join(source, item_og))
 
-                        if os.path.isfile(file):
-                            if file.split('.')[-1] in ['png', 'json']:
-                                if file.split('.')[-1] == 'json':
-                                    with open(os.path.abspath(file), 'r') as jfile:
-                                        r = jfile.read()
-                                        jfile.close()
-                                    try:
-                                        r = json.loads(r)
-                                        res = _check_theme_file(r, file.split("\\")[-1])
-                                        failed = (*failed, *res['failed'])
-                                        passed = (*passed, *res['passed'])
-                                        violations = (*violations, *res['violations'])
+                elif jump_to_file_in_first_dir:
+                    passed, failed, violations = _theme_check_final_call(source)
 
-                                    except:
-                                        failed = (*failed, "FAILURE: Failed to load theme file %s" % os.path.abspath(file))
-
-                            else:
-                                violations = (
-                                    *violations,
-                                    "VIOLATION: Found non-png, non-json item in 2nd level dir in theme_root directory (%s)" % os.path.abspath(
-                                        file
-                                    )
-                                )
-                        else:
-                            violations = (
-                                *violations,
-                                "VIOLATION: Found non-file item in 2nd level dir in theme_root directory (%s)" % os.path.abspath(
-                                    file
-                                )
-                            )
                 else:
                     violations = (*violations, 'VIOLATION: Non-dir item found in theme_root directory (%s)' % item)
 
@@ -382,8 +351,77 @@ class DataDiagnostics:
             return output
 
         @staticmethod
-        def check_user_pref():
-            pass
+        def check_defaults() -> tuple:
+            return DataDiagnostics.Theme._check(conf.ConfigFile.raw['theme']['theme_root'])
+
+        @staticmethod
+        def check_user_pref() -> tuple:
+            p = [conf.Application.AppDataLoc, *protected_conf.Configuration.Files.pref_file_loc]
+            p_fn = conf.ConfigFile.raw['theme']['custom_config_file']
+
+            # return DataDiagnostics.Theme._check(os.path.join(*p), jump_to_file_in_first_dir=True)
+            return _theme_check_final_call(os.path.join(*p, p_fn))
+
+
+def _theme_check_final_call(source) -> tuple:
+    failed = passed = violations = ()
+
+    if os.path.isdir(source):
+        for file in os.listdir(source):
+            file = os.path.join(source, file)
+
+            if os.path.isfile(file):
+
+                if file.split('.')[-1] in ['png', 'json']:
+
+                    if file.split('.')[-1] == 'json':
+
+                        with open(os.path.abspath(file), 'r') as jfile:
+                            r = jfile.read()
+                            jfile.close()
+                        try:
+                            r = json.loads(r)
+                            res = _check_theme_file(r, file.split("\\")[-1])
+                            failed = (*failed, *res['failed'])
+                            passed = (*passed, *res['passed'])
+                            violations = (*violations, *res['violations'])
+
+                        except:
+                            failed = (
+                                *failed, "FAILURE: Failed to load theme file %s" % os.path.abspath(file))
+
+                else:
+                    violations = (
+                        *violations,
+                        "VIOLATION: Found non-png, non-json item in 2nd level dir in theme_root directory (%s)" % os.path.abspath(
+                            file
+                        )
+                    )
+            else:
+                violations = (
+                    *violations,
+                    "VIOLATION: Found non-file item in 2nd level dir in theme_root directory (%s)" % os.path.abspath(
+                        file
+                    )
+                )
+
+    else:
+        with open(os.path.abspath(source), 'r') as jfile:
+            r = jfile.read()
+            jfile.close()
+        try:
+            r = json.loads(r)
+            res = _check_theme_file(r, source.split("\\")[-1])
+            failed = (*failed, *res['failed'])
+            passed = (*passed, *res['passed'])
+            violations = (*violations, *res['violations'])
+
+        except:
+            failed = (
+                *failed, "FAILURE: Failed to load theme file %s" % os.path.abspath(source))
+
+    output = (passed, failed, violations)
+    return output
 
 
 def _run_file_exs_check(req: tuple):
@@ -414,7 +452,13 @@ def _deduce_theme_data_result(raw, req, cond_checks, file_path, key_dir='root') 
                 "FAILURE: Key '%s' does not exist in theme file (%s/%s)." % (key, key_directory, key)
             )
 
-        else:
+            for child in requirement['children']:
+                output['failed'] = (
+                    *output['failed'],
+                    "FAILURE: Key '%s' does not exist in theme file (%s/%s/%s)." % (child, key_directory, key, child)
+                )
+
+        elif key in raw:
             output['passed'] = (*output['passed'],
                                 "PASSED: Found key '%s/%s' in theme file." % (key_directory, key))
 
@@ -460,6 +504,9 @@ def _deduce_theme_data_result(raw, req, cond_checks, file_path, key_dir='root') 
                 output['failed'] = (*output['failed'], *res['failed'])
                 output['passed'] = (*output['passed'], *res['passed'])
                 output['violations'] = (*output['violations'], *res['violations'])
+
+        else:
+            output['failed'] = (*output['failed'], '[POTENTIAL] FAILURE: Key \'%s/%s\' not found in file' % (key_directory, key))
 
     for key, items in output.items():
         output[key] = (*set(items), )
