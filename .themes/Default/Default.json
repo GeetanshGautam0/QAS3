@@ -27,7 +27,7 @@
         "y":                10
     },
     "font": {
-        "font_face":        "Montserrat",
+        "font_face":        1,
         "title_size":       28,
         "sttl_size":        15,
         "big_para_size":    13,
