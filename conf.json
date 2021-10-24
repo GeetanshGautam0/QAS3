@@ -21,7 +21,15 @@
             "version_id": "b3.1.2",
             "build_type": "beta",
             "frame_vid": "b3.1",
-            "file_compatibility": 3
+            "file_compatibility": 3,
+            "supported_translations": {
+                "qaQuiz":   [2],
+                "qaExport": [2],
+                "qaScore":  [2]
+            },
+            "file_translations": {
+                "qa_export": "qaExport"
+            }
         }
     }
 }

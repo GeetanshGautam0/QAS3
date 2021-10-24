@@ -406,7 +406,7 @@ class UI(threading.Thread):
         if conf.Files.files[extension]['encrypt']:
             file.edit_flag(enc_key=conf.Encryption.file[extension])
 
-        AFFileIO(file.uid).save('')
+        AFFileIO(file.uid).save('', append=False)
 
         prompts.TextPrompts.BasicTextPrompt(
             "Successfully deleted all questions.",
@@ -432,7 +432,7 @@ class UI(threading.Thread):
             return
 
         data = questions.Conversions.convertToQuestionStr(
-            ((mc_code if self.mc else tf_code if self.tf else nm_code) + q),
+            ((mc_code if self.mc else tf_code if self.tf else nm_code) + " " + q),
             a
         )
 
@@ -458,7 +458,10 @@ class UI(threading.Thread):
             print(conf.Encryption.file[extension])
             file.edit_flag(enc_key=conf.Encryption.file[extension])
 
-        AFFileIO(file.uid).save(data)
+        AFFileIO(file.uid).secure_save(
+            data,
+            append=True
+        )
 
         self.submitButton.config(
             state=tk.DISABLED,
@@ -483,3 +486,7 @@ class UI(threading.Thread):
 
     def __del__(self):
         self.thread.join(self, 0)
+
+
+if __name__ == "__main__":
+    UI()

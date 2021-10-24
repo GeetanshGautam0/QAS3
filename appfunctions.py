@@ -1248,8 +1248,9 @@ class AFFileIO:
 
                     raise E
 
-        if flags['delete_backup_after']:
-            os.remove(_backup_file_name)
+            # Delete backup file after (optional)
+            if flags['delete_backup_after']:
+                os.remove(_backup_file_name)
         
         return
 
@@ -2082,13 +2083,13 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         """
 
         self.refresh()
-        print("Logging data")
+        # print("Logging data")
 
         try:
             self.performance_logger.log(*data, empty_line=empty_line)
         except Exception as E:
             try:
-                print(E)
+                # print(E)
                 t = traceback.format_exc()
                 self.reliable_logger.log(*data, e=t, empty_line=empty_line)
             except Exception as E:

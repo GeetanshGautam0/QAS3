@@ -178,7 +178,7 @@ class Files:
         'qaQuiz': {
             'ico': '.src\\.icons\\qaQuiz.ico',
             'png': '.src\\.icons\\qaQuiz.png',
-            'encrypt': True,
+            'encrypt': False,
             'encoding': global_enco
         },
         'qaScore': {
