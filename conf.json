@@ -2,13 +2,12 @@
     "theme": {
         "theme_file": ".\\.themes\\Default\\Default.json",
         "theme_root": ".\\.themes",
-        "default_mode": "light",
         "user_can_config": true,
         "custom_config_file": "user_theme.json",
-        "pallet_name": {
-            "d":    "pal_dark",
-            "l":    "pal_light",
-            "type": "png"
+        "user_can_install_themes": {
+            "root": true,
+            "in_appdata": true,
+            "dir": ".appdata\\.user\\.installed_themes"
         }
     },
     "container_data": {

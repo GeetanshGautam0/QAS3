@@ -37,7 +37,7 @@ class UI(threading.Thread):
 
         self.loadingLbl = tk.Label(self.frame, text="Loading questions; please wait.")
 
-        theme.reload_theme()
+        theme.reload_default()
         self.theme = theme.Theme.UserPref.m(theme.TMODE)
 
         self.update_lbl: list = []
@@ -263,7 +263,7 @@ class UI(threading.Thread):
         self.run()
 
     def update_theme(self):
-        theme.reload_theme()
+        theme.reload_default()
         self.theme = theme.Theme.UserPref.m(theme.TMODE)
 
         self.root.config(

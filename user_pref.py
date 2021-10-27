@@ -1,12 +1,8 @@
-import conf, os, json, importlib
-import exceptions
+import conf, os, json, importlib, protected_conf, exceptions
 
 with open("low.json", 'r') as file:
     _l_json = json.loads(file.read())
     file.close()
-
-protected_confFile: str = _l_json['pcm_file']
-protected_conf = importlib.import_module(protected_confFile)
 
 
 class _Basic:
@@ -84,7 +80,7 @@ class _Basic:
 
             if root in _r:
                 ret = _r[root].get(key)
-                if ret is not None:
+                if type(ret) is type(default):
                     f_s1 = False
 
             if f_s1:
@@ -93,12 +89,24 @@ class _Basic:
 
             return ret
 
+        @staticmethod
+        def load_json(file_name):
+            assert os.path.exists(file_name), "Invalid file provided (0)"
+            with open(file_name) as file:
+                r = file.read()
+                file.close()
+            try:
+                o = json.loads(r)
+            except:
+                o = {}
+
+            return o
+
 
 class _Data:
     class Theme:
         root = "theme"
-        mode_pref_key = "mode"
-        mode_pref_accepted = ('l', 'd')
+        theme_pref_key = "file/mode"
 
     class Global:
         p = [conf.Application.AppDataLoc, *protected_conf.Configuration.Files.pref_file_loc]
@@ -108,54 +116,63 @@ class _Data:
 class Set:
     class Theme:
         @staticmethod
-        def mode_pref(mode):
-            if type(mode) is not str:
+        def theme_pref(data: tuple) -> None:
+            if type(data) not in (tuple, list, ):
                 raise exceptions.ParameterException(
                     "SCRIPT::U_PREF ;; FUNCTION::SET_THEME_MODE_PREF",
                     "MODE",
-                    "STR[accp. >> in %s]" % str(_Data.Theme.mode_pref_accepted),
-                    type(mode).__str__().upper(),
+                    "TUPLE[STR, STR]",
+                    type(data).__str__().upper(),
                     True,
                     "SC::U_PREF;;FUNC::S_T_MPref::VAR::MODE[user_inp[0]]"
                 )
 
-            elif mode not in _Data.Theme.mode_pref_accepted:
-                raise exceptions.ParameterException(
-                    "SCRIPT::U_PREF ;; FUNCTION::SET_THEME_MODE_PREF",
-                    "MODE",
-                    "STR[accp. >> in %s]" % str(_Data.Theme.mode_pref_accepted),
-                    mode.strip().upper(),
-                    True,
-                    "SC::U_PREF;;FUNC::S_T_MPref::VAR::MODE[user_inp[0]]"
-                )
+            _Basic.IO.set(data, _Data.Theme.root, _Data.Theme.theme_pref_key)
 
-            _Basic.IO.set(mode, _Data.Theme.root, _Data.Theme.mode_pref_key)
+            return None
 
 
 class Get:
     class Theme:
         @staticmethod
-        def mode_pref(default):
-            if type(default) is not str:
+        def theme_pref(default: tuple):
+            if type(default) not in (tuple, list, ):
                 raise exceptions.ParameterException(
                     "SCRIPT::U_PREF ;; FUNCTION::GET_THEME_MODE_PREF",
                     "DEFAULT",
-                    "STR[accp. >> in %s]" % str(_Data.Theme.mode_pref_accepted),
+                    "TUPLE[STR, STR]",
                     type(default).__str__().upper(),
                     True,
                     "SC::U_PREF;;FUNC::G_T_MPref::VAR::DEF[user_inp[0]]"
                 )
 
-            elif default not in _Data.Theme.mode_pref_accepted:
-                raise exceptions.ParameterException(
-                    "SCRIPT::U_PREF ;; FUNCTION::GET_THEME_MODE_PREF",
-                    "MODE",
-                    "STR[accp. >> in %s]" % str(_Data.Theme.mode_pref_accepted),
-                    default.strip().upper(),
-                    True,
-                    "SC::U_PREF;;FUNC::G_T_MPref::VAR::DEF[user_inp[0]]"
-                )
+            dict_loc = default[-1]
+            def_file = default[0]
 
-            ret = _Basic.IO.get(_Data.Theme.root, _Data.Theme.mode_pref_key, default)
+            if "__CGET__" in dict_loc:
+                tok = dict_loc.split("::")
+                assert len(tok) == 2, "Failed to `__CGET__` default data; invalid arguments."
 
-            return ret
+                loc = tok[-1].replace('::', '')
+                r = _Basic.IO.load_json(def_file)
+                o = r
+                ls = loc.split("\\")
+
+                for key in ls:
+                    o = o[key]
+
+                def_loc = o
+
+            else:
+                def_loc = dict_loc
+
+            file, mode = _Basic.IO.get(
+                _Data.Theme.root,
+                _Data.Theme.theme_pref_key,
+                [def_file, def_loc]
+            )
+
+            return {
+                'file': file,
+                'mode': mode
+            }

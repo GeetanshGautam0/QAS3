@@ -82,8 +82,8 @@ class Exceptions:
         'J_G_ST_D::AFDATA[UINP-1][##]{merge_error}':      'J.GSTD>>script_inp[2-]>>TYPE>>VAR::[description]<<Exp:[numerical]<<REC:![#][2-]',
         'J_G_ST_D::AFDATA[UINP-1][()]{merge_error}':      'J.GSTD>>script_inp[32-]>>TYPE>>VAR::[description]<<Exp:[mul]<<REC:![{}][2-]',
 
-        'SC::U_PREF;;FUNC::S_T_MPref::VAR::MODE[user_inp[0]]': 'U_PREF>>S_T_MPREF[1]>>NAME::MODE>>TYPE::STR[accp]<<Exp:[user_inp[0]>>[~-1]',
-        'SC::U_PREF;;FUNC::G_T_MPref::VAR::DEF[user_inp[0]]':  'U_PREF>>G_T_MPREF[1]>>NAME::DEFAULT>>TYPE::STR[accp]<<Exp:[user_inp[0]>>[~-2]'
+        'SC::U_PREF;;FUNC::S_T_MPref::VAR::MODE[user_inp[0]]': 'U_PREF>>S_T_MPREF[1]>>NAME::MODE>>TYPE::TUPLE<<Exp:[user_inp[0]>>[~-1]',
+        'SC::U_PREF;;FUNC::G_T_MPref::VAR::DEF[user_inp[0]]':  'U_PREF>>G_T_MPREF[1]>>NAME::DEFAULT>>TYPE::TUPLE<<Exp:[user_inp[0]>>[~-2]'
     }
 
 

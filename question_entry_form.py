@@ -11,7 +11,7 @@ class UI(threading.Thread):
         self.thread = threading.Thread
         self.thread.__init__(self)
 
-        theme.reload_theme()
+        theme.reload_default()
         # theme.find_preference()
         self.theme = theme.Theme.UserPref.m(theme.TMODE)
 
@@ -211,7 +211,7 @@ class UI(threading.Thread):
 
     def update_theme(self):
         # Pre
-        theme.reload_theme()
+        theme.reload_default()
         self.theme = theme.Theme.UserPref.m(theme.TMODE)
 
         # TTK

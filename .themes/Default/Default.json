@@ -1,40 +1,58 @@
 {
     "$information": {
-        "$author":           "Geetansh Gautam",
-        "$name":             "Default",
-        "$avail_modes":      ["d", "l"]
+        "$author":              "Geetansh Gautam",
+        "$name":                "Default",
+        "$avail_modes":      {
+            "Dark Mode":        "$0",
+            "Light Mode":       "$1"
+        },
+        "$default_mode":        "$1"
     },
-    "dark": {
-        "name":             "Dark Mode",
-        "bg":               "#202020",
-        "fg":               "#ffffff",
-        "ok":               "#8bb174",
-        "warning":          "#ffb30f",
-        "error":            "#db504a"
+    "$0": {
+        "bg":                   "#202020",
+        "fg":                   "#ffffff",
+        "ok":                   "#8bb174",
+        "warning":              "#ffb30f",
+        "error":                "#db504a",
+        "gray":                 "#5c5c5c",
+        "accent":               "#008888",
+        "font": {
+            "font_face":        "Montserrat",
+            "title_size":       28,
+            "sttl_size":        15,
+            "big_para_size":    13,
+            "main_size":        10
+        },
+        "border": {
+            "width":            0,
+            "color":            "#ffffff"
+        }
     },
-    "light": {
-        "name":             "Light Mode",
-        "bg":               "#FFFFFF",
-        "fg":               "#000000",
-        "ok":               "#8bb174",
-        "warning":          "#ffb30f",
-        "error":            "#db504a"
+    "$1": {
+        "bg":                   "#FFFFFF",
+        "fg":                   "#000000",
+        "ok":                   "#8bb174",
+        "warning":              "#ffb30f",
+        "error":                "#db504a",
+        "gray":                 "#5c5c5c",
+        "accent":               "#008888",
+        "font": {
+            "font_face":        "Montserrat",
+            "title_size":       28,
+            "sttl_size":        15,
+            "big_para_size":    13,
+            "main_size":        10
+        },
+        "border": {
+            "width":            0,
+            "color":            "#ffffff"
+        }
     },
-    "gray":                 "#5c5c5c",
-    "accent":               "#008888",
-    "padding": {
-        "x":                20,
-        "y":                10
-    },
-    "font": {
-        "font_face":        "Montserrat",
-        "title_size":       28,
-        "sttl_size":        15,
-        "big_para_size":    13,
-        "main_size":        10
-    },
-    "border": {
-        "width": 0,
-        "color": "#ffffff"
+
+    "$global": {
+        "padding": {
+            "x":                20,
+            "y":                10
+        }
     }
 }

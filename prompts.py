@@ -126,21 +126,19 @@ class TextPrompts:
 
         def run(self):
             _Basic.OnStart.init()
-
-            if self.theme_mode == 'd':
-                self.theme = theme.Theme.UserPref.dark_mode()
-            else:
-                self.theme = theme.Theme.UserPref.light_mode()
-
+            self.theme = theme.Theme.UserPref.pref()
             if self.contrast_key == -1:
                 # Calculated
                 _m = {
-                    self.theme['fg']: 'fg',
-                    self.theme['bg']: 'bg'
+                    'fg': self.theme['fg'],
+                    'bg': self.theme['bg']
                 }
 
-                _res = colors.Functions.calculate_nearer(*_m.keys(), self.theme[self.accent_key])
-                self.contrast_key = _m[_res]
+                print(self.theme[self.accent_key])
+                print((*_m.values(), self.theme[self.accent_key]))
+
+                _res = colors.Functions.calculate_nearer(*_m.values(), self.theme[self.accent_key])
+                self.contrast_key = (*_m.keys(), )[(*_m.values(), ).index(_res)]
 
             self.root.geometry(
                 "%sx%s+%s+%s" % (self.ws[0], self.ws[1], self.wp[0], self.wp[1])
@@ -370,12 +368,7 @@ class TextPrompts:
 
             def run(self):
                 _Basic.OnStart.init()
-
-                if self.theme_mode == 'd':
-                    self.theme = theme.Theme.UserPref.dark_mode()
-                else:
-                    self.theme = theme.Theme.UserPref.light_mode()
-
+                self.theme = theme.Theme.UserPref.pref()
                 if self.contrast_key == -1:
                     _m = {
                         self.theme['fg']: 'fg',
@@ -688,12 +681,7 @@ class InputPrompts:
 
         def run(self):
             _Basic.OnStart.init()
-
-            if self.theme_mode == 'd':
-                self.theme = theme.Theme.UserPref.dark_mode()
-            else:
-                self.theme = theme.Theme.UserPref.light_mode()
-
+            self.theme = theme.Theme.UserPref.pref()
             if self.contrast_key == -1:
                 _m = {
                     self.theme['fg']: 'fg',
