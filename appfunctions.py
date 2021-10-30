@@ -1,12 +1,10 @@
 import conf, pr_conf
-import os, sys, json, threading, random, exceptions, traceback, datetime, importlib, log_cleaner
+import os, sys, json, threading, random, exceptions, traceback, datetime, importlib, log_cleaner, cryptography
 from datetime import datetime
 from datetime import timedelta
 import tkinter as tk
 from tkinter import messagebox as tkmsb
 from cryptography.fernet import Fernet
-import cryptography
-
 
 # Globals
 _SELF_LOG = None
@@ -27,7 +25,7 @@ protected_conf = importlib.import_module(_prConfFile)
 if pr_conf.pro_conf_version_id != protected_conf.v:
     raise SystemError("Invalid pr_conf version description (discr.)")
 elif pr_conf.r_appf_version_id != version_id:
-    raise SystemError("Invalid appfunctions script") 
+    raise SystemError("Invalid appfunctions script")
 
 
 class AFDATA:
@@ -816,7 +814,7 @@ class AFEncryption:
 
             raise E
 
-        return 
+        return
 
     def decrypt(self, _raw, *args, **kwargs) -> bytes:
         global _SELF_LOG
@@ -910,7 +908,7 @@ class AFEncryption:
             except:
                 _c = (*_c, _line)
 
-        _c = (*_c, )
+        _c = (*_c,)
         _enc = ()
         for _line in _c:
             _l = b""
@@ -968,7 +966,7 @@ class AFEncryption:
         _dec = self.decrypt(_raw)
 
         AFFileIO(self.uid).secure_save(_dec, 'DE_ENC_METH', append=False)
-        
+
         return
 
     def __del__(self):
@@ -976,7 +974,7 @@ class AFEncryption:
 
 
 class AFFileIO:
-    def __init__(self, uid):
+    def __init__(self, uid: str):
         global SELF_DATA, _SELF_LOG
         self.class_name = "AFFileIO"
         function_name = "FIO_INIT"
@@ -1001,7 +999,7 @@ class AFFileIO:
 
         if not self.file.isFile:
             E = exceptions.InitializationError(self.class_name,
-                                                 "Invalid instance uid provided: parameter 'isFile' is invalid.")
+                                               "Invalid instance uid provided: parameter 'isFile' is invalid.")
 
             try:
                 if _SELF_LOG is not None:
@@ -1013,7 +1011,7 @@ class AFFileIO:
 
         elif type(self.file.filename) is not str:
             E = exceptions.InitializationError(self.class_name,
-                                                 "Invalid instance uid provided: parameter 'filename' is invalid.")
+                                               "Invalid instance uid provided: parameter 'filename' is invalid.")
 
             try:
                 if _SELF_LOG is not None:
@@ -1070,11 +1068,13 @@ class AFFileIO:
                 new_data = _data
 
         elif type(_data) in [list, tuple, set]:
-            new_data = AFDATA.Functions.recursive_list_conversion(_data, flags['separator'], flags['dict_kv_sep']).encode(
+            new_data = AFDATA.Functions.recursive_list_conversion(_data, flags['separator'],
+                                                                  flags['dict_kv_sep']).encode(
                 self.file.encoding)
 
         elif type(_data) is dict:
-            new_data = AFDATA.Functions.recursive_dict_conversion(_data, flags['separator'], flags['dict_kv_sep']).encode(
+            new_data = AFDATA.Functions.recursive_dict_conversion(_data, flags['separator'],
+                                                                  flags['dict_kv_sep']).encode(
                 self.file.encoding)
 
         else:
@@ -1154,7 +1154,7 @@ class AFFileIO:
 
             except:
                 E = exceptions.FileIOException(function_name,
-                                              "Failed to load backup _data; aborting operation for safety.")
+                                               "Failed to load backup _data; aborting operation for safety.")
 
                 try:
                     if _SELF_LOG is not None:
@@ -1166,7 +1166,7 @@ class AFFileIO:
 
             time = AFDATA.Functions.time().strftime('%d%m%y%S%f%z%Z%j')
             _backup_file_name = SELF_DATA.apploc + "\\Temporary Files\\AFFileIO\\%s\\%s\\%s.cmfbackup" % (
-            function_name, "__".join(i for i in self.file.filename.split("\\")[-1].split('.')), time)
+                function_name, "__".join(i for i in self.file.filename.split("\\")[-1].split('.')), time)
             _backup_directory = "\\".join(i for i in _backup_file_name.split("\\")[:-1])
 
             # Step 2: Store Backup to file
@@ -1179,7 +1179,7 @@ class AFFileIO:
             except:
                 print(traceback.format_exc())
                 E = exceptions.FileIOException(function_name,
-                                                 "Failed to save temporary backup; aborting operation for safety.")
+                                               "Failed to save temporary backup; aborting operation for safety.")
 
                 try:
                     if _SELF_LOG is not None:
@@ -1251,7 +1251,7 @@ class AFFileIO:
             # Delete backup file after (optional)
             if flags['delete_backup_after']:
                 os.remove(_backup_file_name)
-        
+
         return
 
     def read_file(self) -> str:  # FIO_RD_FILE
@@ -1640,7 +1640,7 @@ class AFJSON:
         function_name = "AFJSON.C_LD_FILE"
 
         E = None
-        
+
         if not self.instance.isFile:
             E = exceptions.FileIOException(function_name, "param 'isFile' is set to False for AFIOObject")
         elif not os.path.exists(self.instance.filename):
@@ -1853,7 +1853,8 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         # Run this after the statement prior as that can cause the TCF file to reset.
         self.add_log_name()
-        self.performance_logger = AFLogger.PerformanceLogger(self._o, self.open_logs_dir, script_init_identifier, self.date)
+        self.performance_logger = AFLogger.PerformanceLogger(self._o, self.open_logs_dir, script_init_identifier,
+                                                             self.date)
         self.reliable_logger = AFLogger.ReliableLogger(self._o, self.open_logs_dir, script_init_identifier, self.date)
 
     def refresh(self):
@@ -1908,9 +1909,9 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         if f_1:
             self.j.set_data("header", protected_conf.Application.Logging.TCF_HEADER,
-                                       append=False,
-                                       a2k=False
-                                       )
+                            append=False,
+                            a2k=False
+                            )
 
             self.j.set_data(self.open_logs_dir, {"header": -1},
                             append=True,
@@ -1975,9 +1976,9 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             o = ()
 
             for date in r[self.open_logs_dir].keys():
-                o = (*o, date, )
+                o = (*o, date,)
 
-            o = (*set(o), )
+            o = (*set(o),)
             return o
 
         else:
@@ -1994,7 +1995,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
                     if date in o:
                         o[date] = (*o[date], sci)
                     else:
-                        o[date] = (sci, )
+                        o[date] = (sci,)
 
         return o
 
@@ -2011,7 +2012,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         with open(self._o.filename) as jfile:
             a = jfile.readlines()
             jfile.close()
-        
+
         if len(a) > protected_conf.Application.Logging.critical_point:
             a = tk.Tk()
             a.withdraw()
@@ -2028,9 +2029,10 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         elif len(a) > protected_conf.Application.Logging.min_crit_point:
             ### CLEAR CLOSED FILES LOGS
-            tkmsb.showwarning(conf.Application.app_name, "File 'LCF File.json' is approaching a critical point that can cause lag (>%s lines.) Attempting to clear some older application description." % str(
-                protected_conf.Application.Logging.min_crit_point
-            ))
+            tkmsb.showwarning(conf.Application.app_name,
+                              "File 'LCF File.json' is approaching a critical point that can cause lag (>%s lines.) Attempting to clear some older application description." % str(
+                                  protected_conf.Application.Logging.min_crit_point
+                              ))
             r['closed_files'] = {}
             s1 = json.dumps(r, indent=4)
             AFFileIO(self._o.uid).secure_save(s1, append=False)
@@ -2067,7 +2069,8 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         if self.script_identifier_code in sci:
             d = sci[self.script_identifier_code]
             r[d][self.script_identifier_code]['is_open'] = False
-            r[d][self.script_identifier_code]['NOTICE1'] = "THIS FILE WAS PRODUCED BY AN INSTANCE OF THE SCRIPT THAT IS STILL RUNNING"
+            r[d][self.script_identifier_code][
+                'NOTICE1'] = "THIS FILE WAS PRODUCED BY AN INSTANCE OF THE SCRIPT THAT IS STILL RUNNING"
 
             s = json.dumps(r, indent=4)
             AFFileIO(self._o.uid).secure_save(s, append=False)
