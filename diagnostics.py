@@ -116,7 +116,7 @@ class DataDiagnostics:
         @staticmethod
         def check_defaults() -> tuple:
             """
-            :return: Tuple (all good? (bool), failed (tuple), passed (tuple), violations (tuple))
+            :return: Tuple (all good? (bool), failed (tuple), passed (tuple), violations (tuple), contrast checks (tuple))
             """
             direc = conf.ConfigFile.raw['theme']['theme_root'].replace("\\", "/")
             return _check_directory(direc)
@@ -140,20 +140,51 @@ class DataDiagnostics:
         @staticmethod
         def check_custom() -> tuple:
             """
-            :return: Tuple (all good? (bool), failed (tuple), passed (tuple), violations (tuple))
+            :return: Tuple (all good? (bool), failed (tuple), passed (tuple), violations (tuple), contrast checks (tuple))
             """
 
-            p = [conf.Application.AppDataLoc, *protected_conf.Configuration.Files.pref_file_loc]
-            p_fn = conf.ConfigFile.raw['theme']['custom_config_file']
+            assert conf.ConfigFile.raw['theme']['user_can_config'], "Unsupported feature."
+
+            try:
+                p = [conf.Application.AppDataLoc, *protected_conf.Configuration.Files.pref_file_loc]
+                p_fn = conf.ConfigFile.raw['theme']['custom_config_file']
+
+                file_path = os.path.join(*p, p_fn)
+                file_directory = os.path.join(*p)
+
+                if not os.path.exists(file_path):
+                    if not os.path.exists(file_directory):
+                        os.makedirs(file_directory)
+
+                    _write_default_theme_data(
+                        conf.ConfigFile.raw['theme']['theme_file'],
+                        file_path
+                    )
+
+                    assert False, "Custom theme file does not exist; created."
+
+                with open(file_path, 'r') as user_config_file:
+                    r = user_config_file.read()
+                    user_config_file.close()
+
+                try:
+                    theme = json.loads(r)
+
+                except:
+                    _write_default_theme_data(conf.ConfigFile.raw['theme']['theme_file'], file_path)
+                    assert False, "Invalid theme data; overwritten with default data"
+
+                res = _check_theme(theme)
+                return len(res['f']) == 0, res['f'], res['p'], res['v'], res['c']
+
+            except Exception as E:
+                print(traceback.format_exc())
+                return False, ("Failed to check theme file :: %s" % E, ), (), (), ()
 
             pass
 
-        @staticmethod
-        def check_file(file_path, mode=any) -> bool:
-            pass
 
-
-# STRUCT: Functions \/ ;; Classes /\
+#### STRUCT: Functions \/ ;; Classes /\ ####
 
 
 def _check_directory(direc) -> tuple:
@@ -425,17 +456,17 @@ def _check_theme(theme_data) -> dict:
                                 if res:
                                     in_passed = (
                                         *in_passed,
-                                        "PASSED: Passed test '%s/%s' on data." % (lvl, str(checks_tbl[key])))
+                                        "PASSED: Passed test '%s' on '%s/%s'." % (str(checks_tbl[key]), lvl, key))
                                 else:
                                     in_failed = (
                                         *in_failed,
-                                        "FAILED: Failed test condition '%s/%s'" % (lvl, str(checks_tbl[key])))
+                                        "FAILED: Failed test condition '%s' with '%s/%s'" % (str(checks_tbl[key]), lvl, key))
 
                             except Exception as E:
                                 print(E, traceback.format_exc(), sep="\n\n")
                                 in_failed = (
                                     *in_failed,
-                                    "FAILED: Failed to conduct test '%s/%s' on data" % (lvl, str(checks_tbl[key]))
+                                    "FAILED: Failed to conduct test '%s' on '%s/%s'" % (str(checks_tbl[key]), lvl, key)
                                 )
 
             return (*set(in_failed),), (*set(in_passed),), (*set(in_vio),)
@@ -458,25 +489,6 @@ def _check_theme(theme_data) -> dict:
     }
 
 
-def _format_theme_analysis_report(f, p, v, c):
-    f = ("Total failures: %s" % (str(len(f))), *f)
-    p = ("Total passed tests: %s" % (str(len(p))), *p)
-    v = ("Total violations: %s" % (str(len(v))), *v)
-    c = ("# Contrast checks ran: %s" % str(len(c)), *c)
-
-    b = "Ran multiple tests on theme file; the following are the results:"
-    b += "\n\n-------- FAILURES --------\n"
-    b += "\n* ".join(fail for fail in f)
-    b += "\n\n-------- PASSED --------\n"
-    b += "\n* ".join(pas for pas in p)
-    b += "\n\n-------- VIOLATIONS --------\n"
-    b += "\n* ".join(vio for vio in v)
-    b += "\n\n-------- CONTRASTS --------\n"
-    b += "\n* ".join(con for con in c)
-
-    return b
-
-
 def _run_file_exs_check(req: tuple):
     output = passed = ()
     for item in req:
@@ -487,3 +499,47 @@ def _run_file_exs_check(req: tuple):
 
     output = (output, passed)
     return output
+
+
+def _write_default_theme_data(def_file_path: str, final_file_path: str):
+    with open( def_file_path, 'r') as default_themes_file:
+        defa = default_themes_file.read()
+        default_themes_file.close()
+
+    defa = json.loads(defa)
+    def_mode = defa['$information']['$default_mode']
+
+    new_contents = {'$information': {**defa['$information']}}
+    new_contents['$information']['$default_mode'] = '$0'
+    new_contents['$information']['$avail_modes'] = {'Custom': '$0'}
+    new_contents['$information']['$author'] = 'user'
+    new_contents['$information']['$name'] = 'Custom Theme'
+    new_contents = {**new_contents, '$0': defa[def_mode], '$global': {**defa['$global']}}
+
+    output = json.dumps(new_contents, indent=4)
+
+    with open(final_file_path, 'w') as user_config_file:
+        user_config_file.write(output)
+        user_config_file.close()
+
+
+class FormatResultsStr:
+
+    @staticmethod
+    def format_theme_analysis_report(f, p, v, c):
+        f = ("Total failures: %s" % (str(len(f))), *f)
+        p = ("Total passed tests: %s" % (str(len(p))), *p)
+        v = ("Total violations: %s" % (str(len(v))), *v)
+        c = ("# Contrast checks ran: %s" % str(len(c)), *c)
+
+        b = "Ran multiple tests on theme file; the following are the results:"
+        b += "\n\n-------- FAILURES --------\n"
+        b += "\n* ".join(fail for fail in f)
+        b += "\n\n-------- PASSED --------\n"
+        b += "\n* ".join(pas for pas in p)
+        b += "\n\n-------- VIOLATIONS --------\n"
+        b += "\n* ".join(vio for vio in v)
+        b += "\n\n-------- CONTRASTS --------\n"
+        b += "\n* ".join(con for con in c)
+
+        return b
