@@ -13,9 +13,9 @@
         "fg":                   "#ffffff",
         "ok":                   "#8bb174",
         "warning":              "#ffb30f",
-        "error":                "#db504a",
+        "error":                "#FF5050",
         "gray":                 "#5c5c5c",
-        "accent":               "#008888",
+        "accent":               "#00C7C7",
         "font": {
             "font_face":        "Montserrat",
             "title_size":       28,
@@ -31,11 +31,11 @@
     "$1": {
         "bg":                   "#FFFFFF",
         "fg":                   "#000000",
-        "ok":                   "#8bb174",
-        "warning":              "#ffb30f",
-        "error":                "#db504a",
+        "ok":                   "#5C7F48",
+        "warning":              "#BC5300",
+        "error":                "#AD0000",
         "gray":                 "#5c5c5c",
-        "accent":               "#008888",
+        "accent":               "#006161",
         "font": {
             "font_face":        "Montserrat",
             "title_size":       28,

@@ -23,7 +23,8 @@
       ".\\questions.py",
       ".\\splash_screen.py",
       ".\\theme.py",
-      ".\\user_pref.py"
+      ".\\user_pref.py",
+      ".\\std.json"
     ]
   }
 }

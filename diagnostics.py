@@ -136,7 +136,7 @@ class DataDiagnostics:
             ).replace("\\", "/")
 
             if len(os.listdir(direc)) == 0:
-                return True, ("No themes installed", ), (), (), ()
+                return True, ("No themes installed",), (), (), ()
 
             return _check_directory(direc)
 
@@ -182,7 +182,7 @@ class DataDiagnostics:
 
             except Exception as E:
                 print(traceback.format_exc())
-                return False, ("Failed to check theme file :: %s" % E, ), (), (), ()
+                return False, ("Failed to check theme file :: %s" % E,), (), (), ()
 
         @staticmethod
         def check_file(file_path: str) -> tuple:
@@ -201,7 +201,7 @@ class DataDiagnostics:
                     theme = json.loads(r)
 
                 except:
-                    return False, ("FAILED: Invalid theme data", ), (), (), ()
+                    return False, ("FAILED: Invalid theme data",), (), (), ()
 
                 res = _check_theme(theme)
                 return len(res['f']) == 0, res['f'], res['p'], res['v'], res['c']
@@ -209,6 +209,11 @@ class DataDiagnostics:
             except Exception as E:
                 print(traceback.format_exc())
                 return False, ("FAILED: Failed to check theme file :: %s" % E,), (), (), ()
+
+        @staticmethod
+        def check_data(data: dict):
+            res = _check_theme(data)
+            return len(res['f']) == 0, res['f'], res['p'], res['v'], res['c']
 
 
 #### STRUCT: Functions \/ ;; Classes /\ ####
@@ -311,11 +316,15 @@ def _check_theme(theme_data) -> dict:
         if len(a) != len(theme_data['$information']['$avail_modes']):  # Pass
             failed = (*failed, "FAILED: Invalid theme file data (pot. mapping error [author-caused]).")
 
+        cont_pass = True
+        cont_errs = ()
+
         for theme_code, theme_name_data in a.items():
             name = theme_data['$information']['$avail_modes']
             assert isinstance(theme_code, str), "Invalid theme mapping data. (%s)" % str(theme_code)
-            assert theme_code in (*name.values(), ), "Invalid theme mapping data. (%s)" % theme_code
-            assert theme_code[0] == "$", "Invalid theme mapping data; expected '$' character in front of theme decleration. (%s)" % theme_code
+            assert theme_code in (*name.values(),), "Invalid theme mapping data. (%s)" % theme_code
+            assert theme_code[
+                       0] == "$", "Invalid theme mapping data; expected '$' character in front of theme decleration. (%s)" % theme_code
 
             try:
                 name = (*name.keys(),)[(*name.values(),).index(theme_code)]
@@ -337,13 +346,6 @@ def _check_theme(theme_data) -> dict:
 
             def map_rgb(color_rgb: tuple) -> tuple:
                 assert len(color_rgb) == 3
-
-                o_min_val = 0.0
-                o_max_val = 1.0
-                i_min_val = o_min_val
-                i_max_val = 255.0 - (i_min_val - o_max_val)
-
-                comp_ratio = o_max_val / i_max_val
                 o_tuple = ()
 
                 for col in color_rgb:
@@ -352,23 +354,32 @@ def _check_theme(theme_data) -> dict:
                 return o_tuple
 
             base = 'bg'
-            for check_with in ['fg', 'accent', 'error', 'warning', 'ok']:
-                back = colors.Convert.HexToRGB(theme_name_data['bg'])
-                front = colors.Convert.HexToRGB(theme_name_data['fg'])
 
-                AA_res = wcag_contrast_ratio.passes_AA(wcag_contrast_ratio.rgb(map_rgb(back), map_rgb(front)))
-                AAA_res = wcag_contrast_ratio.passes_AAA(wcag_contrast_ratio.rgb(map_rgb(back), map_rgb(front)))
+            for check_with in ['fg', 'accent', 'error', 'warning', 'ok']:
+                AA_res, AAA_res, cols = std.check_hex_contrast(theme_name_data[base], theme_name_data[check_with])
+
+                cont_pass = cont_pass and AA_res
+                if not AA_res:
+                    cont_errs = (*cont_errs, "%s: \"%s/%s\" [%s] and \"%s/%s\" [%s]" %
+                                 (
+                                     len(cont_errs) + 1,
+                                     theme_code, base,
+                                     theme_name_data[base], theme_code,
+                                     check_with, theme_name_data[check_with]
+                                 )
+                                 )
 
                 contrast = (
                     *contrast,
-                    "Contrast between '%s' and '%s': passes AA (required): %s, passes AAA (recommended): %s" %
-                    (base, check_with, str(AA_res), str(AAA_res))
+                    "Contrast between '%s/%s' and '%s/%s': passes AA (required): %s, passes AAA (recommended): %s" %
+                    (theme_code, base, theme_code, check_with, str(AA_res), str(AAA_res))
                 )
 
-                assert AA_res, "Insufficient contrast in theme."
+        assert cont_pass, "Insufficient contrast between the following:\n\t" + "\n\t".join(_ for _ in cont_errs).strip()
 
     except AssertionError as E:
-        failed = (*failed, "FAILED: Failed to conduct contrast check between foreground and background colors. :: %s" % E)
+        failed = (
+            *failed, "FAILED: Failed to conduct contrast check between foreground and background colors. :: %s" % E)
 
     except Exception as E:
         failed = (
@@ -487,7 +498,8 @@ def _check_theme(theme_data) -> dict:
                                 else:
                                     in_failed = (
                                         *in_failed,
-                                        "FAILED: Failed test condition '%s' with '%s/%s'" % (str(checks_tbl[key]), lvl, key))
+                                        "FAILED: Failed test condition '%s' with '%s/%s'" % (
+                                            str(checks_tbl[key]), lvl, key))
 
                             except Exception as E:
                                 print(E, traceback.format_exc(), sep="\n\n")
@@ -501,12 +513,12 @@ def _check_theme(theme_data) -> dict:
         failed, passed, vio = rec_check(theme_data, check_tbl, 'root')
 
     else:
-        vio = ()
+        vio: tuple = ()
 
-    vio = (*set(vio),)
-    passed = (*set(passed),)
-    failed = (*set(failed),)
-    contrast = (*set(contrast), )
+    vio = (*vio,)
+    passed = (*passed,)
+    failed = (*failed,)
+    contrast = (*contrast,)
 
     return {
         'p': passed,
@@ -529,7 +541,7 @@ def _run_file_exs_check(req: tuple):
 
 
 def _write_default_theme_data(def_file_path: str, final_file_path: str):
-    with open( def_file_path, 'r') as default_themes_file:
+    with open(def_file_path, 'r') as default_themes_file:
         defa = default_themes_file.read()
         default_themes_file.close()
 
@@ -559,7 +571,8 @@ class FormatResultsStr:
         v = ("Total violations: %s" % (str(len(v))), *v)
         c = ("# Contrast checks ran: %s" % str(len(c)), *c)
 
-        b = "Ran multiple tests on theme file; the following are the results:"
+        b = "\n\n\nTHEME TEST REPORT \n"
+        b += "Ran multiple tests on theme file; the following are the results:"
         b += "\n\n-------- FAILURES --------\n"
         b += "\n* ".join(fail for fail in f)
         b += "\n\n-------- PASSED --------\n"
@@ -568,5 +581,13 @@ class FormatResultsStr:
         b += "\n* ".join(vio for vio in v)
         b += "\n\n-------- CONTRASTS --------\n"
         b += "\n* ".join(con for con in c)
+
+        return b
+
+    @staticmethod
+    def failures(f):
+        f = ("Total failures: %s" % (str(len(f))), *f)
+        b = "Ran multiple tests on theme file; the following failures occured:"
+        b += "\n* ".join(fail for fail in f)
 
         return b
