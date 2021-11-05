@@ -1,4 +1,6 @@
 import wcag_contrast_ratio, re
+import tkinter as tk
+from tkinter import messagebox as tkmsb
 
 
 def float_map(value: float, input_min: float, input_max: float, output_min: float, output_max: float) -> float:
@@ -90,3 +92,15 @@ def data_at_dict_path(path: str, dictionary: dict) -> tuple:
 
     return found, data
 
+
+def show_bl_err(title, message):
+    assert isinstance(title, str)
+    assert isinstance(message, str)
+
+    bgf = tk.Tk()
+    bgf.withdraw()
+    bgf.title("%s - Error messagebox handler" % title)
+
+    tkmsb.showerror(title, message)
+
+    bgf.after(0, bgf.destroy)

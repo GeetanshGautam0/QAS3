@@ -375,7 +375,7 @@ def _check_theme(theme_data) -> dict:
                     (theme_code, base, theme_code, check_with, str(AA_res), str(AAA_res))
                 )
 
-        assert cont_pass, "Insufficient contrast between the following:\n\t" + "\n\t".join(_ for _ in cont_errs).strip()
+        assert cont_pass, "Insufficient contrast between the following:\n\t" + "\n\t".join(_ for _ in (*set(cont_errs), )).strip()
 
     except AssertionError as E:
         failed = (
@@ -515,10 +515,10 @@ def _check_theme(theme_data) -> dict:
     else:
         vio: tuple = ()
 
-    vio = (*vio,)
-    passed = (*passed,)
-    failed = (*failed,)
-    contrast = (*contrast,)
+    vio = (*set(vio),)
+    passed = (*set(passed),)
+    failed = (*set(failed),)
+    contrast = (*set(contrast),)
 
     return {
         'p': passed,
@@ -571,7 +571,7 @@ class FormatResultsStr:
         v = ("Total violations: %s" % (str(len(v))), *v)
         c = ("# Contrast checks ran: %s" % str(len(c)), *c)
 
-        b = "\n\n\nTHEME TEST REPORT \n"
+        b = "THEME TEST REPORT \n"
         b += "Ran multiple tests on theme file; the following are the results:"
         b += "\n\n-------- FAILURES --------\n"
         b += "\n* ".join(fail for fail in f)
@@ -587,7 +587,7 @@ class FormatResultsStr:
     @staticmethod
     def failures(f):
         f = ("Total failures: %s" % (str(len(f))), *f)
-        b = "Ran multiple tests on theme file; the following failures occured:"
+        b = "\n\n================ ERRORS ================\nRan multiple tests on theme file; the following failures occurred:\n"
         b += "\n* ".join(fail for fail in f)
 
         return b

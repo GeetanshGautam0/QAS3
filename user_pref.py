@@ -1,4 +1,5 @@
 import conf, os, json, importlib, protected_conf, exceptions
+import std
 
 with open("low.json", 'r') as file:
     _l_json = json.loads(file.read())
@@ -127,7 +128,23 @@ class Set:
                     "SC::U_PREF;;FUNC::S_T_MPref::VAR::MODE[user_inp[0]]"
                 )
 
-            _Basic.IO.set(data, _Data.Theme.root, _Data.Theme.theme_pref_key)
+            def_file, dict_loc = data
+
+            if "__CGET__" in dict_loc:
+                tok = dict_loc.split("::")
+                assert len(tok) == 2, "Failed to `__CGET__` default data; insufficient arguments."
+
+                loc = "/".join(_ for _ in tok[1::]).strip('/')
+                r = _Basic.IO.load_json(def_file)
+                exs, d_found = std.data_at_dict_path(loc, r)
+                assert exs, "Failed to `__CGET__` default data; invalid dict path."
+
+                def_loc = d_found
+
+            else:
+                def_loc = dict_loc
+
+            _Basic.IO.set((def_file, def_loc), _Data.Theme.root, _Data.Theme.theme_pref_key)
 
             return None
 
@@ -146,33 +163,34 @@ class Get:
                     "SC::U_PREF;;FUNC::G_T_MPref::VAR::DEF[user_inp[0]]"
                 )
 
-            dict_loc = default[-1]
-            def_file = default[0]
+            def_file, dict_loc = default
 
             if "__CGET__" in dict_loc:
                 tok = dict_loc.split("::")
-                assert len(tok) == 2, "Failed to `__CGET__` default data; invalid arguments."
+                assert len(tok) == 2, "Failed to `__CGET__` default data; insufficient arguments."
 
-                loc = tok[-1].replace('::', '')
+                loc = "/".join(_ for _ in tok[1::]).strip('/')
                 r = _Basic.IO.load_json(def_file)
-                o = r
-                ls = loc.split("\\")
+                exs, data = std.data_at_dict_path(loc, r)
+                assert exs, "Failed to `__CGET__` default data; invalid dict path."
 
-                for key in ls:
-                    o = o[key]
-
-                def_loc = o
+                def_loc = data
 
             else:
                 def_loc = dict_loc
 
-            file, mode = _Basic.IO.get(
-                _Data.Theme.root,
-                _Data.Theme.theme_pref_key,
-                [def_file, def_loc]
-            )
+            try:
+                _fi, mode = _Basic.IO.get(
+                    _Data.Theme.root,
+                    _Data.Theme.theme_pref_key,
+                    [def_file, def_loc]
+                )
+
+            except:
+                _Basic.IO.set((def_file, def_loc), _Data.Theme.root, _Data.Theme.theme_pref_key)
+                _fi, mode = default
 
             return {
-                'file': file,
+                'file': _fi,
                 'mode': mode
             }
