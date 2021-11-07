@@ -26,23 +26,50 @@ def _convert_path(path) -> str:
     return theme_file
 
 
-def find_preference() -> tuple:
+def find_preference(s_at_def=False) -> tuple:
     global TMODE, TFILE
     default = (
         conf.ConfigFile.raw['theme']['theme_file'],
         '__CGET__::$information\\$default_mode'
     )
-    pref = user_pref.Get.Theme.theme_pref(default)
-    TMODE = pref['mode']
-    TFILE = pref['file']
 
-    if not os.path.exists(TFILE):
+    if s_at_def:
+        TFILE, TMODE = default
+        tok = TMODE.split("::")
+        loc = "/".join(_ for _ in tok[1::]).strip('/')
+        r = user_pref._Basic.IO.load_json(TFILE)
+        exs, data = std.data_at_dict_path(loc, r)
+        assert exs, '[THEME>>FIND_PREF>>S_AT_DEF[ROUTE]>>!EXS] [?]'
+        TMODE = data
+
+    else:
+        pref = user_pref.Get.Theme.theme_pref(default)
+        TMODE = pref['mode']
+        TFILE = pref['file']
+
+    if not os.path.exists(TFILE) and not s_at_def:
         # Rev to default
         revert_to_default()
 
-    if not check_theme(TFILE.split('\\')[-1], user_pref._Basic.IO.load_json(TFILE)):
-        std.show_bl_err("CMF Theme Handler", "Invalid theme set as preferred theme; resetting to default.")
-        user_pref.Set.Theme.theme_pref(default)
+    pas, ch_f, _1, _2, _3 = check_theme(TFILE.split('\\')[-1], user_pref._Basic.IO.load_json(TFILE), re_comp_data=True)
+    if not pas:
+        chfs = diagnostics.FormatResultsStr.failures(ch_f)
+
+        if TFILE == default[0]:
+            std.show_bl_err(
+                "CMF Theme Handler",
+                "[CRITICAL] Default theme file has invalid theme data:\n\n%s" % chfs
+            )
+
+            sys.exit(-1)
+
+        else:
+            std.show_bl_err(
+                "CMF Theme Handler",
+                "Invalid theme set as preferred theme; resetting to default:\n\n%s" % chfs
+            )
+            user_pref.Set.Theme.theme_pref(default)
+            return find_preference()
 
     return tuple([TMODE, TFILE])
 
@@ -118,22 +145,25 @@ def set_preference(file_name, mode, r_n_fp=False) -> None:
 
 
 def check_theme(name: str, data, *args, re_comp_data: bool = False):
-    assert type(name) is str, "Invalid input [script]"
+    try:
+        assert type(name) is str, "Invalid input [script]"
 
-    for i in [
-        '$information',
-        # ['$information', ('$name', '$default_mode', '$avail_modes', '$map', '$author)],
-        ['$information', ('$name', '$default_mode', '$avail_modes')],
-        '$global',
-        *args
-    ]:
-        if type(i) is list:
-            for j in i[1]: assert j in data[i[0]], "Invalid theme file (%s)" % name
-        else:
-            assert i in data, "Invalid theme file (%s)" % name
+        for i in [
+            '$information',
+            # ['$information', ('$name', '$default_mode', '$avail_modes', '$map', '$author)],
+            ['$information', ('$name', '$default_mode', '$avail_modes')],
+            '$global',
+            *args
+        ]:
+            if type(i) is list:
+                for j in i[1]: assert j in data[i[0]], "Invalid theme file (%s)" % name
+            else:
+                assert i in data, "Invalid theme file (%s)" % name
 
-    res = diagnostics.DataDiagnostics.Theme.check_data(data)
-    return res if re_comp_data else res[0]
+        res = diagnostics.DataDiagnostics.Theme.check_data(data)
+        return res if re_comp_data else res[0]
+    except Exception as E:
+        return False, (E.__str__(), ), (), (), ()
 
 
 reload_default()

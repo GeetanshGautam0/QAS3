@@ -360,9 +360,8 @@ def _check_theme(theme_data) -> dict:
 
                 cont_pass = cont_pass and AA_res
                 if not AA_res:
-                    cont_errs = (*cont_errs, "%s: \"%s/%s\" [%s] and \"%s/%s\" [%s]" %
+                    cont_errs = (*cont_errs, "* \"%s/%s\" [%s] and \"%s/%s\" [%s]" %
                                  (
-                                     len(cont_errs) + 1,
                                      theme_code, base,
                                      theme_name_data[base], theme_code,
                                      check_with, theme_name_data[check_with]
@@ -379,7 +378,7 @@ def _check_theme(theme_data) -> dict:
 
     except AssertionError as E:
         failed = (
-            *failed, "FAILED: Failed to conduct contrast check between foreground and background colors. :: %s" % E)
+            *failed, "FAILED: Failed to conduct contrast checks between foreground and background colors. :: %s" % E)
 
     except Exception as E:
         failed = (

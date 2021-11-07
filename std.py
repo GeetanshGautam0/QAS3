@@ -103,7 +103,8 @@ def show_bl_err(title, message):
 
     tkmsb.showerror(title, message)
 
-    bgf.after(0, bgf.destroy)
+    bgf.title("%s - Error messagebox handler - closed" % title)
+    bgf.withdraw()
 
 
 def split_filename_direc(file_path: str) -> tuple:
