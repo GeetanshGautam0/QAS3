@@ -1026,6 +1026,19 @@ class AFFileIO:
         self.file = AFIOObjectInterface(self.uid)  # instance translator
 
     def save(self, _data, **kwargs):  # FIO_NR_SAVE
+        """
+        **appfunctions.AFFIleIO.save**
+
+
+        :param _data: data to save
+        :param kwargs: kw args
+        :keyword append append new data
+        :keyword separator separator used between new lines (list, tuple, set, dict)
+        :keyword dict_kv_sep separator used between dict key(s) and value(s)
+        :keyword strip_data strip data before saving
+        :return: None
+        """
+
         global _SELF_LOG
 
         function_name = "FIO_NR_SAVE"

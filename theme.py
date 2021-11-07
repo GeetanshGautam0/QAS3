@@ -133,10 +133,6 @@ def check_theme(name: str, data, *args, re_comp_data: bool = False):
             assert i in data, "Invalid theme file (%s)" % name
 
     res = diagnostics.DataDiagnostics.Theme.check_data(data)
-    # print("\n\n\n'%s':\n" % name, diagnostics.FormatResultsStr.format_theme_analysis_report(*res[1::]), sep="")
-    # if not res[0]:
-    #     print("%s:\n" % name + diagnostics.FormatResultsStr.failures(res[1]))
-
     return res if re_comp_data else res[0]
 
 
@@ -145,10 +141,75 @@ reload_default()
 
 class Editor:
     @staticmethod
-    def create_new_theme(mapping: dict, author: str, name: str, default_val: str, themes: dict,
-                         global_data: dict) -> dict:
+    def create_new_theme_file(
+        mapping: dict,
+        author: str,
+        name: str,
+        default_val: str,
+        themes: dict,
+        global_data: dict,
+        filename: str,
+        **kwargs
+    ):
+        try:
+            file_path = _convert_path(filename)
+            o_f1 = isinstance(kwargs.get('over_write_file'), bool)
+            o_f1 &= (kwargs.get('over_write_file') if o_f1 else False)
+            assert not os.path.exists(file_path) or o_f1, "File '%s' already exists; use 'OVERWRITE_THEME_FILE' mode to edit this file." % file_path
+
+            file_d, file_n = std.split_filename_direc(file_path)
+            assert file_n.split('.')[-1] == 'json', "Theme files must be .json files."
+
+            n_theme = json.dumps(Editor._create_new_theme(
+                mapping=mapping, author=author, name=name, default_val=default_val,
+                themes=themes, global_data=global_data
+            ), indent=4)
+
+            if not os.path.exists(file_d):
+                os.makedirs(file_d)
+
+            with open(file_path, 'w') as new_file:
+                new_file.write(n_theme)
+                new_file.close()
+
+        except PermissionError as PE:
+            raise PermissionError("Failed to create new theme file; lack permissions: %s" % PE.__str__())
+
+        except Exception as E:
+            raise Exception("Failed to create new theme file: %s" % E.__str__())
+
+        else:
+            return True
+
+    @staticmethod
+    def overwrite_theme_file(
+        mapping: dict,
+        author: str,
+        name: str,
+        default_val: str,
+        themes: dict,
+        global_data: dict,
+        filename: str
+    ):
+        try:
+            Editor.create_new_theme_file(
+                mapping, author, name, default_val, themes, global_data, filename, over_write_file=True
+            )
+
+        except PermissionError as PE:
+            raise PermissionError("Failed to create new theme file; lack permissions: %s" % PE.__str__())
+
+        except Exception as E:
+            raise Exception("Failed to create new theme file: %s" % E.__str__())
+
+        else:
+            return True
+
+    @staticmethod
+    def _create_new_theme(mapping: dict, author: str, name: str, default_val: str, themes: dict,
+                          global_data: dict) -> dict:
         """
-        **Editor.create_new_theme**
+        **Editor._create_new_theme**
 
         Will automatically generate the data required for a new theme.
 
@@ -160,38 +221,30 @@ class Editor:
         :param global_data: global data (dict)
         :return:            compiled theme data ({dict})
         """
+
+        function_name = 'theme.py/Editor/<private>/create_new_theme'
+
         try:
-            assert isinstance(mapping, dict), \
-                "Invalid theme mapping data: expected a python dictionary {<Name>: <Code>}"
-            assert isinstance(author, str), \
-                "Invalid theme author data: expected type <String>"
-            assert isinstance(name, str), \
-                "Invalid theme name: expected type <String>"
-            assert isinstance(default_val, str), \
-                "Invalid default <Code>: expected type <String>"
+            inp_pass, inp_fail, _s = std.check_inp(
+                (
+                    [mapping, dict, 'Mapping_Data (mapping)'],
+                    [author, str, 'Author_Name (author)'],
+                    [name, str, 'Theme_Name (name)'],
+                    [default_val, str, 'Default_Theme_Code (default_val)'],
+                    [themes, dict, 'Themes (themes)'],
+                    [global_data, dict, 'Global_Theme_Data (global_data)']
+                ),
+                function_name
+            )
 
-            assert isinstance(themes, dict), \
-                "Invalid theme(s): expected python dictionary {<Mapped_Code>: <Theme_Data [dict]>}"
-            assert isinstance(global_data, dict), \
-                "Invalid global data: expected python dictionary"
-
-            assert len(author.strip()) > 0, \
-                "Invalid theme author data: insufficient data (<Author>)"
-            assert len(name.strip()), \
-                "Invalid theme name: insufficient data (<Theme_Name>)"
-            assert len(default_val.strip()) > 0, \
-                "Invalid default <Code>: insufficient data (<Default_Value>)"
-            assert default_val[0] == '$', \
-                "Invalid theme default <Code>; must follow same standard as <Theme_Code>"
-            assert len(mapping) > 0, \
-                "Invalid theme data; no mapping data"
-            assert len(global_data) > 0, \
-                "Invalid theme data; no global data"
             try:
                 int(default_val[1::])
             except:
-                assert False, \
-                    "Invalid theme default <Code>; must follow same standard as <Theme_Code>"
+                inp_fail = (*inp_fail, "Invalid theme default <Code>; must follow same standard as <Theme_Code>")
+
+            inp_pass &= (len(inp_fail) == 0)
+
+            assert inp_pass, "%s: Invalid input(s):\n\t* %s" % (function_name, "\n\t* ".join(_ for _ in inp_fail))
 
             theme_req = {
                 'bg': ['HEX_COLOR', str],
@@ -397,7 +450,8 @@ class Editor:
             assert final_check[0], diagnostics.FormatResultsStr.failures(final_check[1])
 
         except Exception as E:
-            raise E.__class__(E.__str__())
+            print(traceback.format_exc())
+            raise E.__class__('Failed to generate theme data due to the following errors:\n\n================ ERRORS ================\n' + E.__str__())
 
         else:
             return compiled_theme_dict
@@ -490,7 +544,7 @@ class Theme:
         assert type(TFILE) is str, "Failed to load theme file name."
 
         theme_file = _convert_path(theme_file)
-        assert os.path.exists(theme_file), "File does not exist; create file using 'Editor.create_new_theme'"
+        assert os.path.exists(theme_file), "File does not exist; create file using 'Editor._create_new_theme'"
 
         # Recursive Functions
         def rec_dict_path(key, value) -> tuple:

@@ -19,9 +19,9 @@
         "font": {
             "font_face":        "Montserrat",
             "title_size":       28,
-            "sttl_size":        15,
-            "big_para_size":    13,
-            "main_size":        10
+            "sttl_size":        17,
+            "big_para_size":    15,
+            "main_size":        11
         },
         "border": {
             "width":            0,

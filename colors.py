@@ -1,4 +1,4 @@
-import re
+import re, std
 
 
 class Convert:
@@ -49,13 +49,22 @@ class Functions:
         return o
 
     @staticmethod
-    def calculate_nearer(one, two, color):
-        o = Convert.HexToInt(one)
-        t = Convert.HexToInt(two)
-        c = Convert.HexToInt(color)
-        max_diff = sorted((abs(c - o), abs(c - t)))[-1]
-        m = {abs(c - o): one, abs(c - t): two}
-        return m[max_diff]
+    def calculate_more_contrast(one, two, color):
+        # o = Convert.HexToInt(one)
+        # t = Convert.HexToInt(two)
+        # c = Convert.HexToInt(color)
+        # max_diff = sorted((abs(c - o), abs(c - t)))[-1]
+        # m = {abs(c - o): one, abs(c - t): two}
+        # f = m[max_diff]
+        # m.pop(max_diff)
+        # g = (*m.values(), )[0]
+
+        f, g = one, two
+
+        if not std.check_hex_contrast(f, color)[0]:
+            if std.check_hex_contrast(g, color)[0]:
+                return g
+        return f
 
 
 def clamp(minimum: int, actual: int, maximum: int) -> int:

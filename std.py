@@ -104,3 +104,116 @@ def show_bl_err(title, message):
     tkmsb.showerror(title, message)
 
     bgf.after(0, bgf.destroy)
+
+
+def split_filename_direc(file_path: str) -> tuple:
+    assert isinstance(file_path, str), "Invalid file path provided."
+    _ = file_path.replace("\\", '/').split('/')
+    return "\\".join(i for i in _[:-1:]), _[-1]
+
+
+def dict_check_redundant_data_inter_dict(dic: dict, dic2: dict, root_name: str = '<root_directory>') -> tuple:
+    p, f, s = check_inp(((dic, dict, 'dic'), (dic2, dict, 'dic2'), (root_name, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data_inter_dict')
+    assert p, s
+
+    def rec_add(d, d2, root='<root_directory>') -> tuple:
+        _p, _, _s = check_inp(((d, dict, 'd'), (d2, dict, 'd2'), (root, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data_inter_dict/rec_add')
+        assert p, s
+
+        b = True
+        oc = {}
+        fnc = set()
+
+        for k, v in d2.items():
+            if isinstance(v, dict):
+                if k in d:
+                    b1, oc1, fnc1 = rec_add(d[k], d2[k], root='%s/%s' % (root, k))
+                    b &= b1
+                    oc = {**oc, **oc1}
+                    fnc = {*fnc, *fnc1}
+
+                continue
+
+            if '%s/%s' % (root, v) not in d.values():
+                oc['%s/%s' % (root, v)] = ('%s/%s' % (root, k), )
+
+            else:
+                b ^= b
+                oc['%s/%s' % (root, v)] = (*oc['%s/%s' % (root, v)], '%s/%s' % (root, k))
+
+        for v in oc:
+            if len(oc[v]) > 1:
+                fnc.add("'%s' is common between %s" % (v, oc[v]))
+
+        return b, oc, fnc
+
+    c, _, f = rec_add(dic, dic2)
+
+    return not c, f
+
+
+def dict_check_redundant_data(dic: dict, root_name: str = '<root_directory>') -> tuple:
+    p, f, s = check_inp(((dic, dict, 'dic'), (root_name, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data')
+    assert p, s
+
+    def rec_add(d, root='<root_directory>') -> tuple:
+        _p, _, _s = check_inp(((d, dict, 'd'), (root, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data/rec_add')
+        assert p, s
+
+        b = True
+        oc = {}
+        fnc = set()
+
+        for k, v in d.items():
+            if isinstance(v, dict):
+                b1, oc1, fnc1 = rec_add(d[k], root='%s/%s' % (root, k))
+                b &= b1
+                oc = {**oc, **oc1}
+                fnc = {*fnc, *fnc1}
+
+                continue
+
+            if '%s/%s' % (root, v) not in oc:
+                oc['%s/%s' % (root, v)] = ('%s/%s' % (root, k), )
+
+            else:
+                b ^= b
+                oc['%s/%s' % (root, v)] = (*oc['%s/%s' % (root, v)], '%s/%s' % (root, k))
+
+        for v in oc:
+            if len(oc[v]) > 1:
+                fnc.add("'%s' is common between %s" % (v, oc[v]))
+
+        return b, oc, fnc
+
+    c, _, f = rec_add(dic, root_name)
+
+    return not c, f
+
+
+def check_inp(inp_g, function_name, l_check: bool = True) -> tuple:
+    failed = ()
+
+    for inp in inp_g:
+        if not isinstance(*inp[:2]):
+            failed = (*failed,
+                      "Invalid input for param <%s>; expected %s, got %s." % (inp[2], inp[1], type(inp[0]))
+                      )
+            continue
+
+        if l_check:
+            if inp[1] in [str, bytes]:
+                if not len(inp[0].strip()) > 0:
+                    failed = (*failed,
+                              "Invalid theme author data: insufficient data (<%s>)" % inp[-1]
+                              )
+            elif inp[1] in [int, float, complex]:
+                pass
+
+            else:
+                if not len(inp[0]) > 0:
+                    failed = (*failed,
+                              "Invalid theme author data: insufficient data (<%s>)" % inp[-1]
+                              )
+
+    return len(failed) == 0, failed, ("%s: Invalid input(s):\n\t* %s" % (function_name, "\n\t* ".join(_ for _ in failed) if len(failed) != 0 else ''))

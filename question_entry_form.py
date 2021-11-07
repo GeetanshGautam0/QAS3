@@ -288,7 +288,7 @@ class UI(threading.Thread):
                     bg=self.theme.get('bg'),
                     fg=self.theme.get('fg'),
                     activebackground=self.theme.get('accent'),
-                    activeforeground=colors.Functions.calculate_nearer(self.theme['bg'], self.theme['fg'], self.theme['accent']),
+                    activeforeground=colors.Functions.calculate_more_contrast(self.theme['bg'], self.theme['fg'], self.theme['accent']),
                     bd=0
                 )
 
@@ -324,7 +324,7 @@ class UI(threading.Thread):
 
         self.question_entry.config(
             selectbackground=self.theme.get('accent'),
-            selectforeground=colors.Functions.calculate_nearer(self.theme['bg'], self.theme['fg'], self.theme['accent']),
+            selectforeground=colors.Functions.calculate_more_contrast(self.theme['bg'], self.theme['fg'], self.theme['accent']),
             wrap=tk.WORD,
             font=(
                 self.theme.get('font').get('font_face'),
@@ -335,7 +335,7 @@ class UI(threading.Thread):
 
         self.answer_entry.config(
             selectbackground=self.theme.get('accent'),
-            selectforeground=colors.Functions.calculate_nearer(self.theme['bg'], self.theme['fg'], self.theme['accent']),
+            selectforeground=colors.Functions.calculate_more_contrast(self.theme['bg'], self.theme['fg'], self.theme['accent']),
             wrap=tk.WORD,
             font=(
                 self.theme.get('font').get('font_face'),
@@ -354,7 +354,7 @@ class UI(threading.Thread):
     def reformat_buttons(self):
         self.mcSel.config(
             bg=self.theme.get('accent' if self.mc else 'bg'),
-            fg=colors.Functions.calculate_nearer(self.theme['bg'], self.theme['fg'], self.theme['accent']) if self.mc else self.theme.get('fg'),
+            fg=colors.Functions.calculate_more_contrast(self.theme['bg'], self.theme['fg'], self.theme['accent']) if self.mc else self.theme.get('fg'),
             text=(
                     self.mcSel.cget('text').replace('\u2713', '').strip() + (' \u2713' if self.mc else '')
             )
@@ -362,7 +362,7 @@ class UI(threading.Thread):
 
         self.tfSel.config(
             bg=self.theme.get('accent' if self.tf else 'bg'),
-            fg=colors.Functions.calculate_nearer(self.theme['bg'], self.theme['fg'], self.theme['accent']) if self.tf else self.theme.get('fg'),
+            fg=colors.Functions.calculate_more_contrast(self.theme['bg'], self.theme['fg'], self.theme['accent']) if self.tf else self.theme.get('fg'),
             text=(
                     self.tfSel.cget('text').replace('\u2713', '').strip() + (' \u2713' if self.tf else '')
             )

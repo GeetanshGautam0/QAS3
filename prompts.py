@@ -107,6 +107,9 @@ class TextPrompts:
             self.theme = {}
             self.theme_mode = TMODE
 
+            self.lbls = set()
+            self.config_pol = -1
+
             # self.start()
             self.run()
             self.root.deiconify()
@@ -137,7 +140,7 @@ class TextPrompts:
                 print(self.theme[self.accent_key])
                 print((*_m.values(), self.theme[self.accent_key]))
 
-                _res = colors.Functions.calculate_nearer(*_m.values(), self.theme[self.accent_key])
+                _res = colors.Functions.calculate_more_contrast(*_m.values(), self.theme[self.accent_key])
                 self.contrast_key = (*_m.keys(), )[(*_m.values(), ).index(_res)]
 
             self.root.geometry(
@@ -167,6 +170,8 @@ class TextPrompts:
                 expand=True
             )
 
+            self.lbls.add(self.data_label)
+
             # Title Label
             self.title_lbl.config(
                 text=self.degree,
@@ -182,6 +187,8 @@ class TextPrompts:
                 padx=self.theme['padding']['x'],
                 pady=self.theme['padding']['y'] * 1.5
             )
+
+            self.lbls.add(self.title_lbl)
 
             # OK Button
             self.ok_button.config(
@@ -285,15 +292,25 @@ class TextPrompts:
             )
 
             # Event Handlers
-            self.data_section.bind("<Configure>", self.__onFrameConfig)
+            self.root.bind("<Configure>", self.__onFrameConfig)
             self.data_section.bind_all("<MouseWheel>", self.__on_mousewheel)
 
             _update_sc_bar(self.data_section_v_scbar, self.data_canvas, self.root)
 
         def __onFrameConfig(self, *args):
-            self.data_canvas.configure(
-                scrollregion=self.data_canvas.bbox("all")
-            )
+            w = self.root.winfo_width()
+            if self.config_pol ^ w:
+                self.data_canvas.configure(
+                    scrollregion=self.data_canvas.bbox("all")
+                )
+
+                if self.config_pol != -1:
+                    for lbl in self.lbls:
+                        lbl.config(
+                            wraplength=args[0].width - self.theme['padding']['x'] * 3
+                        )
+
+                self.config_pol = w
 
         def __on_mousewheel(self, event):
             """
@@ -334,6 +351,7 @@ class TextPrompts:
                 self.ok_button = tk.Button(self.root)
                 self.accent_key = accent_key
                 self.contrast_key = contrast_key
+                self.lbls = set()
 
                 def_ws = conf.AppContainer.Prompts.def_ws
                 self.ss = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
@@ -348,7 +366,7 @@ class TextPrompts:
 
                 self.theme = {}
                 self.theme_mode = TMODE
-
+                self.config_pol = -1
                 self.fatal = fatal
 
                 self.run()
@@ -375,7 +393,7 @@ class TextPrompts:
                         self.theme['bg']: 'bg'
                     }
 
-                    _res = colors.Functions.calculate_nearer(*_m.keys(), self.theme[self.accent_key])
+                    _res = colors.Functions.calculate_more_contrast(*_m.keys(), self.theme[self.accent_key])
                     self.contrast_key = _m[_res]
 
                 self.root.geometry(
@@ -405,6 +423,8 @@ class TextPrompts:
                     expand=True
                 )
 
+                self.lbls.add(self.data_label)
+
                 # Title Label
                 self.title_lbl.config(
                     text=self.degree,
@@ -420,6 +440,8 @@ class TextPrompts:
                     padx=self.theme['padding']['x'],
                     pady=self.theme['padding']['y'] * 1.5
                 )
+
+                self.lbls.add(self.title_lbl)
 
                 # OK Button
                 self.ok_button.config(
@@ -523,15 +545,28 @@ class TextPrompts:
                 )
 
                 # Event Handlers
-                self.data_section.bind("<Configure>", self.__onFrameConfig)
+                self.root.bind("<Configure>", self.__onFrameConfig)
+                # self.data_section.bind("<Configure>", self.__onFrameConfig)
                 self.data_section.bind_all("<MouseWheel>", self.__on_mousewheel)
 
                 _update_sc_bar(self.data_section_v_scbar, self.data_canvas, self.root)
+                self.__onFrameConfig()
 
             def __onFrameConfig(self, *args):
-                self.data_canvas.configure(
-                    scrollregion=self.data_canvas.bbox("all")
-                )
+                w = self.root.winfo_width()
+                # self.config_pol ^= w
+                if self.config_pol ^ w:
+                    self.data_canvas.configure(
+                        scrollregion=self.data_canvas.bbox("all")
+                    )
+
+                    if self.config_pol != -1:
+                        for lbl in self.lbls:
+                            lbl.config(
+                                wraplength=args[0].width - self.theme['padding']['x'] * 3
+                            )
+
+                    self.config_pol = w
 
             def __on_mousewheel(self, event):
                 """
@@ -550,10 +585,32 @@ class TextPrompts:
 
         @staticmethod
         def Handled(*args, **kwargs):
+            """
+             data, use_tk=False, button_text="Okay", degree='ERROR',
+                         title=conf.AppContainer.general_title + " - Error", accent_key='error', contrast_key=-1,
+                         fatal=False
+            :param args: arguments
+            :param kwargs keyword arguments
+            :return: None
+            """
             TextPrompts.ErrorPrompt._ErrRoot(*args, **kwargs)
 
         @staticmethod
         def Fatal(*args, **kwargs):
+            """
+            data, use_tk = False, button_text = "Okay", degree = 'ERROR',
+            title = conf.AppContainer.general_title + " - Error", accent_key = 'error', contrast_key = -1,
+            fatal = False
+
+            :param
+            args: arguments
+            :param
+            kwargs
+            keyword
+            arguments
+            :return: None
+            """
+
             try:
                 cont_ttl = conf.AppContainer.general_title + " - Fatal Error"
                 ttl = "Fatal Error"
@@ -565,8 +622,10 @@ class TextPrompts:
                 kwargs['fatal'] = True
 
                 TextPrompts.ErrorPrompt._ErrRoot(*args, **kwargs)
+            except SystemExit as se:
+                sys.exit(se.__str__())
             except:
-                tkmsb.showerror("Quizzing Application - Fatal Error", "The application has encountered a fatal error; terminating.")
+                tkmsb.showerror("Quizzing Application - Fatal Error", "The application has encountered a fatal error; terminating:\n\n%s" % traceback.format_exc())
                 sys.exit(-1)
 
 
@@ -629,6 +688,9 @@ class InputPrompts:
             self.theme_mode = TMODE
             self.theme = {}
 
+            self.config_pol = -1
+            self.lbls = set()
+
             def_ws = conf.AppContainer.Prompts.def_ws
             self.ss = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
             self.ws = [
@@ -688,7 +750,7 @@ class InputPrompts:
                     self.theme['bg']: 'bg'
                 }
 
-                _res = colors.Functions.calculate_nearer(*_m.keys(), self.theme[self.accent_key])
+                _res = colors.Functions.calculate_more_contrast(*_m.keys(), self.theme[self.accent_key])
                 self.contrast_key = _m[_res]
 
             self.root.geometry(
@@ -717,6 +779,8 @@ class InputPrompts:
                 pady=self.theme['padding']['y'] * 1.5
             )
 
+            self.lbls.add(self.title_lbl)
+
             # Error Label
             self.err_lbl.config(
                 text="",
@@ -734,6 +798,8 @@ class InputPrompts:
                 pady=(self.theme['padding']['y'] // 2, self.theme['padding']['y']),
                 side=tk.BOTTOM
             )
+
+            self.lbls.add(self.err_lbl)
 
             # OK Button
             self.ok_button.config(
@@ -800,6 +866,8 @@ class InputPrompts:
                     fill=tk.BOTH,
                     expand=True
                 )
+
+                self.lbls.add(self.description_label)
 
                 # SCBar + Data Section
                 self.description_canvas.config(
@@ -880,15 +948,28 @@ class InputPrompts:
                 )
 
                 # Event Handlers
-                self.description_section.bind("<Configure>", self.__onFrameConfig)
                 self.description_section.bind_all("<MouseWheel>", self.__on_mousewheel)
 
                 _update_sc_bar(self.description_section_v_scbar, self.description_canvas, self.root)
 
+            self.root.bind("<Configure>", self.__onFrameConfig)
+
         def __onFrameConfig(self, *args):
-            self.description_canvas.configure(
-                scrollregion=self.description_canvas.bbox("all")
-            )
+            w = self.root.winfo_width()
+            # self.config_pol ^= w
+            if self.config_pol ^ w:
+                if len(self.description.strip()) > 0:
+                    self.data_canvas.configure(
+                        scrollregion=self.data_canvas.bbox("all")
+                    )
+
+                if self.config_pol != -1:
+                    for lbl in self.lbls:
+                        lbl.config(
+                            wraplength=args[0].width - self.theme['padding']['x'] * 3
+                        )
+
+                self.config_pol = w
 
         def __on_mousewheel(self, event):
             """

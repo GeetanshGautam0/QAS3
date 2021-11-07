@@ -42,7 +42,7 @@ class AppContainer:
     general_title = ConfigFile.raw.get('container_data')['general']['title']
 
     class Prompts:
-        def_ws = (400, 450)
+        def_ws = (500, 450)
 
     class Splash:
         geo = [600, 225]

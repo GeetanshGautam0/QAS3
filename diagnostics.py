@@ -390,7 +390,30 @@ def _check_theme(theme_data) -> dict:
     else:
         passed = (*passed, "PASSED: Passed contrast checks and theme mapping data checks.")
 
-    gf1 = (len(failed) == 0)
+    # Redundancy checks: themes, mapping data
+    rdn_passes, rdn_failures = std.dict_check_redundant_data(
+        theme_data['$information']['$avail_modes'],
+        root_name='<available_modes>'
+    )
+    rdn_passes = not rdn_passes
+    rdn_theme = {**theme_data}
+    rdn_theme.pop('$information')
+    rdn_theme.pop('$global')
+
+    c = set()
+    for k, v in rdn_theme.items():
+        for k1, v1 in rdn_theme.items():
+            if k != k1 and (k, k1) not in c:
+                c.add((k, k1))
+                c.add((k1, k))
+
+                rdn_passes &= v != v1
+                if v == v1:
+                    rdn_failures.add("Same theme data between themes '%s' and '%s'" % (k, k1))
+
+    assert rdn_passes, "Redundant theme data found:\n\n\t* %s" % "\n\t* ".join(_ for _ in rdn_failures)
+
+    gf1 = len(failed) == 0
 
     if gf1:
         check_tbl = {
@@ -587,7 +610,7 @@ class FormatResultsStr:
     @staticmethod
     def failures(f):
         f = ("Total failures: %s" % (str(len(f))), *f)
-        b = "\n\n================ ERRORS ================\nRan multiple tests on theme file; the following failures occurred:\n"
+        b = "Ran multiple tests on theme file; the following failures occurred:\n"
         b += "\n* ".join(fail for fail in f)
 
         return b
