@@ -355,10 +355,10 @@ def _check_theme(theme_data) -> dict:
 
             base = 'bg'
 
-            for check_with in ['fg', 'accent', 'error', 'warning', 'ok']:
+            for check_with in ['fg', 'accent', 'error', 'ok', ]:
                 AA_res, AAA_res, cols = std.check_hex_contrast(theme_name_data[base], theme_name_data[check_with])
 
-                cont_pass = cont_pass and AA_res
+                cont_pass &= AA_res
                 if not AA_res:
                     cont_errs = (*cont_errs, "* \"%s/%s\" [%s] and \"%s/%s\" [%s]" %
                                  (
@@ -372,6 +372,33 @@ def _check_theme(theme_data) -> dict:
                     *contrast,
                     "Contrast between '%s/%s' and '%s/%s': passes AA (required): %s, passes AAA (recommended): %s" %
                     (theme_code, base, theme_code, check_with, str(AA_res), str(AAA_res))
+                )
+
+            for adjusted_cont in (('warning', 2.25555), ):
+                check_with = adjusted_cont[0]
+                AA_res, AAA_res, cols = std.check_hex_contrast(theme_name_data[base], theme_name_data[check_with], adj=adjusted_cont[1])
+
+                cont_pass &= AA_res
+                if not AA_res:
+                    cont_errs = (*cont_errs, "* \"%s/%s\" [%s] and \"%s/%s\" [%s] (Adjusted with %s%s)" %
+                                 (
+                                     theme_code, base,
+                                     theme_name_data[base], theme_code,
+                                     check_with, theme_name_data[check_with],
+                                     '+' if adjusted_cont[-1] > 0 else '',
+                                     str(adjusted_cont[-1]),
+                                 )
+                                 )
+
+                contrast = (
+                    *contrast,
+                    "Contrast between '%s/%s' and '%s/%s' (%s%s): passes AA (required): %s, passes AAA (recommended): %s" %
+                    (
+                        theme_code, base, theme_code, check_with,
+                        '+' if adjusted_cont[-1] > 0 else '',
+                        str(adjusted_cont[-1]),
+                        str(AA_res), str(AAA_res)
+                    )
                 )
 
         assert cont_pass, "Insufficient contrast between the following:\n\t" + "\n\t".join(_ for _ in (*set(cont_errs), )).strip()
@@ -587,7 +614,7 @@ def _write_default_theme_data(def_file_path: str, final_file_path: str):
 class FormatResultsStr:
 
     @staticmethod
-    def format_theme_analysis_report(f, p, v, c):
+    def theme_check_report(f, p, v, c):
         f = ("Total failures: %s" % (str(len(f))), *f)
         p = ("Total passed tests: %s" % (str(len(p))), *p)
         v = ("Total violations: %s" % (str(len(v))), *v)

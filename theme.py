@@ -22,6 +22,7 @@ def _convert_path(path) -> str:
         conf.ConfigFile.raw['theme']['user_can_install_themes']['dir']
     theme_file = theme_file.replace("$appdata", conf.Application.AppDataLoc)
     theme_file = theme_file.replace("$user_pref", os.path.join(*p, p_fn))
+    theme_file = theme_file.replace("$custom", os.path.join(*p, p_fn))
     theme_file = theme_file.replace("\\", "/")
     return theme_file
 
@@ -573,23 +574,24 @@ class Theme:
 
         assert type(TFILE) is str, "Failed to load theme file name."
 
-        theme_file = _convert_path(theme_file)
-        assert os.path.exists(theme_file), "File does not exist; create file using 'Editor._create_new_theme'"
+        filename = _convert_path(theme_file)
+        assert os.path.exists(filename), "File '%s' does not exist; create file using 'Editor._create_new_theme'" % filename
 
         # Recursive Functions
         def rec_dict_path(key, value) -> tuple:
+            key = key.replace('/', '\\')
             if "\\" in key:
                 k = (*key.split("\\"),)
 
                 if len(k) > 1:
-                    rdp = rec_dict_path("\\".join(i for i in k[1::]), value)
-                    return (k[0], {k[0]: rdp[1]})
+                    irdp = rec_dict_path("\\".join(i for i in k[1::]), value)
+                    return k[0], {irdp[0]: irdp[1]}
 
                 else:
-                    return (key, {key: value})
+                    return key, {key: value}
 
             else:
-                return (key, {key: value})
+                return key, {key: value}
 
         def rec_combine_theme_dict(og, new) -> dict:
             o = {}
@@ -608,6 +610,7 @@ class Theme:
             _t = {}
             for tk, tv in theme.items():
                 rdp = rec_dict_path(tk, tv)
+                rdp_tok = []
                 _t[rdp[0]] = rdp[1][rdp[0]]
 
             # _r = {**_theme_data, **_t}  # Will not work for nested dicts; use RCTD function.
@@ -615,21 +618,19 @@ class Theme:
         else:
             _r = {**_theme_data}
 
-        # Saving
-        filename = theme_file.replace("\\", "/")
-        print(filename)
-
-        if not os.path.exists(filename):
-            # Create
-            directory = "\\".join(i for i in filename.split('/')[:-1:])
-
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-        res = diagnostics.DataDiagnostics.Theme.check_data(_r)
+        # Checker
+        res = check_theme(filename, _r)
         if not res[0]:
             fail = diagnostics.FormatResultsStr.failures(res[1])
             return res[0], fail, res[1]
+
+        # Saving
+        if not os.path.exists(filename):
+            # Create
+            directory, _ = std.split_filename_direc(filename)
+
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
         _r = json.dumps(_r, indent=4)
 

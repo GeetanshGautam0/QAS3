@@ -23,7 +23,7 @@ def float_map(value: float, input_min: float, input_max: float, output_min: floa
     return output_min + (valueScaled * rightSpan)
 
 
-def check_hex_contrast(bg, fg) -> tuple:
+def check_hex_contrast(bg, fg, adj=0) -> tuple:
     """
     **CHECK_HEX_CONTRAST**
 
@@ -50,9 +50,10 @@ def check_hex_contrast(bg, fg) -> tuple:
 
     back = hex_to_rgb(bg)
     front = hex_to_rgb(fg)
+    adjusted_contrast_ratio = wcag_contrast_ratio.rgb(map_rgb(back), map_rgb(front)) + adj
 
-    AA_res = wcag_contrast_ratio.passes_AA(wcag_contrast_ratio.rgb(map_rgb(back), map_rgb(front)))
-    AAA_res = wcag_contrast_ratio.passes_AAA(wcag_contrast_ratio.rgb(map_rgb(back), map_rgb(front)))
+    AA_res = wcag_contrast_ratio.passes_AA(adjusted_contrast_ratio)
+    AAA_res = wcag_contrast_ratio.passes_AAA(adjusted_contrast_ratio)
 
     return AA_res, AAA_res, (bg, fg)
 

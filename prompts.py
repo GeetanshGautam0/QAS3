@@ -137,9 +137,6 @@ class TextPrompts:
                     'bg': self.theme['bg']
                 }
 
-                print(self.theme[self.accent_key])
-                print((*_m.values(), self.theme[self.accent_key]))
-
                 _res = colors.Functions.calculate_more_contrast(*_m.values(), self.theme[self.accent_key])
                 self.contrast_key = (*_m.keys(), )[(*_m.values(), ).index(_res)]
 

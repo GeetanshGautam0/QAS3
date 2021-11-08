@@ -34,15 +34,25 @@ class Functions:
         edRGB = Convert.HexToRGB(end)
 
         # Deltas
-        deltas = (*[edRGB[i] - stRGB[i] for i in range(3)], )
-        steps = abs(sorted(deltas)[-1])
+        deltas_pol = (*[((edRGB[i] - stRGB[i])/abs(edRGB[i] - stRGB[i])) if (edRGB[i] - stRGB[i]) != 0 else 1 for i in range(3)], )
+        deltas = (*[abs(edRGB[i] - stRGB[i]) for i in range(3)], )
+        steps = sorted(deltas)[-1]
         o = [start]
 
         for step in range(steps):
             # o = [*o, (*[(int(clamp(0, o[step-1][j] + deltas[j]/steps, 255))) for j in range(3)], )]
             # o = [*o, (*[(int(clamp(0, (stRGB[j] + (deltas[j] / steps * step)), 255))) for j in range(3)], )]
 
-            o = (*o, Convert.RGBToHex((*[(int(clamp(0, (stRGB[j] + (deltas[j] / steps * step)), 255))) for j in range(3)],)))
+            o = (*o,
+                 Convert.RGBToHex(
+                     (*[
+                         (int(clamp(
+                             0,
+                             (stRGB[j] + (deltas[j]*deltas_pol[j] / steps * step)),
+                             255)
+                         )) for j in range(3)
+                     ],))
+                 )
 
         # o = (*[Convert.RGBToHex(i) for i in o], end)
         o = (*o, end)
