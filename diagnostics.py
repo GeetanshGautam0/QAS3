@@ -493,7 +493,7 @@ def _check_theme(theme_data) -> dict:
                     if level[1::].isdigit():
                         level = 'any_mode'
 
-                assert level in ch_base, "Invalid dictionary key location."
+                assert level in ch_base, "Invalid dictionary key location (%s)." % lvl
                 if type(ch_base[level]) is dict:
                     ch_base = ch_base[level]
 

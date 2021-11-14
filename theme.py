@@ -487,6 +487,156 @@ class Editor:
         else:
             return compiled_theme_dict
 
+    @staticmethod
+    def SetCustomTheme(theme_file, theme) -> tuple:
+        """
+        **Theme.SetCustomTheme**
+
+        :param theme_file: theme filename
+        :param theme:      theme data
+        :return:           tuple (all good?, failures (str), failures (tuple[str]))
+        """
+
+        assert conf.ConfigFile.raw['theme']['user_can_config'], "unsupported feature"
+
+        reload_default()
+        global TFILE, _theme_data, _theme_file
+
+        assert type(TFILE) is str, "Failed to load theme file name."
+
+        filename = _convert_path(theme_file)
+        assert os.path.exists(
+            filename), "File '%s' does not exist; create file using 'Editor._create_new_theme'" % filename
+
+        # Recursive Functions
+        def rec_dict_path(key, value) -> tuple:
+            key = key.replace('/', '\\')
+            keys_o = (*key.split("\\"),)
+            if "\\" in key:
+                k = (*key.split("\\"),)
+
+                if len(k) > 1:
+                    irdp = rec_dict_path("\\".join(i for i in k[1::]), value)
+                    return keys_o, irdp[1]
+
+                else:
+                    return keys_o, value
+
+            else:
+                return keys_o, value
+
+        def rec_combine_theme_dict(og, new, tl=True) -> dict:
+            if len(og) == 0:
+                return new
+            elif len(new) == 0:
+                return og
+
+            o = {}
+
+            for item in og:
+                if type(og[item]) is dict and item in new:
+                    o[item] = rec_combine_theme_dict(og[item], new[item], tl=False)
+                elif item in new:
+                    o[item] = new[item]
+                else:
+                    o[item] = og[item]
+
+            for item in new:
+                if item not in o:
+                    o[item] = new[item]
+
+            return o
+
+        # Assembler
+        if theme not in ('def', -1):
+            _t = {}
+
+            # Stacker
+            for tkey, tval in theme.items():
+                stack = []  # Has to be a list; cannot be a tuple (pop)
+
+                rdp_tok, rdp_val = rec_dict_path(tkey, tval)
+                for tok in rdp_tok:
+                    if tok in ['root', '<root>'] and rdp_tok.index(tok) == 0:
+                        continue
+
+                    if tok == rdp_tok[-1]:
+                        stack.extend(((False, tok), (True, rdp_val)))
+                        break
+
+                    else:
+                        stack.append((False, tok))
+
+                o = {}
+
+                # O-Dict Creator
+                while len(stack):
+                    b, tok = stack.pop()
+
+                    if b:
+                        o = tok
+                    else:
+                        if isinstance(o, dict):
+                            o = {tok: {**o}}
+                        else:
+                            o = {tok: o}
+
+                # Appender
+                _t = rec_combine_theme_dict(_t, o, tl=False)
+
+                del stack
+
+            _r = rec_combine_theme_dict(_theme_data, _t)
+
+        else:
+            _r = {**_theme_data}
+
+        # print(_r)
+
+        # Checker
+        res = check_theme(filename, _r, re_comp_data=True)
+        if not res[0]:
+            fail = diagnostics.FormatResultsStr.failures(res[1])
+            return res[0], fail, res[1]
+
+        # Saving
+        if not os.path.exists(filename):
+            # Create
+            directory, _ = std.split_filename_direc(filename)
+
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+        _r = json.dumps(_r, indent=4)
+
+        with open(filename, 'w') as UserPrefThemeFile:
+            UserPrefThemeFile.write(_r)
+            UserPrefThemeFile.close()
+
+        return res[0], "No failures", ()
+
+    @staticmethod
+    def SetUserPref(theme_file, mode):
+        find_preference()
+        global TFILE
+
+        assert type(TFILE) is str, "Failed to load theme file name."
+
+        theme_file = _convert_path(theme_file)
+
+        assert os.path.exists(theme_file), "File does not exist."
+
+        f = open(theme_file, 'r')
+        r = f.read()
+        f.close()
+        r = json.loads(r)  # If this fails, it will cause an error anyway; don't catch.
+
+        assert diagnostics.DataDiagnostics.Theme.check_file(theme_file), "Invalid theme file."
+
+        user_pref.Set.Theme.theme_pref((theme_file, mode,))
+
+        find_preference()
+
 
 class Theme:
     class Default:
@@ -553,111 +703,3 @@ class Theme:
         @staticmethod
         def get_theme_by_mode(mode) -> dict:
             return Theme.UserPref.m(load_theme_file()['$information']['$avail_modes'][mode])
-
-    # TODO: Fix auto-correction logic + addition logic
-    # TODO: Raise errors for erroneous addition requests
-    # TODO: Add map-checking logic
-    @staticmethod
-    def SetCustomTheme(theme_file, theme) -> tuple:
-        """
-        **Theme.SetCustomTheme**
-
-        :param theme_file: theme filename
-        :param theme:      theme data
-        :return:           tuple (all good?, failures (str), failures (tuple[str]))
-        """
-
-        assert conf.ConfigFile.raw['theme']['user_can_config'], "unsupported feature"
-
-        reload_default()
-        global TFILE, _theme_data, _theme_file
-
-        assert type(TFILE) is str, "Failed to load theme file name."
-
-        filename = _convert_path(theme_file)
-        assert os.path.exists(filename), "File '%s' does not exist; create file using 'Editor._create_new_theme'" % filename
-
-        # Recursive Functions
-        def rec_dict_path(key, value) -> tuple:
-            key = key.replace('/', '\\')
-            if "\\" in key:
-                k = (*key.split("\\"),)
-
-                if len(k) > 1:
-                    irdp = rec_dict_path("\\".join(i for i in k[1::]), value)
-                    return k[0], {irdp[0]: irdp[1]}
-
-                else:
-                    return key, {key: value}
-
-            else:
-                return key, {key: value}
-
-        def rec_combine_theme_dict(og, new) -> dict:
-            o = {}
-            for item in og:
-                if type(og[item]) is dict and item in new:
-                    o[item] = rec_combine_theme_dict(og[item], new[item])
-                elif item in new:
-                    o[item] = new[item]
-                else:
-                    o[item] = og[item]
-
-            return o
-
-        # Assembler
-        if theme not in ('def', -1):
-            _t = {}
-            for tk, tv in theme.items():
-                rdp = rec_dict_path(tk, tv)
-                rdp_tok = []
-                _t[rdp[0]] = rdp[1][rdp[0]]
-
-            # _r = {**_theme_data, **_t}  # Will not work for nested dicts; use RCTD function.
-            _r = rec_combine_theme_dict(_theme_data, _t)
-        else:
-            _r = {**_theme_data}
-
-        # Checker
-        res = check_theme(filename, _r)
-        if not res[0]:
-            fail = diagnostics.FormatResultsStr.failures(res[1])
-            return res[0], fail, res[1]
-
-        # Saving
-        if not os.path.exists(filename):
-            # Create
-            directory, _ = std.split_filename_direc(filename)
-
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-        _r = json.dumps(_r, indent=4)
-
-        with open(filename, 'w') as UserPrefThemeFile:
-            UserPrefThemeFile.write(_r)
-            UserPrefThemeFile.close()
-
-        return res[0], "No failures", ()
-
-    @staticmethod
-    def SetUserPref(theme_file, mode):
-        find_preference()
-        global TFILE
-
-        assert type(TFILE) is str, "Failed to load theme file name."
-
-        theme_file = _convert_path(theme_file)
-
-        assert os.path.exists(theme_file), "File does not exist."
-
-        f = open(theme_file, 'r')
-        r = f.read()
-        f.close()
-        r = json.loads(r)  # If this fails, it will cause an error anyway; don't catch.
-
-        assert diagnostics.DataDiagnostics.Theme.check_file(theme_file), "Invalid theme file."
-
-        user_pref.Set.Theme.theme_pref((theme_file, mode,))
-
-        find_preference()
