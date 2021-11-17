@@ -5,6 +5,10 @@ import threading, os, sys, theme, conf, questions, prompts, colors
 from appfunctions import *
 
 
+# TODO: ADD "IS_CASE_SENSITIVE" OPTION TO FORM
+# TODO: ADD "NOTES" SECTION FOR RESPONSE FORM
+
+
 class UI(threading.Thread):
     def __init__(self):
         super().__init__()
@@ -26,19 +30,23 @@ class UI(threading.Thread):
         self.canv = tk.Canvas(self.root)
         self.frame = tk.Frame(self.root)
         self.vsb = ttk.Scrollbar(self.root)
+        self.xsb = ttk.Scrollbar(self.root, orient=tk.HORIZONTAL)
 
-        self.question_entry = tk.Text(self.frame)
-        self.questionLbl = tk.Label(self.frame, text="Enter Question")
-        self.answer_entry = tk.Text(self.frame)
-        self.answerLbl = tk.Label(self.frame, text="Enter Correct Answer")
+        self.cont_q = tk.LabelFrame(self.frame)
+        self.cont_a = tk.LabelFrame(self.frame)
+        self.question_entry = tk.Text(self.cont_q)
+        self.questionLbl = tk.Label(self.cont_q, text="Enter Question")
+        self.answer_entry = tk.Text(self.cont_a)
+        self.answerLbl = tk.Label(self.cont_a, text="Enter Correct Answer")
 
-        self.selContainer = tk.LabelFrame(self.frame, bd='0', bg=self.theme.get('bg'))
+        self.selContainer = tk.LabelFrame(self.root)
         self.mcSel = tk.Button(self.selContainer, text="Multiple Choice", command=self.mc_click)
         self.tfSel = tk.Button(self.selContainer, text="True/False", command=self.tf_click)
-        self.submitButton = tk.Button(self.frame, text="Add Question", command=self.add)
 
-        self.clearButton = tk.Button(self.frame, text="Delete All Questions", command=self.delAll)
-        self.helpButton = tk.Button(self.frame, text="Click here to\n view instructions", command=self.help)
+        self.set_cont = tk.LabelFrame(self.root)
+        self.submitButton = tk.Button(self.set_cont, text="Add Question", command=self.add)
+        self.clearButton = tk.Button(self.set_cont, text="Delete All Questions", command=self.delAll)
+        self.helpButton = tk.Button(self.root, text="Click here to view instructions", command=self.help)
 
         self.sep = ttk.Separator(self.frame)
 
@@ -50,10 +58,11 @@ class UI(threading.Thread):
         ]
 
         # Theme data sets
-        self.theme_label: list = []
-        self.theme_label_font: dict = {}
-        self.theme_button: list = []
-        self.theme_accent: list = []
+        self.theme_label = []
+        self.theme_label_font = {}
+        self.theme_button = []
+        self.theme_accent = []
+        self.theme_invis_cont = []
 
         self.mc = False
         self.tf = False
@@ -73,14 +82,9 @@ class UI(threading.Thread):
         self.root.iconbitmap(conf.Files.app_icons['admin_tools']['ico'])
 
         # Widget configuration + placement
-        # The basic back
-        self.canv.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
-        self.vsb.pack(fill=tk.Y, expand=False, side=tk.RIGHT)
-        self.frame.pack(fill=tk.BOTH, expand=True)
-
         # The actual control
 
-        ttl = tk.Label(self.frame, text="Add Question")
+        ttl = tk.Label(self.root, text="Add Question", wraplength=self.ws[0]-10)
         ttl.pack(fill=tk.BOTH, expand=False, padx=5, pady=5)
 
         self.theme_label.append(ttl)
@@ -90,7 +94,8 @@ class UI(threading.Thread):
             32
         )
 
-        self.helpButton.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 5))
+        self.helpButton.config(wraplength=self.ws[0]-10)
+        self.helpButton.pack(fill=tk.BOTH, expand=False, padx=10, pady=(0, 5))
         self.theme_button.append(self.helpButton)
         self.theme_label_font[self.helpButton] = (
             self.theme.get('font').get('font_face'),
@@ -99,21 +104,23 @@ class UI(threading.Thread):
 
         self.sep.pack(fill=tk.X, expand=True, padx=5)
 
+        self.theme_invis_cont.extend([self.cont_a, self.cont_q, self.set_cont, self.selContainer])
+        self.cont_q.pack(fill=tk.BOTH, expand=False)
+        self.cont_a.pack(fill=tk.BOTH, expand=False)
         self.questionLbl.config(anchor=tk.SW)
         self.theme_label.append(self.questionLbl)
         self.theme_accent.append(('bg', self.theme.get('bg'), self.questionLbl))
 
-        self.questionLbl.pack(fill=tk.X, expand=True, padx=10, pady=(5, 0))
-        self.question_entry.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 5))
+        self.questionLbl.pack(fill=tk.X, expand=True, padx=5, pady=(5, 0))
+        self.question_entry.pack(fill=tk.BOTH, expand=False, padx=5, pady=(0, 5))
 
         self.answerLbl.config(anchor=tk.SW)
         self.theme_label.append(self.answerLbl)
         self.theme_accent.append(('bg', self.theme.get('bg'), self.answerLbl))
 
-        self.answerLbl.pack(fill=tk.X, expand=True, padx=10)
-        self.answer_entry.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 5))
+        self.answerLbl.pack(fill=tk.X, expand=True, padx=(5, 0), pady=(5, 0))
+        self.answer_entry.pack(fill=tk.BOTH, expand=False, padx=(5, 0), pady=(0, 5))
 
-        self.selContainer.pack(fill=tk.BOTH, expand=True, padx=10)
         self.mcSel.pack(fill=tk.BOTH, expand=True, pady=(0, 5), padx=(0, 5), side=tk.LEFT)
         self.tfSel.pack(fill=tk.BOTH, expand=True, pady=(0, 5), padx=(5, 0), side=tk.RIGHT)
         self.theme_button.append(self.mcSel)
@@ -126,6 +133,9 @@ class UI(threading.Thread):
             self.theme.get('font').get('font_face'),
             14
         )
+
+        self.set_cont.pack(fill=tk.BOTH, expand=False, side=tk.BOTTOM)
+        self.selContainer.pack(fill=tk.BOTH, expand=False, side=tk.BOTTOM, padx=10)
 
         self.submitButton.pack(
             fill=tk.BOTH,
@@ -152,11 +162,19 @@ class UI(threading.Thread):
             14
         )
 
+        # The basic back
+        self.xsb.pack(fill=tk.X, expand=False, side=tk.BOTTOM)
+        self.canv.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+        self.vsb.pack(fill=tk.Y, expand=False, side=tk.RIGHT)
+        # self.frame.pack(fill=tk.BOTH, expand=True)
+
         # ttk :: SB conf. (After widget placement)
         self.vsb.configure(command=self.canv.yview)
+        self.xsb.configure(command=self.canv.xview)
 
         self.canv.configure(
-            yscrollcommand=self.vsb.set
+            yscrollcommand=self.vsb.set,
+            xscrollcommand=self.xsb.set,
         )
 
         self.canv.create_window(
@@ -166,10 +184,6 @@ class UI(threading.Thread):
             tags="self.frame"
         )
 
-        # self.frame.config(
-        #     width=(self.ws[0] - self.vsb.winfo_width())
-        # )
-
         # Final Things
         self.update()
 
@@ -178,14 +192,18 @@ class UI(threading.Thread):
         # self.frame.bind_all("<MouseWheel>", self._on_mousewheel)
 
         self.canv.yview_scroll(1, "units")
+        self.canv.xview_scroll(1, "units")
         self.root.update()
         self.canv.update()
         self.vsb.update()
+        self.xsb.update()
 
         self.canv.yview_scroll(-1, "units")
+        self.canv.xview_scroll(-1, "units")
         self.root.update()
         self.canv.update()
         self.vsb.update()
+        self.xsb.update()
 
     def _on_mousewheel(self, event):
         """
@@ -250,12 +268,14 @@ class UI(threading.Thread):
 
         self.question_entry.config(
             bg=self.theme.get('bg'),
-            fg=self.theme.get('fg')
+            fg=self.theme.get('fg'),
+            insertbackground=self.theme['accent'],
         )
 
         self.answer_entry.config(
             bg=self.theme.get('bg'),
-            fg=self.theme.get('fg')
+            fg=self.theme.get('fg'),
+            insertbackground=self.theme['accent'],
         )
 
         # self.theme_label: list = []
@@ -312,6 +332,17 @@ class UI(threading.Thread):
 
             except:
                 print('sdfsjhsdffhsdf', i)
+
+        for i in self.theme_invis_cont:
+            try:
+                i.config(
+                    fg=self.theme['bg'],
+                    bg=self.theme['bg'],
+                    bd='0',
+                )
+
+            except:
+                print('sfhsdhfkshdkhfsk', i)
 
         # Exceptions
         self.clearButton.config(
