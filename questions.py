@@ -3,7 +3,7 @@ import conf
 
 class Conversions:
     @staticmethod
-    def raw_to_dict(raw:str) -> dict:
+    def raw_to_dict(raw: str) -> dict:
         output: dict = {}
 
         newlineSep = conf.FileCodes.question_separators['nl']

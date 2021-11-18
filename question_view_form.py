@@ -1,12 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
+
+import lookups
 from appfunctions import *
 import threading, sys, os, conf, theme, exceptions, questions, random
 
 
 class UI(threading.Thread):
     def __init__(self):
+        super().__init__()
         self.thread = threading.Thread
         self.thread.__init__(self)
 
@@ -43,7 +46,8 @@ class UI(threading.Thread):
         self.update_lbl: list = []
         self.update_accent_foreground: list = []
         self.update_text_font: dict = {}
-
+        self.rec_questions = {}
+        self.question_index_map = {}
         self.id_assign = {}
 
         self.start()
@@ -80,60 +84,53 @@ class UI(threading.Thread):
             18
         )
 
-        self.rec_questions = _loadQuestions()
+        self.rec_questions = _loadQuestions(no_q_type=True)
 
         self.loadingLbl.config(text="Inserting questions into UI...")
 
         for i in self.rec_questions:
             try:
-                _format = _format_question(i.strip(), self.rec_questions.get(i).strip())
+                _format = _format_question(
+                    i.strip(), self.rec_questions[i]['a'], *self.rec_questions[i]['f']
+                )
             except Exception as E:
                 print(traceback.format_exc())
-                _format = ("Error", E.__str__(), "Error")
-            print(_format)
+                _format = ("Error", E.__str__(), "System Message - Error", "")
             tempQuestionNumberLbl = tk.Label(
                 self.frame,
-                text="Question #%s" % str(_dict_getIndex(self.rec_questions, i, 1, True)),
+                text=f"Question #{_dict_getIndex(self.rec_questions, i, 1, True)}:",
                 anchor=tk.W,
                 justify=tk.LEFT,
                 wraplength=int((int(self.ws[0] - self.ws[0] * 0.02)))
             )
 
-            tempQuestionNumberLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=(15, 5))
+            tempQuestionNumberLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=(15, 2.5))
 
             self.update_lbl.append(tempQuestionNumberLbl)
-            self.update_text_font[tempQuestionNumberLbl] = (self.theme.get('font')['font_face'], self.theme['font']['big_para_size'])
-            self.update_accent_foreground.append(tempQuestionNumberLbl)
-
-            tempTypeLbl = tk.Label(
-                self.frame,
-                text="Question Type: %s" % _format[-1],
-                anchor=tk.W,
-                justify=tk.LEFT,
-                wraplength=int((int(self.ws[0] - self.ws[0] * 0.02)))
+            self.update_text_font[tempQuestionNumberLbl] = (
+                self.theme.get('font')['font_face'], self.theme['font']['big_para_size']
             )
-
-            tempTypeLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
-
-            self.update_lbl.append(tempTypeLbl)
-            self.update_text_font[tempTypeLbl] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
+            self.update_accent_foreground.append(tempQuestionNumberLbl)
 
             tempQuestionLbl = tk.Label(
                 self.frame,
-                text=f"Question:\n{_format[0]}",
+                text=_format[0],
                 anchor=tk.W,
                 justify=tk.LEFT,
                 wraplength=int((int(self.ws[0] - self.ws[0] * 0.02)))
             )
 
-            tempQuestionLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
+            tempQuestionLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=0)
 
             self.update_lbl.append(tempQuestionLbl)
-            self.update_text_font[tempQuestionLbl] = (self.theme.get('font').get('font_face'), self.theme['font']['main_size'])
+            self.update_text_font[tempQuestionLbl] = (
+                self.theme.get('font').get('font_face'), self.theme['font']['big_para_size']
+            )
+            self.update_accent_foreground.append(tempQuestionLbl)
 
             tempAnswerLbl = tk.Label(
                 self.frame,
-                text=f"Answer:\n'{_format[1]}'",
+                text=f"Answer: '{_format[1]}'",
                 anchor=tk.W,
                 justify=tk.LEFT,
                 wraplength=int((int(self.ws[0] - self.ws[0] * 0.08)))
@@ -141,13 +138,40 @@ class UI(threading.Thread):
 
             tempAnswerLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
 
+            tempTypeLbl = tk.Label(
+                self.frame,
+                text="Question Type: %s" % _format[2],
+                anchor=tk.W,
+                justify=tk.LEFT,
+                wraplength=int((int(self.ws[0] - self.ws[0] * 0.02)))
+            )
+
+            tempTypeLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
+            self.update_lbl.append(tempTypeLbl)
+            self.update_text_font[tempTypeLbl] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
+
+            if len(_format[3]) > 0:
+                tempCommentsLbl = tk.Label(
+                    self.frame,
+                    text=_format[3],
+                    anchor=tk.W,
+                    justify=tk.LEFT,
+                    wraplength=int((int(self.ws[0] - self.ws[0] * 0.02)))
+                )
+
+                tempCommentsLbl.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
+                self.update_lbl.append(tempCommentsLbl)
+                self.update_text_font[tempCommentsLbl] = (
+                    self.theme.get('font')['font_face'], self.theme['font']['main_size']
+                )
+
             remButton = tk.Button(
                 self.frame,
                 text="Remove Question",
-                fg=self.theme.get('fg'),
+                fg=self.theme.get('error'),
                 bg=self.theme.get('bg'),
-                activebackground="red",
-                activeforeground="white",
+                activebackground=self.theme.get('error'),
+                activeforeground=self.theme.get('bg'),
                 bd=0,
                 anchor=tk.SW
             )
@@ -158,16 +182,14 @@ class UI(threading.Thread):
                 pady=(0, 10)
             )
 
-            self.config_rm_button(remButton, i)
+            self.question_index_map[self.rec_questions[i]['i']] = i
+            self.config_rm_button(remButton, self.rec_questions[i]['i'])
 
             self.update_lbl.append(tempAnswerLbl)
-            self.update_text_font[tempAnswerLbl] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
+            self.update_text_font[tempAnswerLbl] = (
+            self.theme.get('font')['font_face'], self.theme['font']['main_size'])
 
             self.update_text_font[remButton] = (self.theme.get('font')['font_face'], self.theme['font']['main_size'])
-            # self.update_accent_foreground.append(tempAnswerLbl)
-
-            # sep = ttk.Separator(self.frame)
-            # sep.pack(fill=tk.X, expand=True)
 
         self.loadingLbl.config(text="Completed loading process...")
         self.loadingLbl.pack_forget()
@@ -194,7 +216,7 @@ class UI(threading.Thread):
         # Final things
         self.update()
 
-    def config_rm_button(self, tkButton, question):
+    def config_rm_button(self, tkButton, index):
         qId = (random.randint(0, 9999999999999999) + random.random()) * random.randint(1, 99)
 
         counter = 0
@@ -204,7 +226,7 @@ class UI(threading.Thread):
             if counter > 10000000:
                 break
 
-        self.id_assign[qId] = question.strip()
+        self.id_assign[qId] = index.strip()
 
         tkButton.config(
             command=lambda: self.rm_q(qId)
@@ -230,35 +252,48 @@ class UI(threading.Thread):
         ]
 
     def rm_q(self, ID) -> None:
-        question = self.id_assign[ID]
+        ind = self.id_assign[ID]
+        question = self.question_index_map[ind]
 
         confirmation = tkmsb.askyesno(
             "Confirm Removal",
-            "Are you sure you want to remove the following question:\n\n'{}'".format(question)
+            "Are you sure you want to remove the following question:\n\n'{}'".format(question.strip())
         )
-        if not confirmation: return
+        if not confirmation:
+            return
 
-        self.rec_questions.pop(question)
-
-        # Save
-        save: str = questions.Conversions.dictToSaveStr(self.rec_questions)
-        # io = IO(f"{conf.App.appdataLoc}\\{QAInfo.qasFilename}", encrypt=True)
         filename = os.path.join(conf.Application.AppDataLoc, conf.Files.questions_and_answers['filename'])
         extension = filename.split('.')[-1]
+
         file = AFIOObject(
             filename=filename,
             isFile=True,
             encrypt=conf.Files.files[extension]['encrypt'],
             owr_exs_err_par_owr_meth=True
         )
+
         if conf.Files.files[extension]['encrypt']:
             file.edit_flag(enc_key=conf.Encryption.file[extension])
 
-        AFFileIO(file.uid).secure_save(save, append=False)
+        try:
+            l = AFJSON(file.uid).load_file()
+        except:
+            print(2, traceback.format_exc())
+            return
+
+        del self.rec_questions[question]
+        del l[ind]
+
+        # Save
+        AFFileIO(file.uid).secure_save(
+            json.dumps(l, indent=4),
+            append=False
+        )
 
         # Reset UI
         children = self.frame.winfo_children()
-        for i in children: i.pack_forget()
+        for i in children:
+            i.pack_forget()
 
         self.run()
 
@@ -320,9 +355,9 @@ class UI(threading.Thread):
         self.update_theme()
 
 
-def _format_question(question, answer) -> tuple:
+def _format_question(question, answer, *flags) -> tuple:
     q_tokens, a_tokens, output = (*question.split(),), (*answer.split(),), ()
-    q_raw = a_raw = ""
+    a_raw = ""
 
     assert len(conf.FileCodes.question_codes) == 3, "Update _format_question function (viewing form)"
 
@@ -333,22 +368,20 @@ def _format_question(question, answer) -> tuple:
 
     tokens_list = (mc_q_tok, tf_q_tok, nm_q_tok, mc_a_tok, *list(conf.FileCodes.question_separators.keys()))
 
-    assert q_tokens[0] in (mc_q_tok, tf_q_tok, nm_q_tok), "Question must start with question type data."
-    assert not((q_tokens[0] == mc_q_tok) ^ (mc_a_tok in q_tokens)), "Question must contain options."
+    if 'system_msg' not in flags:
+        assert q_tokens[0] in (mc_q_tok, tf_q_tok, nm_q_tok), "Question must start with question type data."
+        assert not ((q_tokens[0] == mc_q_tok) ^ (mc_a_tok in q_tokens)), "Question must contain options."
 
-    def token_type(_token, tok_ls, _is_word=True) -> bool:
-        # return not((False if (Type == 'word') else True) ^ (token in tok_ls))
-        return not((not _is_word) ^ (_token in tok_ls))
+    token_type = lambda _token, tok_ls, _is_word=True: not ((not _is_word) ^ (_token in tok_ls))
 
     for token in a_tokens:
         if token_type(token, tokens_list):
             a_raw = " ".join(_ for _ in [a_raw, token])
-    a_raw.strip()
-
-    compiled_answer = ""
+    a_raw = a_raw.strip()
 
     if q_tokens[0] == tf_q_tok:
-        assert ('t' in a_raw.lower()) ^ ('f' in a_raw.lower()), "Answer to a true/false question can only be one of the aforementioned options, not both."
+        assert ('t' in a_raw.lower()) ^ (
+                    'f' in a_raw.lower()), "Answer to a true/false question can only be one of the aforementioned options, not both."
 
         if 't' in a_raw:
             compiled_answer = 'True'
@@ -370,7 +403,7 @@ def _format_question(question, answer) -> tuple:
         options = ()
         for s_index, index in enumerate(mc_a_stack):
             if index < mc_a_stack[-1]:
-                options = (*options, " ".join(i for i in q_tokens[index:mc_a_stack[s_index+1]]))
+                options = (*options, " ".join(i for i in q_tokens[index:mc_a_stack[s_index + 1]]))
             else:
                 options = (*options, " ".join(i for i in q_tokens[index::]))
 
@@ -401,7 +434,11 @@ def _format_question(question, answer) -> tuple:
         q_raw = " ".join(_ for _ in q_tokens)
 
     else:
-        raise Exception
+        if 'system_msg' not in flags:
+            raise Exception
+        else:
+            q_raw = question.strip()
+            compiled_answer = answer.strip()
 
     question_compiled = ""
     q_raw = q_raw.replace(
@@ -430,19 +467,38 @@ def _format_question(question, answer) -> tuple:
         mc_q_tok: 'Multiple Choice',
         tf_q_tok: 'True/False',
         nm_q_tok: 'Normal (Written)'
-    }.get(q_tokens[0])
+    }.get(q_tokens[0]) if 'system_msg' not in flags else 'SYSTEM MESSAGE'
+    if len(flags) > 0:
+        fls_str = "\n\t\u2022 ".join(
+            lookups.Table.Q.formatting_flags[i] for i in flags if i in lookups.Table.Q.formatting_flags
+        )
+        fls_str = f"The following are the flags linked with this question:\n\t\u2022 {fls_str}"
+    else:
+        fls_str = ""
 
-    output = (question_compiled, compiled_answer, q_type)
+    output = (question_compiled, compiled_answer, q_type, fls_str)
+
+    del question_compiled, compiled_answer, q_type, fls_str, q_raw, a_raw, q_tokens, token_type, a_tokens, tokens_list
 
     return output
 
 
-def _loadQuestions(__r=True) -> dict:
+def _loadQuestions(__r=True, no_q_type: bool = False) -> dict:
     output: dict = {}
+    def_o = {
+        "No questions found": {
+            'a': "No answers found",
+            'f': ['system_msg'],
+            'i': ''
+        }
+    }
+    if not no_q_type:
+        def_o['No questions found']['t'] = 'sys'
+
     path = os.path.join(conf.Application.AppDataLoc, conf.Files.questions_and_answers['filename'])
 
     if not os.path.exists(path):
-        return {"No questions found": "No answers found"} if __r else {}
+        return def_o if __r else {}
 
     extension = path.split('.')[-1]
 
@@ -452,15 +508,40 @@ def _loadQuestions(__r=True) -> dict:
         encrypt=conf.Files.files[extension]['encrypt'],
         owr_exs_err_par_owr_meth=True
     )
+
     if conf.Files.files[extension]['encrypt']:
         file.edit_flag(enc_key=conf.Encryption.file[extension])
 
-    _raw = AFFileIO(file.uid).read_file()
+    try:
+        _raw = AFJSON(file.uid).load_file()
+    except:
+        return def_o if __r else {}
 
-    output = questions.Conversions.raw_to_dict(_raw)
+    if len(_raw) <= 0:
+        return def_o if __r else {}
 
-    if len(output) <= 0:
-        output = {"No questions found": "No answers found"} if __r else {}
+    for index, qad in _raw.items():
+        flags = [k for k, v in qad['flags'].items() if v]
+        if not no_q_type:
+            q_type = qad['q_type']
+        else:
+            q_type = {}
+
+        f = questions.Conversions.raw_to_dict(qad['data'])
+        ql, al = (*f.items(), )[0]
+
+        output[ql] = {
+            'a': al,
+            'f': flags,
+            'i': index
+        }
+
+        if not no_q_type:
+            output[ql]['t'] = q_type
+
+        del ql, al, flags, q_type, f
+
+    del _raw, file, extension, path
 
     return output
 

@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
 import threading, os, sys, theme, conf, questions, prompts, colors
+
+import lookups
 from appfunctions import *
 
 
@@ -458,7 +460,7 @@ class UI(threading.Thread):
         if conf.Files.files[extension]['encrypt']:
             file.edit_flag(enc_key=conf.Encryption.file[extension])
 
-        AFFileIO(file.uid).save('', append=False)
+        AFFileIO(file.uid).save('{}', append=False)
 
         prompts.TextPrompts.BasicTextPrompt(
             "Successfully deleted all questions.",
@@ -474,6 +476,7 @@ class UI(threading.Thread):
 
         q = self.question_entry.get("1.0", "end-1c").strip()
         a = self.answer_entry.get("1.0", "end-1c").strip()
+        self.cs &= not(self.mc or self.tf)   # You can't have a case sensitive option for 'tf' and 'mc' modes
 
         if not(len(q) and len(a)):
             prompts.TextPrompts.ErrorPrompt.Handled(
@@ -507,7 +510,8 @@ class UI(threading.Thread):
         file = AFIOObject(
             filename=filename,
             isFile=True,
-            encrypt=conf.Files.files[extension]['encrypt'],
+            # encrypt=conf.Files.files[extension]['encrypt'],
+            encrypt=False,
             encoding=conf.Files.files[extension]['encoding'],
             owr_exs_err_par_owr_meth=True
         )
@@ -520,16 +524,18 @@ class UI(threading.Thread):
             raise E.__class__(traceback.format_exc())
 
         n = {
-            f'{len(og) + 1}': {
+            # f'{len(og) + 1}': {
+            f"{AFDATA.Functions.generate_uid(1418972)}": {
                 'data': data,
+                'q_type': mc_code if self.mc else tf_code if self.tf else nm_code,
                 'flags': {
-                    'q_type': mc_code if self.mc else tf_code if self.tf else nm_code,
-                    'a_formatting': {
-                        'cs': self.cs
-                    }
+                    'a_formatting_cs': self.cs
                 }
             }
         }
+
+        for fl in ('a_formatting_cs', ):
+            assert fl in lookups.Table.Q.formatting_flags, f'Outdated formatting flag "{fl}" used'
 
         sdata = json.dumps({**og, **n}, indent=4)
 
@@ -562,9 +568,23 @@ class UI(threading.Thread):
             disabledforeground=self.theme['gray']
         )
 
-        tkmsb.showinfo("QAS", "Added question successfully")
+        tkmsb.showinfo("QAS", "Added question successfully\nYou may add a new question now, or close this window.")
 
-        self.close()
+        # self.close()
+        # Reset UI for another question
+        self.reset()
+
+    def reset(self):
+        self.mc = False
+        self.tf = False
+        self.cs = False
+        self.reformat_buttons()
+        self.question_entry.delete('1.0', 'end-1c')
+        self.answer_entry.delete('1.0', 'end-1c')
+        self.helpButton.config(state=tk.NORMAL)
+        self.submitButton.config(state=tk.NORMAL)
+        self.clearButton.config(state=tk.NORMAL)
+        self.update_theme()
 
     def __del__(self):
         self.thread.join(self, 0)
