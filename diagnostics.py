@@ -20,7 +20,7 @@ class FileDiagnostics:
             :return: Tuple (All passed (bool), Failed (tuple), Passed (tuple), Tests ran (tuple))
             """
 
-            req = (conf.Files.theme['default']['filename'], '.\\low.json', '.\\conf.json')
+            req = (conf.Files.theme['default']['filename'], '.\\conf.json')
 
             output, passed = _run_file_exs_check(req)
             output = (not (len(output) > 0), output, passed, req)

@@ -1,4 +1,4 @@
-import conf, pr_conf
+import conf, protected_conf
 import os, sys, json, threading, random, exceptions, traceback, datetime, importlib, log_cleaner, cryptography
 from datetime import datetime
 from datetime import timedelta
@@ -10,22 +10,7 @@ from cryptography.fernet import Fernet
 _SELF_LOG = None
 
 for_log = "%Z(%z)::%w %d %m %y - %H:%M:%S::%f (%j) [%c]"
-# for_log_name = "%Z%z%w %d%m%y%H%M%S%f%j%c"
 for_log_name = "%Z%z%w %d %m %y %H %M %S %f %j %c"
-
-version_id = "!~0010.00101.-8"
-
-with open("low.json", 'r') as file:
-    _l_json = json.loads(file.read())
-    file.close()
-
-_prConfFile: str = _l_json['pcm_file']
-protected_conf = importlib.import_module(_prConfFile)
-
-if pr_conf.pro_conf_version_id != protected_conf.v:
-    raise SystemError("Invalid pr_conf version description (discr.)")
-elif pr_conf.r_appf_version_id != version_id:
-    raise SystemError("Invalid appfunctions script")
 
 
 class AFDATA:
@@ -156,12 +141,10 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
     class Functions:
         @staticmethod
         def time():
-            function_name = "FUNC_TIME"
             return datetime.now()
 
         @staticmethod
         def generate_uid(seed=0.00) -> str:
-            function_name = "FUNC_GEN_UID"
             I = str(random.randint(100000000000000, 999999999999999)) + "." + \
                 str(random.random() * (random.random() * 10 ** 5)) + \
                 "." + str(random.random() * random.randint(0, 9)) + ":" + \
@@ -239,7 +222,6 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
         @staticmethod
         def check_blacklist(user_in: any, template: list, default: any) -> any:
-            function_name = "FUNC_C_BLCKLST"
             global _SELF_LOG
 
             ok = True
@@ -430,7 +412,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             if type(_sample) is bytes and type(sep) is str:
                 sep2use = sep.encode(AFDATA.Functions.check_encoding(_sample, True))
 
-            elif type(_sample) is str and type(sep) is bytes:
+            elif isinstance(_sample, str) and isinstance(sep, bytes):
                 sep2use = sep.decode(AFDATA.Functions.check_encoding(sep, True))
 
             else:
@@ -517,8 +499,8 @@ class AFIOObject:
         """
         **O_IOInstance:**
             * Will create an instance for any object/file you want
-            * Allows seamless usage of all functions within the 'raw_appfunctions.py' script
-            * Access 'UID' by getting the 'id' attribute from this instancedatetime A combination of a date and a time. Attributes: ()
+            * Allows seamless usage of all functions within the 'appfunctions.py' script
+            * Access 'UID' by getting the 'id' attribute from this instance.
 
         **Supported KWARGS**
             1. 'isFile':
@@ -553,12 +535,11 @@ class AFIOObject:
                 - comments: use 'read_lines' when reading (writing is automatic.)
         """
         global SELF_DATA, _SELF_LOG
-        self.flags_loaded = False
+        self.flags_loaded = self._read_only = False
         self.flags_template = SELF_DATA.data['class']['AFIOObject']['flags_template']
-        self.flags = {}
+        self.flags = self._protected_flags = {}
         self._protected_flags = {}
         self.valid_instance = True
-        self._read_only = False
         self.fernet = None
         self._load_flags(kwargs)
 
@@ -1419,7 +1400,7 @@ class AFJSON:
                             dv = dv_sep
 
                         else:
-                            if type(dv_sep) is bytes:
+                            if isinstance(dv_sep, bytes):
                                 dv = dv_sep.decode(AFDATA.Functions.check_encoding(dv_sep, True))
                             else:
                                 dv = dv_sep.encode(AFDATA.Functions.check_encoding(v, True))
@@ -1444,10 +1425,10 @@ class AFJSON:
                                 v += dv + d
 
                             elif type(d) in [str, bytes]:
-                                if type(v) is bytes:
+                                if isinstance(v, bytes):
                                     v += dv + d.decode(AFDATA.Functions.check_encoding(v, True))
 
-                                else:
+                                elif isinstance(d, bytes):
                                     v += dv + d.decode(AFDATA.Functions.check_encoding(d, True))
 
                             else:
