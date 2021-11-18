@@ -1290,11 +1290,11 @@ class AFFileIO:
                 raw = AFEncryption(self.uid).decrypt(raw)
                 # print('[2.1]', raw)
             except exceptions.EncryptionException as E:
-                print(function_name, '[E1]', E)
+                print(function_name, '[E1.2]', E)
                 raw = raw
                 # print('[2.2]', raw)
             except cryptography.fernet.InvalidToken as E:
-                print(function_name, '[E1]', E)
+                print(function_name, '[E1.3]', E)
                 raw = raw
                 # print('[2.3]', raw)
             except Exception as E:
@@ -1611,7 +1611,7 @@ class AFJSON:
             append=False
         )
 
-    def get_data(self, key: str, re_exs_val: bool = False):  # AFJSON.S_GT_DATA
+    def get_data(self, key: str, re_exs_val: bool = False, ra_err: bool = False):  # AFJSON.S_GT_DATA
         global _SELF_LOG
 
         function_name = "AFJSON.S_GT_DATA"
@@ -1647,7 +1647,7 @@ class AFJSON:
             append=False
         )
 
-    def load_file(self) -> dict:  # AFJSON.C_LD_FILE
+    def load_file(self, ra_err: bool = True) -> dict:  # AFJSON.C_LD_FILE
         global _SELF_LOG
 
         function_name = "AFJSON.C_LD_FILE"
@@ -1682,7 +1682,10 @@ class AFJSON:
             except:
                 pass
 
-            json_data = {"__AF__DEBUG::AFJSON.load_file() => JSONDecodeError": True}
+            if ra_err:
+                raise E.__class__(E.__str__())
+            else:
+                json_data = {"__AF__DEBUG::AFJSON.load_file() => JSONDecodeError": True}
 
         except Exception as E:
             try:

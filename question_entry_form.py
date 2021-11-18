@@ -5,10 +5,6 @@ import threading, os, sys, theme, conf, questions, prompts, colors
 from appfunctions import *
 
 
-# TODO: ADD "IS_CASE_SENSITIVE" OPTION TO FORM
-# TODO: ADD "NOTES" SECTION FOR RESPONSE FORM
-
-
 class UI(threading.Thread):
     def __init__(self):
         super().__init__()
@@ -42,6 +38,7 @@ class UI(threading.Thread):
         self.selContainer = tk.LabelFrame(self.root)
         self.mcSel = tk.Button(self.selContainer, text="Multiple Choice", command=self.mc_click)
         self.tfSel = tk.Button(self.selContainer, text="True/False", command=self.tf_click)
+        self.sel_case_sens = tk.Button(self.selContainer, text="Case Sensitive Response", command=self.cs_response_click)
 
         self.set_cont = tk.LabelFrame(self.root)
         self.submitButton = tk.Button(self.set_cont, text="Add Question", command=self.add)
@@ -66,6 +63,7 @@ class UI(threading.Thread):
 
         self.mc = False
         self.tf = False
+        self.cs = False
 
         self.start()
         self.root.attributes('-topmost', 1)
@@ -104,32 +102,40 @@ class UI(threading.Thread):
 
         self.sep.pack(fill=tk.X, expand=True, padx=5)
 
-        self.theme_invis_cont.extend([self.cont_a, self.cont_q, self.set_cont, self.selContainer])
-        self.cont_q.pack(fill=tk.BOTH, expand=False)
+        self.theme_invis_cont.extend(
+            [self.cont_a, self.cont_q, self.set_cont, self.selContainer]
+        )
+        self.cont_q.pack(fill=tk.X, expand=False)
         self.cont_a.pack(fill=tk.BOTH, expand=False)
         self.questionLbl.config(anchor=tk.SW)
         self.theme_label.append(self.questionLbl)
         self.theme_accent.append(('bg', self.theme.get('bg'), self.questionLbl))
 
         self.questionLbl.pack(fill=tk.X, expand=True, padx=5, pady=(5, 0))
-        self.question_entry.pack(fill=tk.BOTH, expand=False, padx=5, pady=(0, 5))
+        self.question_entry.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
 
         self.answerLbl.config(anchor=tk.SW)
         self.theme_label.append(self.answerLbl)
         self.theme_accent.append(('bg', self.theme.get('bg'), self.answerLbl))
 
-        self.answerLbl.pack(fill=tk.X, expand=True, padx=(5, 0), pady=(5, 0))
-        self.answer_entry.pack(fill=tk.BOTH, expand=False, padx=(5, 0), pady=(0, 5))
+        self.answerLbl.pack(fill=tk.X, expand=True, padx=5, pady=(5, 0))
+        self.answer_entry.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
 
         self.mcSel.pack(fill=tk.BOTH, expand=True, pady=(0, 5), padx=(0, 5), side=tk.LEFT)
-        self.tfSel.pack(fill=tk.BOTH, expand=True, pady=(0, 5), padx=(5, 0), side=tk.RIGHT)
-        self.theme_button.append(self.mcSel)
-        self.theme_button.append(self.tfSel)
+        self.tfSel.pack(fill=tk.BOTH, expand=True, pady=(0, 5), padx=(5, 0), side=tk.LEFT)
+        self.sel_case_sens.pack(fill=tk.BOTH, expand=True, pady=(0, 5), padx=(5, 0), side=tk.RIGHT)
+        self.theme_button.extend([
+            self.mcSel, self.tfSel, self.sel_case_sens
+        ])
         self.theme_label_font[self.mcSel] = (
             self.theme.get('font').get('font_face'),
             14
         )
         self.theme_label_font[self.tfSel] = (
+            self.theme.get('font').get('font_face'),
+            14
+        )
+        self.theme_label_font[self.sel_case_sens] = (
             self.theme.get('font').get('font_face'),
             14
         )
@@ -399,6 +405,15 @@ class UI(threading.Thread):
             )
         )
 
+        self.sel_case_sens.config(
+            bg=self.theme.get('accent' if self.cs else 'bg'),
+            fg=colors.Functions.calculate_more_contrast(self.theme['bg'], self.theme['fg'],
+                                                        self.theme['accent']) if self.cs else self.theme.get('fg'),
+            text=(
+                    self.sel_case_sens.cget('text').replace('\u2713', '').strip() + (' \u2713' if self.cs else '')
+            )
+        )
+
     def mc_click(self):
         self.mc = not self.mc
         self.tf = False if self.mc else self.tf
@@ -409,6 +424,10 @@ class UI(threading.Thread):
         self.tf = not self.tf
         self.mc = False if self.tf else self.mc
 
+        self.reformat_buttons()
+
+    def cs_response_click(self):
+        self.cs ^= True
         self.reformat_buttons()
 
     def delAll(self):
@@ -485,9 +504,6 @@ class UI(threading.Thread):
 
         extension = filename.split('.')[-1]
 
-        if not os.path.exists(conf.Application.AppDataLoc):
-            os.makedirs(conf.Application.AppDataLoc)
-
         file = AFIOObject(
             filename=filename,
             isFile=True,
@@ -496,13 +512,37 @@ class UI(threading.Thread):
             owr_exs_err_par_owr_meth=True
         )
 
+        try:
+            og = AFJSON(file.uid).load_file()
+        except json.JSONDecodeError as E:
+            og = {}
+        except Exception as E:
+            raise E.__class__(traceback.format_exc())
+
+        n = {
+            f'{len(og) + 1}': {
+                'data': data,
+                'flags': {
+                    'q_type': mc_code if self.mc else tf_code if self.tf else nm_code,
+                    'a_formatting': {
+                        'cs': self.cs
+                    }
+                }
+            }
+        }
+
+        sdata = json.dumps({**og, **n}, indent=4)
+
+        if not os.path.exists(conf.Application.AppDataLoc):
+            os.makedirs(conf.Application.AppDataLoc)
+
         if conf.Files.files[extension]['encrypt']:
             print(conf.Encryption.file[extension])
             file.edit_flag(enc_key=conf.Encryption.file[extension])
 
         AFFileIO(file.uid).secure_save(
-            data,
-            append=True
+            sdata,
+            append=False
         )
 
         self.submitButton.config(
