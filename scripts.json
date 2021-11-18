@@ -1,6 +1,6 @@
 {
   "all": {
-    "num": 0,
+    "num": 24,
     "list": [
       ".\\appfunctions.py",
       ".\\apps_adminTools.py",
@@ -24,7 +24,8 @@
       ".\\splash_screen.py",
       ".\\theme.py",
       ".\\user_pref.py",
-      ".\\std.json"
+      ".\\std.json",
+      ".\\lookups.py"
     ]
   }
 }
