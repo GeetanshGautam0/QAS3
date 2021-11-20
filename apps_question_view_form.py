@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
 
-import lookups
-from appfunctions import *
-import threading, sys, os, conf, theme, exceptions, questions, random
+import qa_lookups
+from qa_appfunctions import *
+import threading, sys, os, qa_conf, qa_theme, qa_exceptions, qa_questions, random
 
 
 class UI(threading.Thread):
@@ -64,7 +64,7 @@ class UI(threading.Thread):
     def run(self):
         # Root config
         self.root.state('zoomed')  # Maximize the window
-        self.root.iconbitmap(conf.Files.app_icons['admin_tools']['ico'])
+        self.root.iconbitmap(qa_conf.Files.app_icons['admin_tools']['ico'])
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.title(f"Quizzing Application: Recorded Questions")
         self.root.minsize(500, 100)
@@ -262,18 +262,18 @@ class UI(threading.Thread):
         if not confirmation:
             return
 
-        filename = os.path.join(conf.Application.AppDataLoc, conf.Files.questions_and_answers['filename'])
+        filename = os.path.join(qa_conf.Application.AppDataLoc, qa_conf.Files.questions_and_answers['filename'])
         extension = filename.split('.')[-1]
 
         file = AFIOObject(
             filename=filename,
             isFile=True,
-            encrypt=conf.Files.files[extension]['encrypt'],
+            encrypt=qa_conf.Files.files[extension]['encrypt'],
             owr_exs_err_par_owr_meth=True
         )
 
-        if conf.Files.files[extension]['encrypt']:
-            file.edit_flag(enc_key=conf.Encryption.file[extension])
+        if qa_conf.Files.files[extension]['encrypt']:
+            file.edit_flag(enc_key=qa_conf.Encryption.file[extension])
 
         try:
             l = AFJSON(file.uid).load_file()
@@ -359,14 +359,14 @@ def _format_question(question, answer, *flags) -> tuple:
     q_tokens, a_tokens, output = (*question.split(),), (*answer.split(),), ()
     a_raw = ""
 
-    assert len(conf.FileCodes.question_codes) == 3, "Update _format_question function (viewing form)"
+    assert len(qa_conf.FileCodes.question_codes) == 3, "Update _format_question function (viewing form)"
 
-    mc_q_tok = conf.FileCodes.question_codes['mc']['question']
-    mc_a_tok = conf.FileCodes.question_codes['mc']['option']
-    tf_q_tok = conf.FileCodes.question_codes['tf']
-    nm_q_tok = conf.FileCodes.question_codes['normal']
+    mc_q_tok = qa_conf.FileCodes.question_codes['mc']['question']
+    mc_a_tok = qa_conf.FileCodes.question_codes['mc']['option']
+    tf_q_tok = qa_conf.FileCodes.question_codes['tf']
+    nm_q_tok = qa_conf.FileCodes.question_codes['normal']
 
-    tokens_list = (mc_q_tok, tf_q_tok, nm_q_tok, mc_a_tok, *list(conf.FileCodes.question_separators.keys()))
+    tokens_list = (mc_q_tok, tf_q_tok, nm_q_tok, mc_a_tok, *list(qa_conf.FileCodes.question_separators.keys()))
 
     if 'system_msg' not in flags:
         assert q_tokens[0] in (mc_q_tok, tf_q_tok, nm_q_tok), "Question must start with question type data."
@@ -495,7 +495,7 @@ def _loadQuestions(__r=True, no_q_type: bool = False) -> dict:
     if not no_q_type:
         def_o['No questions found']['t'] = 'sys'
 
-    path = os.path.join(conf.Application.AppDataLoc, conf.Files.questions_and_answers['filename'])
+    path = os.path.join(qa_conf.Application.AppDataLoc, qa_conf.Files.questions_and_answers['filename'])
 
     if not os.path.exists(path):
         return def_o if __r else {}
@@ -505,12 +505,12 @@ def _loadQuestions(__r=True, no_q_type: bool = False) -> dict:
     file = AFIOObject(
         filename=path,
         isFile=True,
-        encrypt=conf.Files.files[extension]['encrypt'],
+        encrypt=qa_conf.Files.files[extension]['encrypt'],
         owr_exs_err_par_owr_meth=True
     )
 
-    if conf.Files.files[extension]['encrypt']:
-        file.edit_flag(enc_key=conf.Encryption.file[extension])
+    if qa_conf.Files.files[extension]['encrypt']:
+        file.edit_flag(enc_key=qa_conf.Encryption.file[extension])
 
     try:
         _raw = AFJSON(file.uid).load_file()

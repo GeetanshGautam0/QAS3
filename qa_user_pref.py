@@ -1,5 +1,5 @@
-import conf, os, json, protected_conf, exceptions
-import std
+import qa_conf, os, json, qa_protected_conf, qa_exceptions
+import qa_std
 
 
 class _Basic:

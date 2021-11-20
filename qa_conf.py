@@ -2,7 +2,7 @@ import json, appdirs
 
 
 class ConfigFile:
-    name = "conf.json"
+    name = "qa_conf.json"
     raw = {}
 
     @staticmethod

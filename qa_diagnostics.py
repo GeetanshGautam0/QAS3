@@ -1,4 +1,4 @@
-import os, conf, json, re, protected_conf, wcag_contrast_ratio, traceback, colors, std
+import os, qa_conf, json, re, qa_protected_conf, wcag_contrast_ratio, traceback, qa_colors, qa_std
 
 FALSE = 0
 TRUE = 1
@@ -14,13 +14,13 @@ class FileDiagnostics:
 
             * Default theme file
             * low.json
-            * conf.json
-            * scripts.json
+            * qa_conf.json
+            * qa_scripts.json
 
             :return: Tuple (All passed (bool), Failed (tuple), Passed (tuple), Tests ran (tuple))
             """
 
-            req = (conf.Files.theme['default']['filename'], '.\\conf.json')
+            req = (conf.Files.theme['default']['filename'], '.\\qa_conf.json')
 
             output, passed = _run_file_exs_check(req)
             output = (not (len(output) > 0), output, passed, req)
@@ -31,11 +31,11 @@ class FileDiagnostics:
             """
             **Required Files**
 
-            * Scripts from 'scripts.json'
+            * Scripts from 'qa_scripts.json'
 
             :return: Tuple (All passed (bool), Failed (tuple), Passed (tuple), Tests ran (tuple))
             """
-            f = open("scripts.json", 'r')
+            f = open("qa_scripts.json", 'r')
             r = f.read()
             f.close()
             r = json.loads(r)

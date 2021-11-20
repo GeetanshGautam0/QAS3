@@ -1,5 +1,5 @@
-from appfunctions import *
-import conf, os, user_pref, re, diagnostics, std
+from qa_appfunctions import *
+import qa_conf, os, qa_user_pref, re, qa_diagnostics, qa_std
 
 TMODE: str = None
 TFILE: str = None
@@ -57,7 +57,7 @@ def find_preference(s_at_def=False) -> tuple:
         chfs = diagnostics.FormatResultsStr.failures(ch_f)
 
         if TFILE == default[0]:
-            std.show_bl_err(
+            qa_std.show_bl_err(
                 "CMF Theme Handler",
                 "[CRITICAL] Default theme file has invalid theme data:\n\n%s" % chfs
             )
@@ -65,7 +65,7 @@ def find_preference(s_at_def=False) -> tuple:
             sys.exit(-1)
 
         else:
-            std.show_bl_err(
+            qa_std.show_bl_err(
                 "CMF Theme Handler",
                 "Invalid theme set as preferred theme; resetting to default:\n\n%s" % chfs
             )
@@ -81,7 +81,7 @@ def reload_default(n_fp: bool = False) -> None:
         find_preference()
     _theme_data = AFJSON(_theme_file.uid).load_file()
     if not check_theme('default', _theme_data):
-        std.show_bl_err("CMF Theme Handler", "Invalid default theme file.")
+        qa_std.show_bl_err("CMF Theme Handler", "Invalid default theme file.")
 
     return
 
@@ -107,7 +107,7 @@ def load_theme_file(filename='__USER_PREF__', mode: str = all) -> dict:
 
         r = user_pref._Basic.IO.load_json(TFILE)
         if not check_theme(TFILE.split('\\')[-1], r):
-            std.show_bl_err("CMF Theme Handler", "Invalid __USER_PREF__ theme file.")
+            qa_std.show_bl_err("CMF Theme Handler", "Invalid __USER_PREF__ theme file.")
 
         return r if mode is all else r[TMODE if mode == '__USER_PREF__' else mode]
 
@@ -188,7 +188,7 @@ class Editor:
             o_f1 &= (kwargs.get('over_write_file') if o_f1 else False)
             assert not os.path.exists(file_path) or o_f1, "File '%s' already exists; use 'OVERWRITE_THEME_FILE' mode to edit this file." % file_path
 
-            file_d, file_n = std.split_filename_direc(file_path)
+            file_d, file_n = qa_std.split_filename_direc(file_path)
             assert file_n.split('.')[-1] == 'json', "Theme files must be .json files."
 
             n_theme = json.dumps(Editor._create_new_theme(
@@ -253,7 +253,7 @@ class Editor:
         :return:            compiled theme data ({dict})
         """
 
-        function_name = 'theme.py/Editor/<private>/create_new_theme'
+        function_name = 'qa_theme.py/Editor/<private>/create_new_theme'
 
         try:
             inp_pass, inp_fail, _s = std.check_inp(
@@ -345,7 +345,7 @@ class Editor:
                 d_u = 'global' if d_g else 'theme'
 
                 for asset_code, asset_length in L[d_u].items():
-                    exs, data = std.data_at_dict_path(asset_code, temp_ctd if d_g else tctd_data)
+                    exs, data = qa_std.data_at_dict_path(asset_code, temp_ctd if d_g else tctd_data)
 
                     assert exs, "Missing data '%s/%s' (<%s>)" % ('' if d_g else tctd_code, asset_code, d_u.upper())
                     assert len(data) == asset_length, "Invalid data length for '%s/%s' (<%s>) expected <%s>, got <%s>." % \
@@ -360,7 +360,7 @@ class Editor:
                     lambda *arguments: len("".join(_ for _ in re.findall(r"[0-9a-fA-F]", arguments[1]))) in [3, 6]
                 ],
                 'contrast': [
-                    lambda *arguments: std.check_hex_contrast(arguments[0]['bg'], arguments[1])[0]
+                    lambda *arguments: qa_std.check_hex_contrast(arguments[0]['bg'], arguments[1])[0]
                 ],
                 'T_CODE_C': [
                     lambda *arguments: type(arguments[1]) is str,
@@ -388,7 +388,7 @@ class Editor:
 
                 failed = ()
                 for asset_code, asset_checks in theme_req.items():
-                    exs, asset_data = std.data_at_dict_path(asset_code, theme)
+                    exs, asset_data = qa_std.data_at_dict_path(asset_code, theme)
                     if not exs:
                         failed = (
                             *failed,
@@ -458,7 +458,7 @@ class Editor:
                     assert len(d) == L['global'][path], "Failed to compile theme data [LENGTH]: %s" % path
 
             for path, reqs in global_req.items():
-                ex, d = std.data_at_dict_path(path, compiled_theme_dict)
+                ex, d = qa_std.data_at_dict_path(path, compiled_theme_dict)
                 assert ex, "Failed to compile theme data [EXS-2] (The following data does not exist): %s" % path
                 for req in reqs:
                     if isinstance(req, tuple) or isinstance(req, list):
@@ -602,7 +602,7 @@ class Editor:
         # Saving
         if not os.path.exists(filename):
             # Create
-            directory, _ = std.split_filename_direc(filename)
+            directory, _ = qa_std.split_filename_direc(filename)
 
             if not os.path.exists(directory):
                 os.makedirs(directory)

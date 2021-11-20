@@ -115,11 +115,11 @@ def split_filename_direc(file_path: str) -> tuple:
 
 
 def dict_check_redundant_data_inter_dict(dic: dict, dic2: dict, root_name: str = '<root_directory>') -> tuple:
-    p, f, s = check_inp(((dic, dict, 'dic'), (dic2, dict, 'dic2'), (root_name, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data_inter_dict')
+    p, f, s = check_inp(((dic, dict, 'dic'), (dic2, dict, 'dic2'), (root_name, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'qa_std.py/dict_check_redundant_data_inter_dict')
     assert p, s
 
     def rec_add(d, d2, root='<root_directory>') -> tuple:
-        _p, _, _s = check_inp(((d, dict, 'd'), (d2, dict, 'd2'), (root, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data_inter_dict/rec_add')
+        _p, _, _s = check_inp(((d, dict, 'd'), (d2, dict, 'd2'), (root, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'qa_std.py/dict_check_redundant_data_inter_dict/rec_add')
         assert p, s
 
         b = True
@@ -155,11 +155,11 @@ def dict_check_redundant_data_inter_dict(dic: dict, dic2: dict, root_name: str =
 
 
 def dict_check_redundant_data(dic: dict, root_name: str = '<root_directory>') -> tuple:
-    p, f, s = check_inp(((dic, dict, 'dic'), (root_name, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data')
+    p, f, s = check_inp(((dic, dict, 'dic'), (root_name, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'qa_std.py/dict_check_redundant_data')
     assert p, s
 
     def rec_add(d, root='<root_directory>') -> tuple:
-        _p, _, _s = check_inp(((d, dict, 'd'), (root, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'std.py/dict_check_redundant_data/rec_add')
+        _p, _, _s = check_inp(((d, dict, 'd'), (root, str, '<REPORTING_REQ::ROOT_DIRECTORY>')), 'qa_std.py/dict_check_redundant_data/rec_add')
         assert p, s
 
         b = True

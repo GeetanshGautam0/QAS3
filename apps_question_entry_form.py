@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
-import threading, os, sys, theme, conf, questions, prompts, colors
+import threading, os, sys, qa_theme, qa_conf, qa_questions, qa_prompts, qa_colors
 
-import lookups
-from appfunctions import *
+import qa_lookups
+from qa_appfunctions import *
 
 
 class UI(threading.Thread):
@@ -13,9 +13,9 @@ class UI(threading.Thread):
         self.thread = threading.Thread
         self.thread.__init__(self)
 
-        theme.reload_default()
+        qa_theme.reload_default()
         # theme.find_preference()
-        self.theme = theme.Theme.UserPref.m(theme.TMODE)
+        self.theme = qa_theme.Theme.UserPref.m(qa_theme.TMODE)
 
         self.root = tk.Toplevel()
 
@@ -237,8 +237,8 @@ class UI(threading.Thread):
 
     def update_theme(self):
         # Pre
-        theme.reload_default()
-        self.theme = theme.Theme.UserPref.m(theme.TMODE)
+        qa_theme.reload_default()
+        self.theme = theme.Theme.UserPref.m(qa_theme.TMODE)
 
         # TTK
         self.vsb_style.configure(

@@ -1,5 +1,5 @@
-import conf, protected_conf
-import os, sys, json, threading, random, exceptions, traceback, datetime, importlib, log_cleaner, cryptography
+import qa_conf, qa_protected_conf
+import os, sys, json, threading, random, qa_exceptions, traceback, datetime, importlib, qa_log_cleaner, cryptography
 from datetime import datetime
 from datetime import timedelta
 import tkinter as tk

@@ -1,4 +1,4 @@
-import json, urllib3, conf, splash_screen
+import json, urllib3, qa_conf, qa_splash_screen
 from tkinter import messagebox as tkmsb
 import tkinter as tk
 

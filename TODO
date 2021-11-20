@@ -1,6 +1,7 @@
-TODO: Add new UI
+TODO: Add new AdminToolsUI
 TODO: Add option to toggle 'QUESTION_ORDER_RANDOMIZER'
 TODO: Add option to enable/disable custom config. for each setting
 TODO: ADD "IS_CASE_SENSITIVE" OPTION TO FORM
 TODO: ADD "NOTES" SECTION FOR RESPONSE FORM
 TODO: ADD translator from old version files to new version's files
+TODO: ADD option to edit EXTERNAL databases.

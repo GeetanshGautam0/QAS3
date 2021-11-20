@@ -1,4 +1,4 @@
-import conf
+import qa_conf
 
 v = "0.1aba-7"
 insider_build = True

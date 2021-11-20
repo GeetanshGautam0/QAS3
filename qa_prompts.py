@@ -1,5 +1,5 @@
-from appfunctions import *
-import conf, re, theme, os, sys, shutil, random, json, colors, protected_conf
+from qa_appfunctions import *
+import qa_conf, re, qa_theme, os, sys, shutil, random, json, qa_colors, qa_protected_conf
 import tkinter as tk
 from tkinter import ttk as ttk
 from shared_memory_dict import SharedMemoryDict
@@ -7,7 +7,7 @@ from threading import Thread
 from tkinter import messagebox as tkmsb
 
 
-TMODE = theme.TMODE
+TMODE = qa_theme.TMODE
 
 if protected_conf.dsb_mod_run_stdnalone and __name__ == "__main__":
     sys.exit("cannot run module standalone.")
@@ -319,7 +319,7 @@ class TextPrompts:
                          title=conf.AppContainer.general_title + " - Error", accent_key='error', contrast_key=-1,
                          fatal=False):
                 global TMODE
-                TMODE = theme.TMODE
+                TMODE = qa_theme.TMODE
 
                 if use_tk:
                     self.root = tk.Tk()
@@ -620,7 +620,7 @@ class InputPrompts:
     class BasicInput:
         def __init__(self, s_mem_addr_inst: SMem, **kwargs):
             global TMODE
-            TMODE = theme.TMODE
+            TMODE = qa_theme.TMODE
 
             # Functional Objects
             # super().__init__()
@@ -730,7 +730,7 @@ class InputPrompts:
 
         def run(self):
             _Basic.OnStart.init()
-            self.theme = theme.Theme.UserPref.pref()
+            self.theme = qa_theme.Theme.UserPref.pref()
             if self.contrast_key == -1:
                 _m = {
                     self.theme['fg']: 'fg',
