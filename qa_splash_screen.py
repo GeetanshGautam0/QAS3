@@ -1,8 +1,8 @@
 import time
 from tkinter import *
 import tkinter.ttk as ttk
-import qa_conf, qa_colors, os
-import qa_theme as qa_theme
+import qa_conf as conf, qa_colors as colors, qa_theme
+
 
 qa_theme.find_preference()
 theme = qa_theme.Theme.UserPref.m(qa_theme.TMODE)

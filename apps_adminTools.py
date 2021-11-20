@@ -1,6 +1,8 @@
 import qa_conf, qa_splash_screen
 import tkinter as tk
 
+import qa_theme
+
 _boot_steps = {
     1: "Importing modules",
     2: "Loading Globals",
@@ -15,9 +17,9 @@ _bg_frame.deiconify()
 _bg_frame.withdraw()
 _bg_frame.title("QA Administrator Tools - Background Frame")
 
-if not conf.Control.doNotUseSplash:
+if not qa_conf.Control.doNotUseSplash:
     splRoot = tk.Toplevel()
-    splObj = splash_screen.Splash(splRoot)
+    splObj = qa_splash_screen.Splash(splRoot)
     splObj.setTitle("Administrator Tools")
 else:
     splObj = None
@@ -25,7 +27,7 @@ else:
 
 def _set_boot_progress(index):
     if not qa_conf.Control.doNotUseSplash:
-        splash_screen.set_smooth_progress(splObj, index, _boot_steps)
+        qa_splash_screen.set_smooth_progress(splObj, index, _boot_steps)
 
 
 _set_boot_progress(1)
@@ -128,10 +130,12 @@ _set_boot_progress(3)
 
 def _load_data(data_key) -> any:
     data_key_mapper = {
-        'theme': [
-            lambda: 2
-        ]
+        'theme': lambda: qa_theme.Theme.UserPref.pref()
     }
+
+    assert data_key in data_key_mapper, f"Invalid data_key '{data_key}'"
+
+    return data_key_mapper[data_key]
 
 
 _set_boot_progress(4)
@@ -149,7 +153,7 @@ version_notes = ovcc.Check.find_comments()
 if version_notes is not None:
     if len(version_notes) > 0:
 
-        splash_screen.hide(splObj)
+        qa_splash_screen.hide(splObj)
 
         _m = {
             'error': 'error',
@@ -158,7 +162,7 @@ if version_notes is not None:
         }
         for i in ['error', 'warning', 'info']:  # In this order
             if i in version_notes:
-                prompts.TextPrompts.BasicTextPrompt(
+                qa_prompts.TextPrompts.BasicTextPrompt(
                     "The version of this app has the following notes associated with it:\n\n" + "\n\n\t *".join(
                         j for j in version_notes[i]),
                     accent_key=_m[i],
@@ -166,6 +170,6 @@ if version_notes is not None:
                     use_tk=False
                 )
 
-        splash_screen.show(splObj)
+        qa_splash_screen.show(splObj)
 
-splash_screen.set_smooth_progress(splObj, -1, _boot_steps)
+qa_splash_screen.set_smooth_progress(splObj, -1, _boot_steps)

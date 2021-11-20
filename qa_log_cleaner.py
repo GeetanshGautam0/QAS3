@@ -1,4 +1,5 @@
-import os, qa_conf, json, qa_nv_flags_system, importlib, qa_protected_conf
+import os, qa_conf as conf, json, qa_nv_flags_system as nv_flags_system, importlib,\
+    qa_protected_conf as protected_conf
 
 _p = nv_flags_system.FlagsLookup.logging['log_cleaner']['request clear']
 

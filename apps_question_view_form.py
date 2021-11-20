@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
-
-import qa_lookups
 from qa_appfunctions import *
-import threading, sys, os, qa_conf, qa_theme, qa_exceptions, qa_questions, random
+import threading, sys, os, random
+import qa_conf as conf
+import qa_theme as theme
+import qa_exceptions as exceptions
+import qa_questions as questions
+import qa_lookups as lookups
 
 
 class UI(threading.Thread):

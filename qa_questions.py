@@ -1,4 +1,4 @@
-import qa_conf
+import qa_conf as conf
 
 
 class Conversions:

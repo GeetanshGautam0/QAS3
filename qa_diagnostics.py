@@ -1,4 +1,4 @@
-import os, qa_conf, json, re, qa_protected_conf, wcag_contrast_ratio, traceback, qa_colors, qa_std
+import os, qa_conf as conf, json, re, qa_protected_conf as protected_conf, traceback, qa_std as std
 
 FALSE = 0
 TRUE = 1

@@ -1,4 +1,4 @@
-import os, qa_conf
+import os, qa_conf as conf
 
 _p = [conf.Application.AppDataLoc, '.appdata', '.boot_flags']
 

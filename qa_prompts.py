@@ -1,9 +1,9 @@
 from qa_appfunctions import *
-import qa_conf, re, qa_theme, os, sys, shutil, random, json, qa_colors, qa_protected_conf
+import qa_conf as conf, re, qa_theme, sys, random, qa_colors as colors, \
+    qa_protected_conf as protected_conf, qa_theme as theme
 import tkinter as tk
 from tkinter import ttk as ttk
 from shared_memory_dict import SharedMemoryDict
-from threading import Thread
 from tkinter import messagebox as tkmsb
 
 

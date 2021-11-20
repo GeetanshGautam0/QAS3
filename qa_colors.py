@@ -1,4 +1,4 @@
-import re, qa_std
+import re, qa_std as std
 
 
 class Convert:

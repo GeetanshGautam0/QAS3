@@ -1,4 +1,4 @@
-import qa_conf
+import qa_conf as conf
 root = "CMF::%s" % conf.Application.app_name.upper()
 
 
