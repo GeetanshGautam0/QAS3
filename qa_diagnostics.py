@@ -216,6 +216,24 @@ class DataDiagnostics:
             return len(res['f']) == 0, res['f'], res['p'], res['v'], res['c']
 
 
+class Configuration:
+    @staticmethod
+    def general(data: dict) -> tuple:
+        failures = ()
+        with open(conf.Files.conf_std_file, 'r') as conf_std_file:
+            b = json.loads(conf_std_file.read())
+            conf_std_file.close()
+
+        for k, v in b['defaults'].items():
+            if k not in data:
+                failures = (*failures, f"FAILURE: Key '{k}' not found.")
+                failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data.")
+            elif not isinstance(v, type(data[k])):
+                failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data.")
+
+        return len(failures) == 0, "The following conf. file checks failed:\n\t *" + "\n\t *".join(i for i in failures)
+
+
 #### STRUCT: Functions \/ ;; Classes /\ ####
 
 

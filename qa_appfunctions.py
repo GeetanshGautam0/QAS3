@@ -536,6 +536,14 @@ class AFIOObject:
                 - type: bool
                 - default: false
                 - comments: use 'read_lines' when reading (writing is automatic.)
+
+        :keyword isFile [bool] Is this object a file? Def=False
+        :keyword encoding [str] Data encoding Def=AFDATA.Data.defaults['encoding']
+        :keyword encrypt [bool] Encrypt data? Def=False
+        :keyword filename [str] path to file Def=None
+        :keyword enc_key [bytes] Key to encrypt data with Def=(default_key)
+        :keyword re_type [type (str/bytes) Return type Def=bytes
+        :keyword lines_mode [bool] Use 'readlines' and 'writelines' Def=False
         """
         global SELF_DATA, _SELF_LOG
         self.flags_loaded = self._read_only = False

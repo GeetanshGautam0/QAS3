@@ -1,6 +1,6 @@
 {
   "all": {
-    "num": 24,
+    "num": 26,
     "list": [
       ".\\qa_appfunctions.py",
       ".\\apps_adminTools.py",
@@ -25,7 +25,9 @@
       ".\\qa_theme.py",
       ".\\qa_user_pref.py",
       ".\\qa_std.json",
-      ".\\qa_lookups.py"
+      ".\\qa_lookups.py",
+      ".\\qa_config_keys.json",
+      ".\\.src\\.files\\configuration.json"
     ]
   }
 }

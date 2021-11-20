@@ -15,14 +15,13 @@
         "warning":              "#EFCA08",
         "error":                "#FF3A20",
         "gray":                 "#5c5c5c",
-        "accent_old_1":         "#ECA009",
-        "accent":               "#5EEB5B",
+        "accent":               "#34CBD5",
         "font": {
             "font_face":        "Montserrat",
             "title_size":       28,
-            "sttl_size":        17,
-            "big_para_size":    15,
-            "main_size":        11
+            "sttl_size":        15,
+            "big_para_size":    13,
+            "main_size":        10
         },
         "border": {
             "width":            0,
@@ -36,8 +35,7 @@
         "warning":              "#D6A630",
         "error":                "#E01A00",
         "gray":                 "#5c5c5c",
-        "accent_old_1":         "#006161",
-        "accent":               "#457353",
+        "accent":               "#1C8087",
         "font": {
             "font_face":        "Montserrat",
             "title_size":       28,

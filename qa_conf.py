@@ -97,7 +97,12 @@ class Exceptions:
 
 
 class Files:
-    configuration = {"filename": "user_config.qaFile"}
+    qs_parent_dir = {
+        'src': ".\\.src\\.files",
+        'dst': f"{Application.AppDataLoc}\\.qs\\.files"
+    }
+    conf_std_file = "qa_config_keys.json"
+    configuration = {"filename": "configuration.qaFile"}
     questions_and_answers = {"filename": "qas.qaFile"}
     scores = {"folder_name": ".local_scores"}
     theme = {
