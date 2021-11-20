@@ -39,7 +39,6 @@ from appfunctions import *
 import online_version_check as ovcc
 
 
-
 _set_boot_progress(2)
 
 app_title = f"Administrator Tools {conf.ConfigFile.raw['app_data']['build']['frame_vid']}"

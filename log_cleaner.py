@@ -1,11 +1,4 @@
-import os, conf, json, nv_flags_system, importlib
-
-with open("low.json", 'r') as file:
-    _l_json = json.loads(file.read())
-    file.close()
-
-_prConfFile: str = _l_json['pcm_file']
-protected_conf = importlib.import_module(_prConfFile)
+import os, conf, json, nv_flags_system, importlib, protected_conf
 
 _p = nv_flags_system.FlagsLookup.logging['log_cleaner']['request clear']
 

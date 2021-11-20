@@ -1,5 +1,5 @@
 from appfunctions import *
-import conf, re, theme, os, sys, shutil, random, json, colors
+import conf, re, theme, os, sys, shutil, random, json, colors, protected_conf
 import tkinter as tk
 from tkinter import ttk as ttk
 from shared_memory_dict import SharedMemoryDict
@@ -7,20 +7,10 @@ from threading import Thread
 from tkinter import messagebox as tkmsb
 
 
-TMODE = theme.TMODE 
-prconf = protected_conf
+TMODE = theme.TMODE
 
-if prconf.dsb_mod_run_stdnalone and __name__ == "__main__":
+if protected_conf.dsb_mod_run_stdnalone and __name__ == "__main__":
     sys.exit("cannot run module standalone.")
-
-v = "!~0010.00101.-3"
-
-if v != pr_conf.r_prompts_version_id:
-    raise Exception("Failed to init prompts.py; invalid script version.")
-
-with open("low.json", 'r') as file:
-    _l_json = json.loads(file.read())
-    file.close()
 
 
 def _update_sc_bar(bar, canvas, root):

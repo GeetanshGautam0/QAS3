@@ -1,10 +1,6 @@
 import conf, os, json, protected_conf, exceptions
 import std
 
-with open("low.json", 'r') as file:
-    _l_json = json.loads(file.read())
-    file.close()
-
 
 class _Basic:
     class IO:
