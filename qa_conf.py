@@ -1,4 +1,4 @@
-import json, appdirs
+import json, appdirs, random
 
 
 class ConfigFile:
@@ -22,6 +22,12 @@ class Application:
     AppDataLoc = appdirs.user_data_dir(appname=app_name, appauthor=app_author, version=version_str, roaming=False)
     RoamingAppDataLoc = appdirs.user_data_dir(appname=app_name, appauthor=app_author, version=version_str, roaming=True)
     in_beta = True
+    uid_seed = {
+        'admin_tools': random.random(),
+        'quizzing_tool': random.random(),
+        'recovery_util': random.random(),
+        'theming_util': random.random(),
+    }
 
 
 class Encryption:
@@ -49,8 +55,11 @@ class AppContainer:
 
     class Apps:
         admin_tools = {
+            'main': {
+                'ws': (1000, 900)
+            },
             'question_entry': {
-                'ws': [840, 800]
+                'ws': (840, 800)
             }
         }
 

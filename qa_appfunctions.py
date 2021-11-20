@@ -2075,7 +2075,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             s = json.dumps(r, indent=4)
             AFFileIO(self._o.uid).secure_save(s, append=False)
 
-    def log(self, *data, empty_line: bool = False):
+    def log(self, *data, empty_line: bool = False, print_d: bool = False):
         """
         **AFLog.log**
         Will log _data (attempts to do so with 'PerformanceLogger,' if fails, will try to use 'ReliableLogger'
@@ -2086,13 +2086,13 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         """
 
         self.refresh()
-        # print("Logging data")
+        if print_d:
+            print(*data)
 
         try:
             self.performance_logger.log(*data, empty_line=empty_line)
         except Exception as E:
             try:
-                # print(E)
                 t = traceback.format_exc()
                 self.reliable_logger.log(*data, e=t, empty_line=empty_line)
             except Exception as E:
