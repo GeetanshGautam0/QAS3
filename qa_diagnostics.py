@@ -225,11 +225,14 @@ class Configuration:
             conf_std_file.close()
 
         for k, v in b['defaults'].items():
-            if k not in data:
+            if k not in (*data.keys(),):
                 failures = (*failures, f"FAILURE: Key '{k}' not found.")
                 failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data.")
             elif not isinstance(v, type(data[k])):
                 failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data.")
+
+        if not len(data) == len(b['defaults']):
+            failures = (*failures, f"FAILURE: Invalid data length.")
 
         return len(failures) == 0, "The following conf. file checks failed:\n\t *" + "\n\t *".join(i for i in failures)
 

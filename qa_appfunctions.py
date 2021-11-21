@@ -184,12 +184,6 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                         'AFDATA.Functions.flags::flag[name_error]'
                     )
 
-                    # try:
-                    #     if _SELF_LOG is not None:
-                    #         _SELF_LOG.log(function_name + ": " + E.__str__())
-                    # except:
-                    #     pass
-
                     raise E
 
             # _output = template
@@ -214,12 +208,6 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 else:
                     _output[k] = v[0] if type(v) in [list, tuple, set] else v
-
-            # try:
-            #     if _SELF_LOG is not None:
-            #         _SELF_LOG.log(function_name + ": " + "td, ud, _o: ", template, user_in, _output)
-            # except:
-            #     pass
 
             return _output
 
@@ -248,13 +236,6 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                 else:
                     ok = False
 
-            try:
-                #  _SELF_LOG is not None:
-                #   SELF_LOG.log(function_name + ": " + "ok, ui, def: ", ok, user_in, default)
-                pass
-            except:
-                pass
-
             if ok:
                 return user_in
             else:
@@ -280,7 +261,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -298,7 +279,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -316,7 +297,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -344,7 +325,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                     try:
                         if _SELF_LOG is not None:
-                            _SELF_LOG.log(function_name + ": " + E.__str__())
+                            _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                     except:
                         pass
 
@@ -370,7 +351,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -390,7 +371,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -441,7 +422,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -561,7 +542,7 @@ class AFIOObject:
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log("AFIOObject::root: " + E.__str__())
+                        _SELF_LOG.log('ERROR', "AFIOObject::root: " + E.__str__())
                 except:
                     pass
 
@@ -580,7 +561,7 @@ class AFIOObject:
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log("AFIOObject::root: " + E.__str__())
+                        _SELF_LOG.log('ERROR', "AFIOObject::root: " + E.__str__())
                 except:
                     pass
 
@@ -611,7 +592,7 @@ class AFIOObject:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log("AFIOObject::root: " + E.__str__())
+                    _SELF_LOG.log('ERROR', "AFIOObject::root: " + E.__str__())
             except:
                 pass
 
@@ -649,7 +630,7 @@ class AFIOObject:
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log("AFIOObject::root: " + E.__str__())
+                        _SELF_LOG.log('ERROR', "AFIOObject::root: " + E.__str__())
                 except:
                     pass
 
@@ -659,7 +640,7 @@ class AFIOObject:
                 E = cryptography.fernet.InvalidToken("Invalid token given for encryption key - Code INV_L_1")
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log("AFIOObject::root: " + E.__str__())
+                        _SELF_LOG.log('ERROR', "AFIOObject::root: " + E.__str__())
                 except:
                     pass
 
@@ -677,7 +658,7 @@ class AFIOObject:
             E = exceptions.ReadOnlyIOObjectException(self.uid)
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log("AFIOObject::del_inst: " + E.__str__())
+                    _SELF_LOG.log('ERROR', "AFIOObject::del_inst: " + E.__str__())
             except:
                 pass
 
@@ -696,7 +677,7 @@ class AFIOObject:
             E = Exception("This instance cannot be modified (invalid/deleted instance.)")
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log("AFIOObject::ed_flag: " + E.__str__())
+                    _SELF_LOG.log('ERROR', "AFIOObject::ed_flag: " + E.__str__())
             except:
                 pass
 
@@ -706,7 +687,7 @@ class AFIOObject:
             E = exceptions.ReadOnlyIOObjectException(self.uid)
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log("AFIOObject::ed_flag: " + E.__str__())
+                    _SELF_LOG.log('ERROR', "AFIOObject::ed_flag: " + E.__str__())
             except:
                 pass
 
@@ -733,7 +714,7 @@ class AFIOObjectInterface:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log("AFIOObjectInterface::root: " + E.__str__())
+                    _SELF_LOG.log('ERROR', "AFIOObjectInterface::root: " + E.__str__())
             except:
                 pass
 
@@ -770,7 +751,7 @@ class AFEncryption:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(self.class_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', self.class_name + ": " + E.__str__())
             except:
                 pass
 
@@ -800,7 +781,7 @@ class AFEncryption:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -828,7 +809,7 @@ class AFEncryption:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -856,7 +837,7 @@ class AFEncryption:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -882,7 +863,7 @@ class AFEncryption:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -943,7 +924,7 @@ class AFEncryption:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -980,7 +961,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -995,7 +976,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1007,7 +988,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1052,7 +1033,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1117,7 +1098,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1163,7 +1144,7 @@ class AFFileIO:
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -1188,7 +1169,7 @@ class AFFileIO:
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -1219,7 +1200,7 @@ class AFFileIO:
                     if _br.strip() != _backup_data.strip():
                         try:
                             if _SELF_LOG is not None:
-                                _SELF_LOG.log(function_name + ": _br.strip() != _backup_data.strip() (P_B_R)")
+                                _SELF_LOG.log('ERROR', function_name + ": _br.strip() != _backup_data.strip() (P_B_R)")
                         except:
                             pass
 
@@ -1233,7 +1214,7 @@ class AFFileIO:
 
                     try:
                         if _SELF_LOG is not None:
-                            _SELF_LOG.log(function_name + ": " + E.__str__())
+                            _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                     except:
                         pass
 
@@ -1247,7 +1228,7 @@ class AFFileIO:
 
                     try:
                         if _SELF_LOG is not None:
-                            _SELF_LOG.log(function_name + ": " + E.__str__())
+                            _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                     except:
                         pass
 
@@ -1269,7 +1250,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1294,7 +1275,7 @@ class AFFileIO:
 
                 try:
                     if _SELF_LOG is not None:
-                        _SELF_LOG.log(function_name + ": " + E.__str__())
+                        _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
                     pass
 
@@ -1327,7 +1308,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1355,7 +1336,7 @@ class AFFileIO:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1394,7 +1375,7 @@ class AFJSON:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1489,7 +1470,7 @@ class AFJSON:
 
                             try:
                                 if _SELF_LOG is not None:
-                                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                             except:
                                 pass
 
@@ -1510,7 +1491,7 @@ class AFJSON:
 
                             try:
                                 if _SELF_LOG is not None:
-                                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                             except:
                                 pass
 
@@ -1535,7 +1516,7 @@ class AFJSON:
 
                             try:
                                 if _SELF_LOG is not None:
-                                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                             except:
                                 pass
 
@@ -1557,7 +1538,7 @@ class AFJSON:
 
                             try:
                                 if _SELF_LOG is not None:
-                                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                             except:
                                 pass
 
@@ -1582,7 +1563,7 @@ class AFJSON:
 
                         try:
                             if _SELF_LOG is not None:
-                                _SELF_LOG.log(function_name + ": " + E.__str__())
+                                _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                         except:
                             pass
 
@@ -1618,7 +1599,7 @@ class AFJSON:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1654,7 +1635,7 @@ class AFJSON:
         if E is not None:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1670,7 +1651,7 @@ class AFJSON:
 
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1682,7 +1663,7 @@ class AFJSON:
         except Exception as E:
             try:
                 if _SELF_LOG is not None:
-                    _SELF_LOG.log(function_name + ": " + E.__str__())
+                    _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
                 pass
 
@@ -1730,7 +1711,7 @@ class AFLogger:
             self.log_file = AFIOObjectInterface(self.L_IOInstance.uid)
             self.scname = self.j.load_file()[self.open_logs_dir][self.sdate][self.sid]['script_name']
 
-        def log(self, *data, empty_line: bool = False):
+        def log(self, lvl, *data, empty_line: bool = False):
 
             self.update_instance()
 
@@ -1746,7 +1727,7 @@ class AFLogger:
                 d2l = "\n"
             else:
                 time = AFDATA.Functions.time().strftime(for_log)
-                d2l = self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
+                d2l = f"[{lvl}]" + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
 
             d2l = "\n" + d2l
 
@@ -1787,7 +1768,7 @@ class AFLogger:
             self.log_file = AFIOObjectInterface(self.L_IOInstance.uid)
             self.scname = self.j.load_file()[self.open_logs_dir][self.sdate][self.sid]['script_name']
 
-        def log(self, *data, e=None, empty_line=False):
+        def log(self, lvl, *data, e=None, empty_line=False):
             self.update_instance()
             if not self.log_file.isFile:
                 raise exceptions.FileIOException("LOGGER.REL_LOGGER", "Attribute 'isFile' is set to 'False.'")
@@ -1808,7 +1789,7 @@ class AFLogger:
                 d2l = "\n"
             else:
                 time = AFDATA.Functions.time().strftime(for_log)
-                d2l = self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
+                d2l = f"[{lvl}]" + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
                 if e is not None:
                     d2l += " \n\t>>EXCEP_REPORT::" + str(e)
 
@@ -2083,7 +2064,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             s = json.dumps(r, indent=4)
             AFFileIO(self._o.uid).secure_save(s, append=False)
 
-    def log(self, *data, empty_line: bool = False, print_d: bool = False):
+    def log(self, lvl, *data, empty_line: bool = False, print_d: bool = False):
         """
         **AFLog.log**
         Will log _data (attempts to do so with 'PerformanceLogger,' if fails, will try to use 'ReliableLogger'
@@ -2095,18 +2076,18 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         self.refresh()
         if print_d:
-            print(*data)
+            print(f'[{lvl}]', *data)
 
         try:
-            self.performance_logger.log(*data, empty_line=empty_line)
+            self.performance_logger.log(lvl, *data, empty_line=empty_line)
         except Exception as E:
             try:
                 t = traceback.format_exc()
-                self.reliable_logger.log(*data, e=t, empty_line=empty_line)
+                self.reliable_logger.log(lvl, *data, e=t, empty_line=empty_line)
             except Exception as E:
                 print("Failed to log data; E; TB; DATA:", E, traceback.format_exc(), ("\n\t".join(d for d in data)))
 
-    def performance(self, *data, empty_line: bool = False):
+    def performance(self, lvl, *data, empty_line: bool = False):
         """
          **AFLog.performance**
          Will use 'PerformanceLogger'
@@ -2118,9 +2099,9 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         self.refresh()
 
-        self.performance_logger.log(*data, empty_line=empty_line)
+        self.performance_logger.log(lvl, *data, empty_line=empty_line)
 
-    def reliable(self, *data, e=None, empty_line: bool = False):
+    def reliable(self, lvl, *data, e=None, empty_line: bool = False):
         """
          **AFLog.performance**
          Will use 'ReliableLogger'
@@ -2133,7 +2114,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         self.refresh()
 
-        self.reliable_logger.log(*data, e=e, empty_line=empty_line)
+        self.reliable_logger.log(lvl, *data, e=e, empty_line=empty_line)
 
     def change_io_instance(self, **kwargs):
         # self._o.edit_flag(**kwargs)
@@ -2152,4 +2133,4 @@ if __name__ == "__main__" and protected_conf.dsb_mod_run_stdnalone:
     sys.exit(-1)
 
 _SELF_LOG = AFLog("appfunctions-core", AFDATA.Functions.generate_uid())
-_SELF_LOG.log("Started appfunctions script at '%s'" % datetime.now().strftime("%H:%M:%S"))
+_SELF_LOG.log('INFO', "Started appfunctions script at '%s'" % datetime.now().strftime("%H:%M:%S"))

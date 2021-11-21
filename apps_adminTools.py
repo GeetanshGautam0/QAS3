@@ -85,7 +85,9 @@ class AdminToolsUI(threading.Thread):
             'accent_fg': [],
             'accent_bg': [],
             'wraplength': [],
-            'borderless': []
+            'borderless': [],
+            'custom_color': {},
+            'wraplength_no_sel_panel': []
         }
 
         # Screens
@@ -190,31 +192,20 @@ class AdminToolsUI(threading.Thread):
             },
         }
 
+        self.screen_data = {
+            1: {},
+            2: {},
+            3: {},
+            4: {},
+            5: {},
+        }
+
+        c_raw = _load_configuration()
         c_key_data_file = AFIOObject(
             filename=qa_conf.Files.conf_std_file,
             isFile=True,
             encrypt=False
         )
-
-        self.screen_data = {
-            1: {
-
-            },
-            2: {
-
-            },
-            3: {
-
-            },
-            4: {
-
-            },
-            5: {
-
-            },
-        }
-
-        c_raw = _load_configuration()
         c_key_data = AFJSON(c_key_data_file.uid).load_file()['keys']
         c_key_data_file.delete_instance()
         del c_key_data_file
@@ -222,9 +213,7 @@ class AdminToolsUI(threading.Thread):
         for k, v in c_key_data.items():
             self.screen_data[1][k] = c_raw[v]
 
-        print(self.screen_data[1])
-
-        self.screen_data[1]['saved_data'] = self.screen_data[1]
+        self.screen_data[1]['saved_data'] = {**self.screen_data[1]}
 
         del c_key_data
 
@@ -239,6 +228,7 @@ class AdminToolsUI(threading.Thread):
         # Screen 1 Elements
         self.config_acc_description_lbl = tk.Label(self.configuration_allow_custom_config_container)
         self.config_acc_action_btn = tk.Button(self.configuration_allow_custom_config_container, command=self.toggle_config_acc)
+        self.config_save_btn = tk.Button(self.screen_1, text="Save Configuration", command=self.save_config)
 
         # Screen 1 Theming Requests
         self.theme_update_req['lbl'].extend([
@@ -256,6 +246,10 @@ class AdminToolsUI(threading.Thread):
             self.theme_update_req['font'][elem] = ('<face>', '<normal>')
         self.theme_update_req['btn'].extend([
             self.config_acc_action_btn,
+            self.config_save_btn
+        ])
+        self.theme_update_req['borderless'].extend([
+            self.config_save_btn
         ])
         self.theme_update_req['lbl_frame'].extend([
             self.configuration_allow_custom_config_container,
@@ -264,6 +258,7 @@ class AdminToolsUI(threading.Thread):
             self.configuration_deductions_config_container,
             self.configuration_deductions_amnt_container
         ])
+        self.theme_update_req['font'][self.config_save_btn] = ("<face>", "<medium>")
 
         # Screen 2 elements [Question Editing Screen]
         # Screen 3 elements [Scores IO Screen]
@@ -319,7 +314,13 @@ class AdminToolsUI(threading.Thread):
         # Make visible
         self.master_screen_packer()
 
+        self.root.bind('<Configure>', self.onFrameConfig)
+
     def close_window(self, code=0):
+        if self.master_screen_index == 2:
+            self.show_error("Please answer the prompt above before exiting.")
+            return
+
         config_us = {**self.screen_data[1]}
         del config_us['saved_data']
         for key in list(config_us.keys()):
@@ -329,13 +330,13 @@ class AdminToolsUI(threading.Thread):
         if config_us != self.screen_data[1]['saved_data']:
             self.master_screen_index = 2
             self.master_screen_packer()
-            print(1)
             self.master_prompt_ask_custom(
                 'Unsaved Configuration',
                 'You have made some changes to your configuration; do you want to save the new config. data before exiting?',
                 ('Yes, Save New Data', lambda: self.save_config(True)),
                 ('No, Do NOT Save New Data', lambda: g_exit(code)),
-                ('Do not close application', self.rst_prompts)
+                ('Do not close application', self.go_back_to_main_screen),
+                ttl_col_key='warning'
             )
 
         else:
@@ -352,8 +353,8 @@ class AdminToolsUI(threading.Thread):
         }
 
     def update_ui(self):
-        self.update_theme(True)
-        # self.update_buttons_theme()
+        self.update_theme()
+        self.update_buttons_theme()
 
     def update_theme(self, upd_buttons: bool = False):
         global _logger
@@ -367,9 +368,10 @@ class AdminToolsUI(threading.Thread):
             'fg_accent': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['accent']),
             'active_state': lambda _elem: _elem.config(activebackground=self.theme['accent'], activeforeground=self.theme['bg']),
             'borderless': lambda _elem: _elem.config(bd='0'),
-            'wraplength': lambda _elem: _elem.config(wraplength=(self.root.winfo_width() - self.selector_panel.winfo_width() - self.theme['padding']['x'] * 2)),
-            'invisible': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['fg']),
-            'button': lambda _elem: _elem.config(bd='1', highlightcolor=self.theme['accent'])
+            'wraplength': lambda _elem: _elem.config(wraplength=(self.ws[0] - self.selector_panel.winfo_width() - self.theme['padding']['x'] * 2)),
+            'invisible': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['fg'], bd='0'),
+            'button': lambda _elem: _elem.config(bd='1', highlightcolor=self.theme['accent']),
+            'wraplength_no_sel_panel': lambda _elem: _elem.config(wraplength=(self.ws[0] - self.theme['padding']['x'] * 2)),
         }
 
         for name, elem_list_and_commands in {
@@ -381,6 +383,7 @@ class AdminToolsUI(threading.Thread):
             'InvisibleContainer': ((*self.theme_update_req['invis_container'],), ('invisible', )),
             'AccentFG': ((*self.theme_update_req['accent_fg'],), ('fg_accent', )),
             'AccentBG': ((*self.theme_update_req['accent_bg'],), ('bg_accent', )),
+            '<set_wraplength_no_sel_panel>': ((*self.theme_update_req['wraplength_no_sel_panel'], ), ('wraplength_no_sel_panel', )),
             '<set_borderless>': ((*self.theme_update_req['borderless'],), ('borderless', ))
         }.items():
             ls, commands = elem_list_and_commands
@@ -390,6 +393,7 @@ class AdminToolsUI(threading.Thread):
                         command_map[command_request](element)
                     except Exception as E:
                         _logger.log(
+                            'ERROR',
                             f'Failed to apply command "{command_request}" to "{element}" ({name}) :: {E} :: {traceback.format_exc()}',
                             print_d=True
                         )
@@ -408,6 +412,19 @@ class AdminToolsUI(threading.Thread):
 
             except Exception as E:
                 _logger.log(
+                    'ERROR',
+                    f'Failed to apply command "font" to "{element}" :: {E} :: {traceback.format_exc()}',
+                    print_d=True
+                )
+
+        for element, bf in self.theme_update_req['custom_color'].items():
+            try:
+                bg, fg = bf
+                element.config(bg=self.theme[bg], fg=self.theme[fg])
+
+            except Exception as E:
+                _logger.log(
+                    'ERROR',
                     f'Failed to apply command "font" to "{element}" :: {E} :: {traceback.format_exc()}',
                     print_d=True
                 )
@@ -422,6 +439,13 @@ class AdminToolsUI(threading.Thread):
             fg=self.theme['bg'],
             activebackground=self.theme['bg'],
             activeforeground=self.theme['fg'],
+        )
+
+        self.config_save_btn.config(
+            fg=self.theme['bg'],
+            bg=self.theme['accent'],
+            activeforeground=self.theme['accent'],
+            activebackground=self.theme['bg'],
         )
 
         # TTK
@@ -458,7 +482,7 @@ class AdminToolsUI(threading.Thread):
             pass
 
         sc = self.master_screen_map[self.master_screen_index]
-        sc.pack(fill=tk.BOTH, expand=True, padx=self.theme['padding']['x'], pady=self.theme['padding']['y'])
+        sc.pack(fill=tk.BOTH, expand=True)
 
     def screen_1_packer(self):
         # Reset
@@ -482,6 +506,11 @@ class AdminToolsUI(threading.Thread):
         self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
         self.config_acc_action_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
 
+        # Save Button
+        self.config_save_btn.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
+
+        del padX, padY
+
     def screen_2_packer(self):
         # Reset
         self.reset_screen(2, self.screen_2)
@@ -500,7 +529,7 @@ class AdminToolsUI(threading.Thread):
 
     def reset_screen(self, index: int, screen: tk.Frame):
         self.current_screen_index = index
-        self.screen_clear_master()
+        self.clear_master_screen()
         screen.pack(fill=tk.BOTH, expand=True)
         try:
             for item in screen.winfo_children():
@@ -511,10 +540,19 @@ class AdminToolsUI(threading.Thread):
         except:
             pass
 
-    def screen_clear_master(self):
-        for i in (self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5):
-            try: i.pack_forget()
-            except: pass
+    def clear_master_screen(self):
+        for i in (
+                self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
+                *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4), *c(self.screen_5)
+        ):
+            try:
+                i.pack_forget()
+            except Exception as E:
+                _logger.log(
+                    'ERROR',
+                    f"Failed to `pack_forget` `{i}` :: `{E}` - `{traceback.format_exc()}`",
+                print_d=True
+                )
 
     def toggle_config_acc(self, change_state: bool = True):
         if change_state:
@@ -534,27 +572,91 @@ class AdminToolsUI(threading.Thread):
         self.config_acc_action_btn.update()
 
     def save_config(self, close_after: bool = False):
-        print('a', close_after)
+        pus_config = {**self.screen_data[1]}
+        s_d = pus_config['saved_data']
+        for i in list(pus_config.keys()):
+            if i not in s_d:
+                del pus_config[i]
 
-        if close_after:
-            g_exit('save_config::exit [norm, req]')
+        if s_d == pus_config:
+            return
 
-    def rst_prompts(self):
-        print('b')
+        c_key_data_file = AFIOObject(
+            filename=qa_conf.Files.conf_std_file,
+            isFile=True,
+            encrypt=False
+        )
+        c_key_data = AFJSON(c_key_data_file.uid).load_file()['keys']
+        c_key_data_file.delete_instance()
 
-    def master_prompt_ask_custom(self, title, description, *buttons):
+        translated_pus_config = {}
+        for k, v in c_key_data.items():
+            translated_pus_config[v] = pus_config[k]
+
+        res, reas = _save_configuration(translated_pus_config)
+
+        if res:
+            self.screen_data[1]['saved_data'] = pus_config
+
+        del c_key_data
+
+        if not res:
+            self.master_screen_index = 2
+            self.clear_prompts_screen()
+            self.master_screen_packer()
+            self.master_prompt_ask_custom(
+                "Failed to Save Configuration",
+                f"Reason: {reas}",
+                ("Go Back", self.go_back_to_main_screen),
+                ttl_col_key='error'
+            )
+
+        else:
+            self.master_screen_index = 2
+            self.clear_prompts_screen()
+            self.master_screen_packer()
+            self.master_prompt_ask_custom(
+                "Saved Configuration Successfully",
+                "Successfully saved configuration data to your custom configuration file.",
+                ("Ok" if not close_after else "Exit", self.go_back_to_main_screen if not close_after else lambda: g_exit(0)),
+                ttl_col_key='ok'
+            )
+
+    def go_back_to_main_screen(self):
+        self.clear_prompts_screen()
+        self.clear_master_screen()
+        self.master_screen_index = 1
+        self.master_screen_packer()
+        self.select_screen(-1)
+        self.show_error('')
+
+    def clear_prompts_screen(self):
+        global _logger
+        cl = c(self.prompts_screen)
+        for child in cl:
+            try:
+                child.pack_forget()
+            except Exception as E:
+                _logger.log('ERROR', f"Failed to `pack_forget` `{child}` :: `{E}` - {traceback.format_exc()}",
+                print_d=True)
+
+    def master_prompt_ask_custom(self, title, description, *buttons, ttl_col_key: str = 'accent'):
+        self.clear_prompts_screen()
+
         padX = self.theme['padding']['x']
         padY = self.theme['padding']['y']
 
         title_lbl = tk.Label(self.prompts_screen, text=title)
         description_lbl = tk.Label(self.prompts_screen, text=description)
-        temp_ic = tk.LabelFrame(self.prompts_screen)
+        temp_ic_f_ic = tk.LabelFrame(self.prompts_screen)
+        temp_ic = tk.LabelFrame(temp_ic_f_ic)
 
-        description_lbl.config(anchor=tk.W, justify=tk.LEFT)
+        description_lbl.config(justify=tk.LEFT)
 
         title_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
         description_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
         temp_ic.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
+        temp_ic_f_ic.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY)
 
         for txt, com in buttons:
             temp_button = tk.Button(temp_ic, text=txt, command=com)
@@ -565,15 +667,18 @@ class AdminToolsUI(threading.Thread):
             self.theme_update_req['borderless'].append(temp_button)
 
         self.theme_update_req['lbl'].extend([title_lbl, description_lbl])
-        self.theme_update_req['accent_fg'].append(title_lbl)
-        self.theme_update_req['wraplength'].append(description_lbl)
+        self.theme_update_req['custom_color'][title_lbl] = ('bg', ttl_col_key)
+        self.theme_update_req['wraplength_no_sel_panel'].append(description_lbl)
         self.theme_update_req['font'][title_lbl] = ('<face>', '<title>')
         self.theme_update_req['font'][description_lbl] = ('<face>', '<normal>')
-        self.theme_update_req['invis_container'].append(temp_ic)
+        self.theme_update_req['invis_container'].extend([temp_ic, temp_ic_f_ic])
 
         del padX, padY
 
         self.update_theme()
+
+    def onFrameConfig(self, *event):
+        self.ws = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
 
     def __del__(self):
         self.thread.join(self, 0)
@@ -596,6 +701,25 @@ def g_exit(code):
     sys.exit(code)
 
 
+def c(p):
+    global _logger
+
+    cl = set()
+    for item in p.winfo_children():
+        try:
+            if len(item.winfo_children()) > 1:
+                cl = set(*cl, c(item))
+            else:
+                cl.add(item)
+        except Exception as E:
+            _logger.log(
+                'ERROR',
+                traceback.format_exc(), E,
+                print_d=True
+            )
+    return cl
+
+
 _set_boot_progress(4)
 
 
@@ -607,10 +731,10 @@ def _load_configuration() -> dict:
         qa_conf.Files.qs_parent_dir['dst'],
         qa_conf.Files.configuration['filename']
     )
-    s = os.path.join(
+    s = os.path.abspath(os.path.join(
         qa_conf.Files.qs_parent_dir['src'],
         qa_conf.Files.configuration['filename']
-    )
+    ))
 
     def load_file(p: str) -> dict:
         with open(p, 'r') as f:
@@ -627,10 +751,11 @@ def _load_configuration() -> dict:
 
     if not os.path.exists(d):
         if not os.path.exists(s):
+            print(s)
             qa_splash_screen.hide(splObj)
             tkmsb.showerror(
                 app_title,
-                "[CRITICAL ERROR] Failed to find 'src:configuration.json'"
+                "[CRITICAL ERROR] Failed to find 'src:configuration.qaFile'"
             )
             g_exit(1)
 
@@ -640,7 +765,7 @@ def _load_configuration() -> dict:
             qa_splash_screen.hide(splObj)
             tkmsb.showinfo(
                 app_title,
-                "Created 'dst:configuration.json'"
+                "Created 'dst:configuration.qaFile'"
             )
             qa_splash_screen.show(splObj)
 
@@ -652,7 +777,7 @@ def _load_configuration() -> dict:
                 qa_splash_screen.hide(splObj)
                 tkmsb.showerror(
                     app_title,
-                    f"[CRITICAL ERROR] Invalid 'src:configuration.json' file.\n\nTechnical:\n{traceback.format_exc()}"
+                    f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}"
                 )
                 g_exit(1)
     else:
@@ -683,7 +808,7 @@ def _load_configuration() -> dict:
                 qa_splash_screen.hide(splObj)
                 tkmsb.showerror(
                     app_title,
-                    f"[CRITICAL ERROR] Invalid 'src:configuration.json' file.\n\nTechnical:\n{traceback.format_exc()}"
+                    f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}"
                 )
                 qa_splash_screen.show(splObj)
                 g_exit(1)
@@ -691,11 +816,31 @@ def _load_configuration() -> dict:
             qa_splash_screen.hide(splObj)
             tkmsb.showwarning(
                 app_title,
-                "Overwrote (reset) 'dst:configuration.json' [invalid data found]"
+                "Overwrote (reset) 'dst:configuration.qaFile' [invalid data found]"
             )
             qa_splash_screen.show(splObj)
 
     return r
+
+
+def _save_configuration(config_data: dict) -> tuple:
+    try:
+        p, s = qa_diagnostics.Configuration.general(config_data)
+    except Exception as E:
+        return False, traceback.format_exc()
+
+    if not p:
+        return p, s
+
+    d = os.path.join(
+        qa_conf.Files.qs_parent_dir['dst'],
+        qa_conf.Files.configuration['filename']
+    )
+    with open(d, 'w') as config_file:
+        config_file.write(json.dumps(config_data, indent=4))
+        config_file.close()
+
+    return True, ""
 
 
 _set_boot_progress(5)
@@ -729,5 +874,6 @@ if version_notes is not None:
         qa_splash_screen.show(splObj)
 
 qa_splash_screen.set_smooth_progress(splObj, -1, _boot_steps)
+del splRoot
 
 AdminToolsUI()
