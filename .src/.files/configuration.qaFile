@@ -1,7 +1,7 @@
 {
   "c_acc": false,
   "qs_dist_rn": true,
-  "qs_dist_pa": "a",
+  "qs_dist_p": true,
   "qs_dist_dF": 2,
   "rs_deduc_b": true,
   "rs_deduc_i": 1

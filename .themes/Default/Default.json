@@ -14,10 +14,11 @@
         "ok":                   "#73AB84",
         "warning":              "#EFCA08",
         "error":                "#FF3A20",
-        "gray":                 "#5c5c5c",
-        "accent":               "#34CBD5",
+        "gray":                 "#929292",
+        "accent":               "#229CA5",
         "font": {
             "font_face":        "Montserrat",
+            "alt_font_face":    "Century Gothic",
             "title_size":       28,
             "sttl_size":        15,
             "big_para_size":    13,
@@ -38,6 +39,7 @@
         "accent":               "#1C8087",
         "font": {
             "font_face":        "Montserrat",
+            "alt_font_face":    "Century Gothic",
             "title_size":       28,
             "sttl_size":        15,
             "big_para_size":    13,

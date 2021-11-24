@@ -2,7 +2,7 @@
   "keys": {
     "config_acc": "c_acc",
     "qs_dist_rn": "qs_dist_rn",
-    "qs_dist_pa": "qs_dist_pa",
+    "qs_dist_pa": "qs_dist_p",
     "qs_dist_dF": "qs_dist_dF",
     "rs_deduc_b": "rs_deduc_b",
     "rs_deduc_i": "rs_deduc_i"
@@ -10,7 +10,7 @@
   "defaults": {
     "c_acc": false,
     "qs_dist_rn": true,
-    "qs_dist_pa": "a",
+    "qs_dist_p": true,
     "qs_dist_dF": 2,
     "rs_deduc_b": true,
     "rs_deduc_i": 1

@@ -37,7 +37,7 @@ class Check:
         return "%s::%s" % (_vers, _build)
 
     @staticmethod
-    def check(splash=None):
+    def check(splash: tk.Toplevel = None):
         global url, http
 
         curr = conf.ConfigFile.raw['app_data']['build']['version_id']
@@ -54,7 +54,7 @@ class Check:
 
         appro = _r[_key]['versions']
         if curr not in appro:
-            if splash is not None:
+            if isinstance(splash, tk.Toplevel):
                 splash_screen.hide(splash)
 
             tkmsb.showerror(
@@ -62,7 +62,7 @@ class Check:
                 "Failed to check version information - code 1."
             )
 
-            if splash is not None:
+            if isinstance(splash, tk.Toplevel):
                 splash_screen.show(splash)
 
         _v_div_curr = (*curr.split("."), )
@@ -71,7 +71,7 @@ class Check:
         for ind, value in enumerate(_v_div_curr):
             if _v_div_lats[ind] > value:
 
-                if splash is not None:
+                if isinstance(splash, tk.Toplevel):
                     splash_screen.hide(splash)
 
                 tkmsb.showinfo(
@@ -79,13 +79,13 @@ class Check:
                     "A new version of the application is available; download is available at geetanshgautam.wixsite.com/home."
                 )
 
-                if splash is not None:
+                if isinstance(splash, tk.Toplevel):
                     splash_screen.show(splash)
 
                 return False
 
             elif _v_div_lats[ind] < value:
-                if splash is not None:
+                if isinstance(splash, tk.Toplevel):
                     splash_screen.hide(splash)
 
                 tkmsb.showerror(
@@ -93,13 +93,13 @@ class Check:
                     "Failed to check version information."
                 )
 
-                if splash is not None:
+                if isinstance(splash, tk.Toplevel):
                     splash_screen.show(splash)
 
                 return True
 
         if _r[_r['map']['v']]['any_avail'] and curr[0] != 'v':
-            if splash is not None:
+            if isinstance(splash, tk.Toplevel):
                 splash_screen.hide(splash)
 
             tkmsb.showinfo(
@@ -107,7 +107,7 @@ class Check:
                 "The build that you have installed is not a stable build; consider installing a stable build."
             )
 
-            if splash is not None:
+            if isinstance(splash, tk.Toplevel):
                 splash_screen.show(splash)
 
         return True

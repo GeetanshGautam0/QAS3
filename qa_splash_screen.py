@@ -62,7 +62,9 @@ class Splash(Toplevel):
 
     def run(self):
         self.root.geometry(self.geo)
+        self.root.resizable(False, False)
         self.root.overrideredirect(True)
+        self.root.title("Quizzing Application - Loading")
         self.root.protocol("WM_DELETE_WINDOW", lambda: destroy(self))
         self.root.wm_attributes('-topmost', 1)
         self.root.iconbitmap(self.img)
@@ -88,7 +90,7 @@ class Splash(Toplevel):
 
         self.titleLbl.pack(fill=BOTH, expand=True, padx=5)
         self.pbar.pack(fill=X, expand=1)
-        self.infoLbl.pack(fill=X, expand=True, padx=5)
+        self.infoLbl.pack(fill=X, expand=False, padx=5, pady=10)
 
         self.root.update()
 

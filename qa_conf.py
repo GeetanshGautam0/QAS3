@@ -21,6 +21,7 @@ class Application:
     version_str = ConfigFile.raw['app_data']['build']['version_id']
     AppDataLoc = appdirs.user_data_dir(appname=app_name, appauthor=app_author, version=version_str, roaming=False)
     RoamingAppDataLoc = appdirs.user_data_dir(appname=app_name, appauthor=app_author, version=version_str, roaming=True)
+    app_urls = ("https://geetanshgautam.wixsite.com/home", "https://geetanshgautam0.github.io")
     in_beta = True
     uid_seed = {
         'admin_tools': random.random(),
@@ -28,6 +29,9 @@ class Application:
         'recovery_util': random.random(),
         'theming_util': random.random(),
     }
+    cr = """Coding Made Fun, 2021\n""" + "\n".join(
+        u for u in app_urls
+    ).strip()
 
 
 class Encryption:
@@ -56,7 +60,7 @@ class AppContainer:
     class Apps:
         admin_tools = {
             'main': {
-                'ws': (1000, 900)
+                'ws': (1000, 900),
             },
             'question_entry': {
                 'ws': (840, 800)

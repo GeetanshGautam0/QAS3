@@ -1,26 +1,26 @@
+from typing import Dict, Union, Callable
+
 import qa_conf, qa_splash_screen
 import tkinter as tk
 
-
 _boot_steps = {
-    1: "Importing modules",
-    2: "Loading Globals",
-    3: "Loading Functions",
-    4: "Loading Configuration",
-    5: "Running Boot Checks",
-    6: "Fetching Version Information"
+    1: "Importing modules\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
+    2: "Loading Globals\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
+    3: "Loading Functions\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
+    4: "Loading Configuration\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
+    5: "Running Boot Checks\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
+    6: "Fetching Version Information\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit."
 }
 
 _bg_frame = tk.Tk()
 _bg_frame.withdraw()
 _bg_frame.title("QA Administrator Tools - Background Frame")
+splRoot = None
 
 if not qa_conf.Control.doNotUseSplash:
     splRoot = tk.Toplevel()
     splObj = qa_splash_screen.Splash(splRoot)
     splObj.setTitle("Administrator Tools")
-else:
-    splObj = None
 
 
 def _set_boot_progress(index):
@@ -30,21 +30,27 @@ def _set_boot_progress(index):
 
 _set_boot_progress(1)
 
-from tkinter import ttk
-from tkinter import messagebox as tkmsb
+if isinstance(splRoot, tk.Toplevel):
+    splRoot.attributes('-topmost', False)
+
+from tkinter import ttk, Button
 from tkinter import filedialog as tkfldl
+from tkinter import messagebox as tkmsb
 import threading, shutil, traceback, json, time, random, subprocess, sys, os, qa_exceptions
 import qa_exceptions, qa_prompts, qa_pdf_gen, qa_log_cleaner, qa_nv_flags_system, qa_diagnostics, qa_theme
-from qa_appfunctions import *
+from qa_appfunctions import AFLog, AFDATA, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption
 import qa_online_version_check as ovcc
+from time import sleep
 
+if isinstance(splRoot, tk.Toplevel):
+    splRoot.attributes('-topmost', True)
 
 _set_boot_progress(2)
 
 app_title = f"Administrator Tools {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']}"
 _logger = AFLog(
     'qa_apps-admin_tools--core',
-    AFDATA.Functions.generate_uid(conf.Application.uid_seed['admin_tools'])
+    AFDATA.Functions.generate_uid(qa_conf.Application.uid_seed['admin_tools'])
 )
 
 
@@ -54,12 +60,15 @@ class AdminToolsUI(threading.Thread):
         self.thread = threading.Thread
         self.thread.__init__(self)
 
+        # TL Logic Vars
+        self.init = False
+
         # Root
         self.root = tk.Toplevel()
         self.root.withdraw()
 
         # IU Params
-        def_ws = (*qa_conf.AppContainer.Apps.admin_tools['main']['ws'], )
+        def_ws = (*qa_conf.AppContainer.Apps.admin_tools['main']['ws'],)
         self.max_ws = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.ws = (
             def_ws[0] if def_ws[0] <= self.max_ws[0] else self.max_ws[0],
@@ -87,7 +96,8 @@ class AdminToolsUI(threading.Thread):
             'wraplength': [],
             'borderless': [],
             'custom_color': {},
-            'wraplength_no_sel_panel': []
+            'wraplength_no_sel_panel': [],
+            'custom_command': {}
         }
 
         # Screens
@@ -95,24 +105,28 @@ class AdminToolsUI(threading.Thread):
         self.master_screen = tk.Frame(self.main_screen)
         self.selector_panel = tk.Frame(self.main_screen)
         self.prompts_screen = tk.Frame(self.root)
+        self.screen_0 = tk.Frame(self.master_screen)
         self.screen_1 = tk.Frame(self.master_screen)
         self.screen_2 = tk.Frame(self.master_screen)
         self.screen_3 = tk.Frame(self.master_screen)
         self.screen_4 = tk.Frame(self.master_screen)
         self.screen_5 = tk.Frame(self.master_screen)
 
-        self.theme_update_req['frame'].extend([
-            self.root,
-            self.main_screen,
-            self.prompts_screen,
-            self.master_screen,
-            self.selector_panel,
-            self.screen_1,
-            self.screen_2,
-            self.screen_3,
-            self.screen_4,
-            self.screen_5
-        ])
+        self.theme_update_req['frame'].extend(
+            [
+                self.root,
+                self.main_screen,
+                self.prompts_screen,
+                self.master_screen,
+                self.selector_panel,
+                self.screen_0,
+                self.screen_1,
+                self.screen_2,
+                self.screen_3,
+                self.screen_4,
+                self.screen_5
+            ]
+        )
 
         self.master_screen_index = 1
 
@@ -126,33 +140,40 @@ class AdminToolsUI(threading.Thread):
         self.theme_update_req['lbl'].append(self.error_label)
         self.theme_update_req['font'][self.error_label] = ('<face>', '<normal>')
 
-        self.title_lbl = tk.Label(self.root, text='Administrator Tools')
-        self.theme_update_req['lbl'].append(self.title_lbl)
-        self.theme_update_req['accent_fg'].append(self.title_lbl)
-        self.theme_update_req['font'][self.title_lbl] = ('<face>', '<title>')
-
         self.sep2 = ttk.Separator(self.main_screen, orient=tk.VERTICAL)
         self.sep_style = ttk.Style()
         self.sep_style.theme_use('alt')
 
         # Selector Panel
+        self.selector_panel_app_name = tk.Label(self.selector_panel, text="Administrator\nTools")
+        self.selector_panel_screen_0 = tk.Button(self.selector_panel, command=lambda: self.select_screen(0))
         self.selector_panel_screen_1 = tk.Button(self.selector_panel, command=lambda: self.select_screen(1))
         self.selector_panel_screen_2 = tk.Button(self.selector_panel, command=lambda: self.select_screen(2))
         self.selector_panel_screen_3 = tk.Button(self.selector_panel, command=lambda: self.select_screen(3))
         self.selector_panel_screen_4 = tk.Button(self.selector_panel, command=lambda: self.select_screen(4))
         self.selector_panel_screen_5 = tk.Button(self.selector_panel, command=lambda: self.select_screen(5))
 
-        self.current_screen_index = 1
+        self.current_screen_index = 0
 
-        self.theme_update_req['btn'].extend([
-            self.selector_panel_screen_1,
-            self.selector_panel_screen_2,
-            self.selector_panel_screen_3,
-            self.selector_panel_screen_4,
-            self.selector_panel_screen_5,
+        self.theme_update_req['btn'].extend(
+            [
+                self.selector_panel_screen_0,
+                self.selector_panel_screen_1,
+                self.selector_panel_screen_2,
+                self.selector_panel_screen_3,
+                self.selector_panel_screen_4,
+                self.selector_panel_screen_5,
+            ]
+        )
+
+        self.theme_update_req['lbl'].extend([
+            self.selector_panel_app_name
         ])
+        self.theme_update_req['font'][self.selector_panel_app_name] = ("<face>", "<large>")
+        self.theme_update_req['accent_fg'].append(self.selector_panel_app_name)
 
         self.selector_panel_mapper = {
+            0: self.screen_0_packer,
             1: self.screen_1_packer,
             2: self.screen_2_packer,
             3: self.screen_3_packer,
@@ -160,19 +181,42 @@ class AdminToolsUI(threading.Thread):
             5: self.screen_5_packer,
         }
 
-        self.theme_update_req['borderless'].extend([
-            self.selector_panel_screen_1,
-            self.selector_panel_screen_2,
-            self.selector_panel_screen_3,
-            self.selector_panel_screen_4,
-            self.selector_panel_screen_5,
-        ])
+        self.theme_update_req['borderless'].extend(
+            [
+                self.selector_panel_screen_0,
+                self.selector_panel_screen_1,
+                self.selector_panel_screen_2,
+                self.selector_panel_screen_3,
+                self.selector_panel_screen_4,
+                self.selector_panel_screen_5,
+            ]
+        )
 
         self.screen_info_mapper = {
+            0: {
+                'title': 'Information',
+                'app_name': 'Administrator Tools',
+                'description': """
+Welcome to Administrator Tools, using this application, you can:
+    (i) Modify the quiz configuration,
+    (ii) Modify question databases,
+    (iii) View scores, and modify them as well,
+    (iv) Export quiz files,
+    (v) Select an installed theme,
+    And more!
+    
+    Change tabs on the left side to get started.
+    Help files have been added wherever necessary.
+                """,
+                "button": self.selector_panel_screen_0
+            },
             1: {
                 'title': 'Configuration',
                 'button': self.selector_panel_screen_1,
-                'info1': """Should the quiz taker be allowed to configure the quiz themselves?"""
+                'info1': """Should the quiz taker be allowed to configure the quiz themselves?""",
+                'info2': """Should the quiz taker be presented with all questions, or only a sample of the question database?""",
+                'cmd_1_r': False,
+                'cmd_1_c': self.screen_1_aft_packer,
             },
             2: {
                 'title': 'Question Database Editor',
@@ -193,11 +237,17 @@ class AdminToolsUI(threading.Thread):
         }
 
         self.screen_data = {
+            0: {},
             1: {},
             2: {},
             3: {},
             4: {},
             5: {},
+            '<<prompts>>': {
+                'master_prompt_ask_custom': {
+                    'theme': {}
+                }
+            }
         }
 
         c_raw = _load_configuration()
@@ -217,6 +267,26 @@ class AdminToolsUI(threading.Thread):
 
         del c_key_data
 
+        # Screen 0 elements [Intro]
+        self.intro_title_lbl = tk.Label(self.screen_0, text=self.screen_info_mapper[0]['app_name'])
+        self.intro_desc_lbl = tk.Label(self.screen_0, text=self.screen_info_mapper[0]['description'])
+        self.intro_cr_lbl = tk.Label(self.screen_0, text=qa_conf.Application.cr)
+
+        # Screen 0 Theming Requests
+        self.theme_update_req['lbl'].extend(
+            [
+                self.intro_title_lbl,
+                self.intro_desc_lbl,
+                self.intro_cr_lbl
+            ]
+        )
+        self.theme_update_req['font'][self.intro_desc_lbl] = ('<face>', '<medium>')
+        self.theme_update_req['wraplength'].append(self.intro_desc_lbl)
+        self.theme_update_req['font'][self.intro_title_lbl] = ('<face>', '<title>')
+        self.theme_update_req['accent_fg'].append(self.intro_title_lbl)
+        self.theme_update_req['font'][self.intro_cr_lbl] = ('<alt_face>', '<normal>')
+        self.theme_update_req['accent_fg'].append(self.intro_cr_lbl)
+
         # Screen 1 elements [Configuration Screen]
         # Screen 1 containers
         self.configuration_allow_custom_config_container = tk.LabelFrame(self.screen_1)
@@ -227,13 +297,21 @@ class AdminToolsUI(threading.Thread):
 
         # Screen 1 Elements
         self.config_acc_description_lbl = tk.Label(self.configuration_allow_custom_config_container)
-        self.config_acc_action_btn = tk.Button(self.configuration_allow_custom_config_container, command=self.toggle_config_acc)
+        self.config_acc_action_btn = tk.Button(
+            self.configuration_allow_custom_config_container,
+            command=self.toggle_config_acc
+        )
         self.config_save_btn = tk.Button(self.screen_1, text="Save Configuration", command=self.save_config)
+        self.config_qs_pa_rnd_description_lbl = tk.Label(self.configuration_question_dist_config_container)
+        self.config_qa_pa_rnd_selector_btn = tk.Button(self.configuration_question_dist_config_container, command=self.toggle_config_pa)
 
         # Screen 1 Theming Requests
-        self.theme_update_req['lbl'].extend([
-            self.config_acc_description_lbl,
-        ])
+        self.theme_update_req['lbl'].extend(
+            [
+                self.config_acc_description_lbl,
+                self.config_qs_pa_rnd_description_lbl
+            ]
+        )
         for elem in (
                 self.configuration_allow_custom_config_container,
                 self.configuration_question_dist_config_container,
@@ -241,23 +319,32 @@ class AdminToolsUI(threading.Thread):
                 self.configuration_deductions_config_container,
                 self.configuration_deductions_amnt_container,
                 self.config_acc_description_lbl,
-                self.config_acc_action_btn
+                self.config_acc_action_btn,
+                self.config_qs_pa_rnd_description_lbl,
+                self.config_qa_pa_rnd_selector_btn
         ):
             self.theme_update_req['font'][elem] = ('<face>', '<normal>')
-        self.theme_update_req['btn'].extend([
-            self.config_acc_action_btn,
-            self.config_save_btn
-        ])
-        self.theme_update_req['borderless'].extend([
-            self.config_save_btn
-        ])
-        self.theme_update_req['lbl_frame'].extend([
-            self.configuration_allow_custom_config_container,
-            self.configuration_question_dist_config_container,
-            self.configuration_question_divF_container,
-            self.configuration_deductions_config_container,
-            self.configuration_deductions_amnt_container
-        ])
+        self.theme_update_req['btn'].extend(
+            [
+                self.config_acc_action_btn,
+                self.config_save_btn,
+                self.config_qa_pa_rnd_selector_btn
+            ]
+        )
+        self.theme_update_req['borderless'].extend(
+            [
+                self.config_save_btn
+            ]
+        )
+        self.theme_update_req['lbl_frame'].extend(
+            [
+                self.configuration_allow_custom_config_container,
+                self.configuration_question_dist_config_container,
+                self.configuration_question_divF_container,
+                self.configuration_deductions_config_container,
+                self.configuration_deductions_amnt_container
+            ]
+        )
         self.theme_update_req['font'][self.config_save_btn] = ("<face>", "<medium>")
 
         # Screen 2 elements [Question Editing Screen]
@@ -267,22 +354,18 @@ class AdminToolsUI(threading.Thread):
 
         # Calls
         self.start()
+        self.init = True
         self.root.deiconify()
         self.root.mainloop()
 
     def run(self):
         self.root.protocol("WM_DELETE_WINDOW", self.close_window)
-        self.root.title(f"Quizzing Application {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']} - Admin Tools")
+        self.root.title(
+            f"Quizzing Application {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']} - Admin Tools"
+        )
         self.root.geometry("%sx%s+%s+%s" % (*self.ws, *self.sp))
         self.root.iconbitmap(qa_conf.Files.app_icons['admin_tools']['ico'])
 
-        self.title_lbl.pack(
-            fill=tk.X,
-            expand=False,
-            padx=self.theme['padding']['x'],
-            pady=self.theme['padding']['y']*2,
-        )
-        # self.sep.pack(fill=tk.X, expand=False, padx=self.theme['padding']['x'], pady=self.theme['padding']['y'])
         self.error_label.pack(
             fill=tk.X,
             expand=False,
@@ -292,22 +375,28 @@ class AdminToolsUI(threading.Thread):
         )
         # Add the button panel (+ items)
         self.selector_panel.pack(fill=tk.BOTH, expand=False, side=tk.LEFT)
+        self.selector_panel_app_name.pack(
+            fill=tk.X,
+            expand=False,
+            padx=self.theme['padding']['x'],
+            pady=self.theme['padding']['y'],
+        )
         for ind, but in enumerate(
-                (self.selector_panel_screen_1,
+                (self.selector_panel_screen_0,
+                 self.selector_panel_screen_1,
                  self.selector_panel_screen_2,
                  self.selector_panel_screen_3,
                  self.selector_panel_screen_4,
                  self.selector_panel_screen_5)
         ):
             self.theme_update_req['font'][but] = ('<face>', '<large>')
-            but.config(text=self.screen_info_mapper[ind+1]['title'])
+            but.config(text=self.screen_info_mapper[ind]['title'])
             but.pack(fill=tk.BOTH, expand=False, side=tk.TOP)
 
         self.sep2.pack(fill=tk.Y, expand=False, side=tk.LEFT)
 
         # Add the master screen
         self.master_screen.pack(fill=tk.BOTH, expand=True, side=tk.RIGHT)
-
         self.select_screen(-1)
         self.update_ui()
 
@@ -317,6 +406,8 @@ class AdminToolsUI(threading.Thread):
         self.root.bind('<Configure>', self.onFrameConfig)
 
     def close_window(self, code=0):
+        self.show_error('')
+
         if self.master_screen_index == 2:
             self.show_error("Please answer the prompt above before exiting.")
             return
@@ -343,16 +434,21 @@ class AdminToolsUI(threading.Thread):
             g_exit(code)
 
     def reload_data(self):
+        self.show_error('')
+
         self.theme = _load_data('theme')
         self.theme_font_mapping = {
             '<normal>': self.theme['font']['main_size'],
             '<medium>': self.theme['font']['big_para_size'],
             '<large>': self.theme['font']['sttl_size'],
             '<title>': self.theme['font']['title_size'],
-            '<face>': self.theme['font']['font_face']
+            '<face>': self.theme['font']['font_face'],
+            '<alt_face>': self.theme['font']['alt_font_face']
         }
 
     def update_ui(self):
+        self.show_error('')
+
         self.update_theme()
         self.update_buttons_theme()
 
@@ -366,25 +462,32 @@ class AdminToolsUI(threading.Thread):
             'fg_norm': lambda _elem: _elem.config(fg=self.theme['fg']),
             'bg_accent': lambda _elem: _elem.config(bg=self.theme['accent'], fg=self.theme['bg']),
             'fg_accent': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['accent']),
-            'active_state': lambda _elem: _elem.config(activebackground=self.theme['accent'], activeforeground=self.theme['bg']),
+            'active_state': lambda _elem: _elem.config(
+                activebackground=self.theme['accent'], activeforeground=self.theme['bg']
+            ),
             'borderless': lambda _elem: _elem.config(bd='0'),
-            'wraplength': lambda _elem: _elem.config(wraplength=(self.ws[0] - self.selector_panel.winfo_width() - self.theme['padding']['x'] * 2)),
+            'wraplength': lambda _elem: _elem.config(
+                wraplength=(self.ws[0] - self.selector_panel.winfo_width() - self.theme['padding']['x'] * 2)
+            ),
             'invisible': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['fg'], bd='0'),
-            'button': lambda _elem: _elem.config(bd='1', highlightcolor=self.theme['accent']),
-            'wraplength_no_sel_panel': lambda _elem: _elem.config(wraplength=(self.ws[0] - self.theme['padding']['x'] * 2)),
+            'button': lambda _elem: _elem.config(bd='1', highlightcolor=self.theme['accent'], relief=tk.GROOVE),
+            'wraplength_no_sel_panel': lambda _elem: _elem.config(
+                wraplength=(self.ws[0] - self.theme['padding']['x'] * 2)
+            ),
         }
 
         for name, elem_list_and_commands in {
-            'Label': ((*self.theme_update_req['lbl'], ), ('bg_norm', 'fg_norm')),
-            'Button': ((*self.theme_update_req['btn'], ), ('bg_norm', 'fg_norm', 'active_state', 'button')),
-            'LabelFrame': ((*self.theme_update_req['lbl_frame'], ), ('bg_norm', 'fg_accent')),
-            'Frame': ((*self.theme_update_req['frame'], ), ('bg_norm', )),
-            '<set_wraplength>': ((*self.theme_update_req['wraplength'],), ('wraplength', )),
-            'InvisibleContainer': ((*self.theme_update_req['invis_container'],), ('invisible', )),
-            'AccentFG': ((*self.theme_update_req['accent_fg'],), ('fg_accent', )),
-            'AccentBG': ((*self.theme_update_req['accent_bg'],), ('bg_accent', )),
-            '<set_wraplength_no_sel_panel>': ((*self.theme_update_req['wraplength_no_sel_panel'], ), ('wraplength_no_sel_panel', )),
-            '<set_borderless>': ((*self.theme_update_req['borderless'],), ('borderless', ))
+            'Label': ((*self.theme_update_req['lbl'],), ('bg_norm', 'fg_norm')),
+            'Button': ((*self.theme_update_req['btn'],), ('bg_norm', 'fg_norm', 'active_state', 'button')),
+            'LabelFrame': ((*self.theme_update_req['lbl_frame'],), ('bg_norm', 'fg_accent')),
+            'Frame': ((*self.theme_update_req['frame'],), ('bg_norm',)),
+            '<set_wraplength>': ((*self.theme_update_req['wraplength'],), ('wraplength',)),
+            'InvisibleContainer': ((*self.theme_update_req['invis_container'],), ('invisible',)),
+            'AccentFG': ((*self.theme_update_req['accent_fg'],), ('fg_accent',)),
+            'AccentBG': ((*self.theme_update_req['accent_bg'],), ('bg_accent',)),
+            '<set_wraplength_no_sel_panel>': (
+                    (*self.theme_update_req['wraplength_no_sel_panel'],), ('wraplength_no_sel_panel',)),
+            '<set_borderless>': ((*self.theme_update_req['borderless'],), ('borderless',))
         }.items():
             ls, commands = elem_list_and_commands
             for element in ls:
@@ -406,7 +509,7 @@ class AdminToolsUI(threading.Thread):
                         n_font_data.append(self.theme_font_mapping[d])
                     else:
                         n_font_data.append(d)
-                font_data = (*n_font_data, )
+                font_data = (*n_font_data,)
                 del n_font_data
                 element.config(font=font_data)
 
@@ -430,6 +533,27 @@ class AdminToolsUI(threading.Thread):
                 )
 
         del command_map
+
+        for uid, (cc, args) in self.theme_update_req['custom_command'].items():
+            try:
+                c_args = []
+                for lookup_F, arg_N in args:
+                    if lookup_F:
+                        c_args.append(self.theme[arg_N])
+                    else:
+                        c_args.append(arg_N)
+
+                cc(*c_args)
+
+                del c_args
+
+            except Exception as E:
+                print(E)
+                _logger.log(
+                    'ERROR',
+                    f'Failed to run the attached command ({cc}) :: {E} :: {traceback.format_exc()}',
+                    print_d=True
+                )
 
         # Exceptions
         self.error_label.config(fg=self.theme['error'])
@@ -460,14 +584,20 @@ class AdminToolsUI(threading.Thread):
 
     def update_buttons_theme(self):
         self.toggle_config_acc(False)
+        self.toggle_config_pa(False)
 
     def show_error(self, error: str):
+        if not self.init:
+            return
+
         self.error_label.config(text=error)
 
     def select_screen(self, index):
         assert index in (*self.selector_panel_mapper, -1), f"Invalid index '{index}'"
         if index != -1:
             self.current_screen_index = index
+
+        self.clear_master_screen()
         self.selector_panel_mapper[self.current_screen_index]()
         self.update_ui()
 
@@ -482,7 +612,24 @@ class AdminToolsUI(threading.Thread):
             pass
 
         sc = self.master_screen_map[self.master_screen_index]
-        sc.pack(fill=tk.BOTH, expand=True)
+        sc.pack(fill=tk.BOTH, expand=True, pady=(self.theme['padding']['y'] * 2, 0))
+
+    def screen_0_packer(self):
+        # Reset
+        self.reset_screen(0, self.screen_0)
+
+        # Vars
+        padX = self.theme['padding']['x']
+        padY = self.theme['padding']['y']
+
+        # Set
+        self.intro_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=(padY * 2, padY))
+        self.intro_desc_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+        self.intro_desc_lbl.config(justify=tk.LEFT)
+        self.intro_cr_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
+        self.intro_cr_lbl.config(anchor=tk.E, justify=tk.RIGHT)
+
+        del padX, padY
 
     def screen_1_packer(self):
         # Reset
@@ -502,12 +649,31 @@ class AdminToolsUI(threading.Thread):
             frame.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
 
         # Each Frame
-        self.config_acc_description_lbl.config(text=self.screen_info_mapper[1]['info1'])
-        self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
         self.config_acc_action_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+        self.config_acc_description_lbl.config(
+            text=self.screen_info_mapper[1]['info1'],
+            wraplength=self.ws[
+                           0] - self.selector_panel.winfo_width() - padX * 8 - self.config_acc_action_btn.winfo_width(),
+            justify=tk.LEFT
+        )
+        self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+
+        self.config_qa_pa_rnd_selector_btn.config(text="Part")
+        self.config_qa_pa_rnd_selector_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+        self.config_qs_pa_rnd_description_lbl.config(
+            text=self.screen_info_mapper[1]['info2'],
+            wraplength=self.ws[
+                           0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qa_pa_rnd_selector_btn.winfo_width(),
+            justify=tk.LEFT
+        )
+        self.config_qs_pa_rnd_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
 
         # Save Button
-        self.config_save_btn.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
+        self.config_save_btn.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
+
+        if not self.screen_info_mapper[1]['cmd_1_r']:
+            self.screen_info_mapper[1]['cmd_1_r'] ^= True
+            self.screen_info_mapper[1]['cmd_1_c']()
 
         del padX, padY
 
@@ -528,6 +694,7 @@ class AdminToolsUI(threading.Thread):
         self.reset_screen(5, self.screen_5)
 
     def reset_screen(self, index: int, screen: tk.Frame):
+        self.show_error("")
         self.current_screen_index = index
         self.clear_master_screen()
         screen.pack(fill=tk.BOTH, expand=True)
@@ -541,17 +708,18 @@ class AdminToolsUI(threading.Thread):
             pass
 
     def clear_master_screen(self):
-        for i in (
-                self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
-                *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4), *c(self.screen_5)
-        ):
+        for i in {
+            self.screen_0, self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
+            *c(self.screen_0), *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4),
+            *c(self.screen_5)
+        }:
             try:
                 i.pack_forget()
             except Exception as E:
                 _logger.log(
                     'ERROR',
                     f"Failed to `pack_forget` `{i}` :: `{E}` - `{traceback.format_exc()}`",
-                print_d=True
+                    print_d=True
                 )
 
     def toggle_config_acc(self, change_state: bool = True):
@@ -571,6 +739,22 @@ class AdminToolsUI(threading.Thread):
 
         self.config_acc_action_btn.update()
 
+    def toggle_config_pa(self, change_state: bool = True):
+        if change_state:
+            m = {'p': 1, 'a': 0}
+            self.screen_data[1]['qs_dist_pa'] ^= 1
+
+        self.config_qa_pa_rnd_selector_btn.config(
+            text='Part' if self.screen_data[1]['qs_dist_pa'] else 'All'
+        )
+
+        self.config_qa_pa_rnd_selector_btn.config(
+            bg=self.theme['accent' if self.screen_data[1]['qs_dist_pa'] else 'bg'],
+            fg=self.theme['bg' if self.screen_data[1]['qs_dist_pa'] else 'fg'],
+            highlightbackground=self.theme['accent'],
+            bd='1'
+        )
+
     def save_config(self, close_after: bool = False):
         pus_config = {**self.screen_data[1]}
         s_d = pus_config['saved_data']
@@ -579,6 +763,7 @@ class AdminToolsUI(threading.Thread):
                 del pus_config[i]
 
         if s_d == pus_config:
+            self.show_error("No changes were made to the configuration.")
             return
 
         c_key_data_file = AFIOObject(
@@ -618,7 +803,8 @@ class AdminToolsUI(threading.Thread):
             self.master_prompt_ask_custom(
                 "Saved Configuration Successfully",
                 "Successfully saved configuration data to your custom configuration file.",
-                ("Ok" if not close_after else "Exit", self.go_back_to_main_screen if not close_after else lambda: g_exit(0)),
+                ("Ok" if not close_after else "Exit",
+                 self.go_back_to_main_screen if not close_after else lambda: g_exit(0)),
                 ttl_col_key='ok'
             )
 
@@ -635,12 +821,16 @@ class AdminToolsUI(threading.Thread):
         cl = c(self.prompts_screen)
         for child in cl:
             try:
+                if child in self.theme_update_req['custom_command']:
+                    del self.theme_update_req['custom_command'][child]
                 child.pack_forget()
             except Exception as E:
-                _logger.log('ERROR', f"Failed to `pack_forget` `{child}` :: `{E}` - {traceback.format_exc()}",
-                print_d=True)
+                _logger.log(
+                    'ERROR', f"Failed to `pack_forget` `{child}` :: `{E}` - {traceback.format_exc()}",
+                    print_d=True
+                )
 
-    def master_prompt_ask_custom(self, title, description, *buttons, ttl_col_key: str = 'accent'):
+    def master_prompt_ask_custom(self, title, description, *buttons, ttl_col_key: str = 'accent', btn_follow_ttl_col: bool = True):
         self.clear_prompts_screen()
 
         padX = self.theme['padding']['x']
@@ -655,16 +845,27 @@ class AdminToolsUI(threading.Thread):
 
         title_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
         description_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
-        temp_ic.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
-        temp_ic_f_ic.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY)
+        temp_ic.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
+        temp_ic_f_ic.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, side=tk.BOTTOM)
 
-        for txt, com in buttons:
+        for ind, (txt, com) in enumerate(buttons):
             temp_button = tk.Button(temp_ic, text=txt, command=com)
             temp_button.pack(fill=tk.X, expand=True, padx=padX, pady=padY, ipadx=padX / 2, ipady=padY / 2, side=tk.LEFT)
 
             self.theme_update_req['font'][temp_button] = ('<face>', '<medium>')
             self.theme_update_req['btn'].append(temp_button)
             self.theme_update_req['borderless'].append(temp_button)
+
+            if btn_follow_ttl_col and ttl_col_key != 'accent':
+                u = AFDATA.Functions.generate_uid()
+                self.theme_update_req['custom_command'][u] = (
+                    _UI_mpt_custom_button,
+                    (
+                        (False, temp_button),
+                        (True, 'bg'),
+                        (True, ttl_col_key)
+                    )
+                )
 
         self.theme_update_req['lbl'].extend([title_lbl, description_lbl])
         self.theme_update_req['custom_color'][title_lbl] = ('bg', ttl_col_key)
@@ -678,13 +879,40 @@ class AdminToolsUI(threading.Thread):
         self.update_theme()
 
     def onFrameConfig(self, *event):
-        self.ws = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        self.screen_info_mapper[1]['cmd_1_r'] = False
+        self.screen_info_mapper[1]['cmd_1_c']()
+        self.ws = (self.root.winfo_width(), self.root.winfo_height())
+
+    def screen_1_aft_packer(self):
+        padX = self.theme['padding']['x']
+        self.config_qs_pa_rnd_description_lbl.config(
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qa_pa_rnd_selector_btn.winfo_width()),
+            justify=tk.LEFT
+        )
+
+        self.config_acc_description_lbl.config(
+            wraplength= \
+                self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - \
+                self.config_acc_action_btn.winfo_width(),
+            justify=tk.LEFT
+        )
+
+        del padX
 
     def __del__(self):
         self.thread.join(self, 0)
 
 
 _set_boot_progress(3)
+
+
+def _UI_mpt_custom_button(button: tk.Button, background: str, accent: str) -> None:
+    button.config(
+        activeforeground=background,
+        activebackground=accent,
+        bg=background,
+        fg=accent,
+    )
 
 
 def _load_data(data_key) -> any:
@@ -698,6 +926,10 @@ def _load_data(data_key) -> any:
 
 
 def g_exit(code):
+    global _logger
+    _logger.log('EXIT INFO', f'Exiting with code: {code}')
+    del _logger
+
     sys.exit(code)
 
 
@@ -708,7 +940,7 @@ def c(p):
     for item in p.winfo_children():
         try:
             if len(item.winfo_children()) > 1:
-                cl = set(*cl, c(item))
+                cl = {*cl, *c(item)}
             else:
                 cl.add(item)
         except Exception as E:
@@ -731,10 +963,12 @@ def _load_configuration() -> dict:
         qa_conf.Files.qs_parent_dir['dst'],
         qa_conf.Files.configuration['filename']
     )
-    s = os.path.abspath(os.path.join(
-        qa_conf.Files.qs_parent_dir['src'],
-        qa_conf.Files.configuration['filename']
-    ))
+    s = os.path.abspath(
+        os.path.join(
+            qa_conf.Files.qs_parent_dir['src'],
+            qa_conf.Files.configuration['filename']
+        )
+    )
 
     def load_file(p: str) -> dict:
         with open(p, 'r') as f:
@@ -865,7 +1099,8 @@ if version_notes is not None:
             if i in version_notes:
                 qa_prompts.TextPrompts.BasicTextPrompt(
                     "The version of this app has the following notes associated with it:\n\n" + "\n\n\t *".join(
-                        j for j in version_notes[i]),
+                        j for j in version_notes[i]
+                    ),
                     accent_key=_m[i],
                     degree="%s%s" % (i[0].upper(), i[1::].lower()),
                     use_tk=False

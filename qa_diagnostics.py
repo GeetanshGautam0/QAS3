@@ -242,7 +242,7 @@ class Configuration:
 
 def _check_directory(direc) -> tuple:
     """
-    :return: Tuple (all good? (bool), failed (tuple), passed (tuple), violations (tuple), conrast results)
+    :return: Tuple (all good? (bool), failed (tuple), passed (tuple), violations (tuple), contrast results)
     """
 
     vio = passed = failed = contrast = ()
@@ -480,6 +480,7 @@ def _check_theme(theme_data) -> dict:
                     "accent": "",
                     "font": {
                         "font_face": "",
+                        "alt_font_face": "",
                         "title_size": 0,
                         "sttl_size": 0,
                         "big_para_size": 0,

@@ -306,9 +306,8 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             for encoding in lst:
                 if type(encoding) is str and encoding not in (enco[-1] for enco in AFDATA.Data.blacklists['encoding']):
                     try:
-                        f = data.decode(encoding)
+                        data.decode(encoding)
                     except:
-                        # print('encoding \'{}\' did not work.'.format(encoding))
                         pass
                     else:
                         return encoding
@@ -1834,11 +1833,10 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         self.j = None
         self.open_logs_dir = "open_logs"
 
-        self.refresh()
-
         if log_cleaner.BootCheck.clear_logs():
             log_cleaner.Actions.clear_logs(self.TCF_NAME, self.open_logs_dir)
-            self.refresh()
+
+        self.refresh()
 
         # Run this after the statement prior as that can cause the TCF file to reset.
         self.add_log_name()
@@ -1919,22 +1917,13 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             f = file.readlines()
 
         if len(f) > self.TCF_OVR_FL_VAL:
-            # n = {'header': r['header'], 'open_logs': r['open_logs']}
-            # for date in (*{self.min_date, self.date, self.max_date, *self.find_dates_in_use()}, ):
-
-            # Cleanup
             n = {**r, 'closed_files': {}}
-            # for date, scis in self.find_in_use_logs(True).items():
-            #     print(scis)
-            #     for sci in scis:
-            #         del n[self.open_logs_dir][date][sci]
-
             AFFileIO(self._o.uid).secure_save(json.dumps(n, indent=4))
 
     def find_script_logger(self, exsc=False):
         self.refresh()
         r = self.j.load_file()
-        for date in self.find_dates_in_use():  # IMPORTANT: KEEP DATES IN THIS EXACT ORDER
+        for date in self.find_dates_in_use():
             if date in r[self.open_logs_dir]:
                 if date == "header":
                     continue
@@ -2009,7 +1998,6 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
                               "File 'LCF File.json' is approaching a critical point that can cause severe lag (>%s lines.) Attempting to clear some older application description." % str(
                                   protected_conf.Application.Logging.critical_point
                               ))
-            a.after(0, a.destroy)
 
             op1 = dict(list(r.items())[:len(r) // 2])
             o1 = {"header": r['header'], self.open_logs_dir: op1, "closed_files": {}}
@@ -2122,10 +2110,6 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         self.reliable_logger.change_log_file_kwargs(**kwargs)
 
     def __del__(self):
-        # Cannot refer to outside functions freely
-
-        # Will activate 'logger_req_clear' flag; next time 'AFLog' is called, all previous log desc. will be marked as 'closed.'
-
         log_cleaner.Actions.set_logger_req_clear()
 
 

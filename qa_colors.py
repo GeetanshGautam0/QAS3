@@ -40,35 +40,17 @@ class Functions:
         o = [start]
 
         for step in range(steps):
-            # o = [*o, (*[(int(clamp(0, o[step-1][j] + deltas[j]/steps, 255))) for j in range(3)], )]
-            # o = [*o, (*[(int(clamp(0, (stRGB[j] + (deltas[j] / steps * step)), 255))) for j in range(3)], )]
-
-            o = (*o,
-                 Convert.RGBToHex(
-                     (*[
-                         (int(clamp(
-                             0,
-                             (stRGB[j] + (deltas[j]*deltas_pol[j] / steps * step)),
-                             255)
-                         )) for j in range(3)
-                     ],))
+            o = (
+                *o, Convert.RGBToHex((*[
+                         (int(clamp(0, (stRGB[j] + (deltas[j] * deltas_pol[j] / steps * step)), 255)))
+                         for j in range(3)],))
                  )
 
-        # o = (*[Convert.RGBToHex(i) for i in o], end)
         o = (*o, end)
         return o
 
     @staticmethod
     def calculate_more_contrast(one, two, color):
-        # o = Convert.HexToInt(one)
-        # t = Convert.HexToInt(two)
-        # c = Convert.HexToInt(color)
-        # max_diff = sorted((abs(c - o), abs(c - t)))[-1]
-        # m = {abs(c - o): one, abs(c - t): two}
-        # f = m[max_diff]
-        # m.pop(max_diff)
-        # g = (*m.values(), )[0]
-
         f, g = one, two
 
         if not std.check_hex_contrast(f, color)[0]:
