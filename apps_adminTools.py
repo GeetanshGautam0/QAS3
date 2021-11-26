@@ -1,5 +1,3 @@
-from typing import Dict, Union, Callable
-
 import qa_conf, qa_splash_screen
 import tkinter as tk
 
@@ -38,12 +36,9 @@ from tkinter import filedialog as tkfldl
 from tkinter import messagebox as tkmsb
 import threading, shutil, traceback, json, time, random, subprocess, sys, os, qa_exceptions
 import qa_exceptions, qa_prompts, qa_pdf_gen, qa_log_cleaner, qa_nv_flags_system, qa_diagnostics, qa_theme
-from qa_appfunctions import AFLog, AFDATA, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption
+from qa_appfunctions import AFLog, AFDATA, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, for_log
 import qa_online_version_check as ovcc
 from time import sleep
-
-if isinstance(splRoot, tk.Toplevel):
-    splRoot.attributes('-topmost', True)
 
 _set_boot_progress(2)
 
@@ -52,6 +47,9 @@ _logger = AFLog(
     'qa_apps-admin_tools--core',
     AFDATA.Functions.generate_uid(qa_conf.Application.uid_seed['admin_tools'])
 )
+
+if isinstance(splRoot, tk.Toplevel):
+    splRoot.attributes('-topmost', True)
 
 
 class AdminToolsUI(threading.Thread):
@@ -135,14 +133,20 @@ class AdminToolsUI(threading.Thread):
             2: self.prompts_screen
         }
 
+        # Global TTK Styles
+        ttk_theme = 'alt'
+
+        self.sep_style = ttk.Style()
+        self.entry_style = ttk.Style()
+        self.sep_style.theme_use(ttk_theme)
+        self.entry_style.theme_use(ttk_theme)
+
         # Global UI Elements
         self.error_label = tk.Label(self.root)
         self.theme_update_req['lbl'].append(self.error_label)
         self.theme_update_req['font'][self.error_label] = ('<face>', '<normal>')
 
         self.sep2 = ttk.Separator(self.main_screen, orient=tk.VERTICAL)
-        self.sep_style = ttk.Style()
-        self.sep_style.theme_use('alt')
 
         # Selector Panel
         self.selector_panel_app_name = tk.Label(self.selector_panel, text="Administrator\nTools")
@@ -166,9 +170,11 @@ class AdminToolsUI(threading.Thread):
             ]
         )
 
-        self.theme_update_req['lbl'].extend([
-            self.selector_panel_app_name
-        ])
+        self.theme_update_req['lbl'].extend(
+            [
+                self.selector_panel_app_name
+            ]
+        )
         self.theme_update_req['font'][self.selector_panel_app_name] = ("<face>", "<large>")
         self.theme_update_req['accent_fg'].append(self.selector_panel_app_name)
 
@@ -213,10 +219,13 @@ Welcome to Administrator Tools, using this application, you can:
             1: {
                 'title': 'Configuration',
                 'button': self.selector_panel_screen_1,
-                'info1': """Should the quiz taker be allowed to configure the quiz themselves?""",
-                'info2': """Should the quiz taker be presented with all questions, or only a sample of the question database?""",
                 'cmd_1_r': False,
                 'cmd_1_c': self.screen_1_aft_packer,
+                'info1': """Should the quiz taker be allowed to configure the quiz themselves?""",
+                'info2': """Should the quiz taker be presented with all questions, or only a sample of the question database?""",
+                'info3': """Should the question order be randomized?""",
+                'info4': """Question amount divisor""",
+                'rst_d': True
             },
             2: {
                 'title': 'Question Database Editor',
@@ -302,14 +311,44 @@ Welcome to Administrator Tools, using this application, you can:
             command=self.toggle_config_acc
         )
         self.config_save_btn = tk.Button(self.screen_1, text="Save Configuration", command=self.save_config)
-        self.config_qs_pa_rnd_description_lbl = tk.Label(self.configuration_question_dist_config_container)
-        self.config_qa_pa_rnd_selector_btn = tk.Button(self.configuration_question_dist_config_container, command=self.toggle_config_pa)
+        self.config_rst_container = tk.LabelFrame(self.screen_1, text="Danger Zone")
+        self.config_reset_btn = tk.Button(self.config_rst_container, text="Reset Changes", command=self.reset_config)
+        self.config_restore_btn = tk.Button(self.config_rst_container, text="Restore Default", command=self.restore_config)
+
+        self.config_qs_pa_container = tk.LabelFrame(self.configuration_question_dist_config_container)
+        self.config_qs_pa_description_lbl = tk.Label(self.config_qs_pa_container)
+        self.config_qs_pa_selector_btn = tk.Button(self.config_qs_pa_container, command=self.toggle_config_pa)
+
+        self.config_qs_rnd_container = tk.LabelFrame(self.configuration_question_dist_config_container)
+        self.config_qs_rnd_description_lbl = tk.Label(self.config_qs_rnd_container)
+        self.config_qs_rnd_toggle_btn = tk.Button(self.config_qs_rnd_container, command=self.toggle_config_rnd)
+
+        self.config_qs_divF_container = tk.LabelFrame(self.configuration_question_dist_config_container)
+        self.config_qs_divF_description_lbl = tk.Label(self.config_qs_divF_container)
+        self.config_qs_divF_entry = ttk.Entry(self.config_qs_divF_container)
 
         # Screen 1 Theming Requests
+        self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
+            lambda bg, fg: self.config_reset_btn.config(bg=bg, fg=fg, activebackground=fg, activeforeground=bg),
+            ((False, 'red'), (False, 'white'))
+        ]
+
+        self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
+            lambda bg, fg: self.config_restore_btn.config(bg=bg, fg=fg, activebackground=fg, activeforeground=bg),
+            ((False, 'red'), (False, 'white'))
+        ]
+
+        self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
+            lambda fg: self.config_rst_container.config(fg=fg),
+            ((False, 'red'), )
+        ]
+
         self.theme_update_req['lbl'].extend(
             [
                 self.config_acc_description_lbl,
-                self.config_qs_pa_rnd_description_lbl
+                self.config_qs_pa_description_lbl,
+                self.config_qs_rnd_description_lbl,
+                self.config_qs_divF_description_lbl,
             ]
         )
         for elem in (
@@ -320,20 +359,31 @@ Welcome to Administrator Tools, using this application, you can:
                 self.configuration_deductions_amnt_container,
                 self.config_acc_description_lbl,
                 self.config_acc_action_btn,
-                self.config_qs_pa_rnd_description_lbl,
-                self.config_qa_pa_rnd_selector_btn
+                self.config_qs_pa_description_lbl,
+                self.config_qs_pa_selector_btn,
+                self.config_qs_rnd_description_lbl,
+                self.config_qs_rnd_toggle_btn,
+                self.config_qs_divF_entry,
+                self.config_qs_divF_description_lbl,
+                self.config_rst_container,
         ):
             self.theme_update_req['font'][elem] = ('<face>', '<normal>')
+
         self.theme_update_req['btn'].extend(
             [
                 self.config_acc_action_btn,
                 self.config_save_btn,
-                self.config_qa_pa_rnd_selector_btn
+                self.config_qs_pa_selector_btn,
+                self.config_qs_rnd_toggle_btn,
+                self.config_reset_btn,
+                self.config_restore_btn,
             ]
         )
         self.theme_update_req['borderless'].extend(
             [
-                self.config_save_btn
+                self.config_save_btn,
+                self.config_reset_btn,
+                self.config_restore_btn,
             ]
         )
         self.theme_update_req['lbl_frame'].extend(
@@ -342,10 +392,20 @@ Welcome to Administrator Tools, using this application, you can:
                 self.configuration_question_dist_config_container,
                 self.configuration_question_divF_container,
                 self.configuration_deductions_config_container,
-                self.configuration_deductions_amnt_container
+                self.configuration_deductions_amnt_container,
+                self.config_rst_container,
             ]
         )
         self.theme_update_req['font'][self.config_save_btn] = ("<face>", "<medium>")
+        self.theme_update_req['font'][self.config_reset_btn] = ("<face>", "<medium>")
+        self.theme_update_req['font'][self.config_restore_btn] = ("<face>", "<medium>")
+        self.theme_update_req['invis_container'].extend(
+            [
+                self.config_qs_rnd_container,
+                self.config_qs_pa_container,
+                self.config_qs_divF_container,
+            ]
+        )
 
         # Screen 2 elements [Question Editing Screen]
         # Screen 3 elements [Scores IO Screen]
@@ -357,6 +417,8 @@ Welcome to Administrator Tools, using this application, you can:
         self.init = True
         self.root.deiconify()
         self.root.mainloop()
+
+    # UI Setup
 
     def run(self):
         self.root.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -406,32 +468,59 @@ Welcome to Administrator Tools, using this application, you can:
         self.root.bind('<Configure>', self.onFrameConfig)
 
     def close_window(self, code=0):
-        self.show_error('')
+        try:
+            self.show_error('')
 
-        if self.master_screen_index == 2:
-            self.show_error("Please answer the prompt above before exiting.")
-            return
+            if self.master_screen_index == 2:
+                self.show_error("Please answer the prompt above before exiting.")
+                return
 
-        config_us = {**self.screen_data[1]}
-        del config_us['saved_data']
-        for key in list(config_us.keys()):
-            if key not in self.screen_data[1]['saved_data']:
-                config_us.pop(key)
+            self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+            s = not _load_pus_config(self.screen_data[1])[0]
 
-        if config_us != self.screen_data[1]['saved_data']:
-            self.master_screen_index = 2
-            self.master_screen_packer()
-            self.master_prompt_ask_custom(
-                'Unsaved Configuration',
-                'You have made some changes to your configuration; do you want to save the new config. data before exiting?',
-                ('Yes, Save New Data', lambda: self.save_config(True)),
-                ('No, Do NOT Save New Data', lambda: g_exit(code)),
-                ('Do not close application', self.go_back_to_main_screen),
-                ttl_col_key='warning'
-            )
+            if s:
+                self.master_screen_index = 2
+                self.master_screen_packer()
+                self.master_prompt_ask_custom(
+                    'Unsaved Configuration',
+                    'You have made some changes to your configuration; do you want to save the new config. data before exiting?',
+                    ('Yes, Save New Data', lambda: self.save_config(True)),
+                    ('No, Do NOT Save New Data', lambda: g_exit(code)),
+                    ('Do not close application', self.go_back_to_main_screen),
+                    ttl_col_key='warning'
+                )
 
-        else:
-            g_exit(code)
+            else:
+                g_exit(code)
+
+        except Exception as E:
+            global app_title, _logger
+            try:
+                tkmsb.showerror(
+                    app_title,
+                    f"Crash Report: {traceback.format_exc()}"
+                )
+            except:
+                pass
+
+            try:
+                _logger.log(
+                    'CRASH REPORT',
+                    f'Time: {AFDATA.Functions.time().strftime(for_log)}',
+                    f'Exception: {E}',
+                    traceback.format_exc(),
+                    'LOGGED',
+                    print_d=True
+                )
+            except Exception as E1:
+                print(
+                    f'[CRASH REPORT (FAILED TO LOG :: {E1}]',
+                    f'Time: {AFDATA.Functions.time().strftime(for_log)}',
+                    f'\nException: {E}\n',
+                    traceback.format_exc()
+                )
+
+            g_exit(E)
 
     def reload_data(self):
         self.show_error('')
@@ -446,6 +535,227 @@ Welcome to Administrator Tools, using this application, you can:
             '<alt_face>': self.theme['font']['alt_font_face']
         }
 
+    def show_error(self, error: str):
+        if not self.init:
+            return
+
+        self.error_label.config(text=error)
+
+    def select_screen(self, index):
+        assert index in (*self.selector_panel_mapper, -1), f"Invalid index '{index}'"
+        if index != -1:
+            self.current_screen_index = index
+
+        self.clear_master_screen()
+        self.selector_panel_mapper[self.current_screen_index]()
+        self.update_ui()
+
+    def master_screen_packer(self):
+        try:
+            for sc in list(self.master_screen_map.values()):
+                try:
+                    sc.pack_forget()
+                except:
+                    pass
+        except:
+            pass
+
+        sc = self.master_screen_map[self.master_screen_index]
+        sc.pack(fill=tk.BOTH, expand=True, pady=(self.theme['padding']['y'] * 2, 0))
+
+    def screen_0_packer(self):
+        # Reset
+        self.reset_screen(0, self.screen_0)
+
+        # Vars
+        padX = self.theme['padding']['x']
+        padY = self.theme['padding']['y']
+
+        # Set
+        self.intro_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=(padY * 2, padY))
+        self.intro_desc_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+        self.intro_desc_lbl.config(justify=tk.LEFT)
+        self.intro_cr_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
+        self.intro_cr_lbl.config(anchor=tk.E, justify=tk.RIGHT)
+
+        del padX, padY
+
+    def screen_1_packer(self):
+        # Reset
+        self.reset_screen(1, self.screen_1)
+
+        # Vars
+        padX = self.theme['padding']['x']
+        padY = self.theme['padding']['y']
+
+        # Set
+        for frame, text in {
+            self.configuration_allow_custom_config_container: 'Allow Custom Configuration',
+            self.configuration_question_dist_config_container: 'Distribution Settings',
+            self.configuration_deductions_config_container: 'Point Deduction Settings',
+        }.items():
+            frame.config(text=text)
+            frame.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
+
+        # Each Frame
+        self.config_acc_action_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+        self.config_acc_description_lbl.config(text=self.screen_info_mapper[1]['info1'], justify=tk.LEFT, anchor=tk.W)
+        self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+
+        self.config_qs_pa_container.pack(fill=tk.BOTH, expand=True)
+        self.config_qs_pa_description_lbl.config(text=self.screen_info_mapper[1]['info2'], justify=tk.LEFT, anchor=tk.W)
+        self.config_qs_pa_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+        self.config_qs_pa_selector_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+
+        self.config_qs_rnd_container.pack(fill=tk.BOTH, expand=True)
+        self.config_qs_rnd_description_lbl.config(
+            text=self.screen_info_mapper[1]['info3'], justify=tk.LEFT, anchor=tk.W
+        )
+        self.config_qs_rnd_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+        self.config_qs_rnd_toggle_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+
+        self.config_qs_divF_container.pack(fill=tk.BOTH, expand=True)
+        self.config_qs_divF_description_lbl.config(
+            text=self.screen_info_mapper[1]['info4'], justify=tk.LEFT, anchor=tk.W
+        )
+        self.config_qs_divF_description_lbl.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, side=tk.LEFT)
+        self.config_qs_divF_entry.pack(fill=tk.X, expand=False, side=tk.RIGHT, pady=padX, padx=padX, ipadx=padX / 2, ipady=padY / 2)
+
+        # Save Button + Reset Button + Restore Button
+        self.config_rst_container.pack(fill=tk.X, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
+        self.config_reset_btn.pack(fill=tk.X, expand=True, padx=(padX, 0), pady=padY, ipadx=padX, ipady=padY, side=tk.LEFT)
+        self.config_restore_btn.pack(fill=tk.X, expand=True, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.RIGHT)
+        self.config_save_btn.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
+
+        if not self.screen_info_mapper[1]['cmd_1_r']:
+            self.screen_info_mapper[1]['cmd_1_r'] ^= True
+            self.screen_info_mapper[1]['cmd_1_c']()
+
+        del padX, padY
+
+    def screen_2_packer(self):
+        # Reset
+        self.reset_screen(2, self.screen_2)
+
+    def screen_3_packer(self):
+        # Reset
+        self.reset_screen(3, self.screen_3)
+
+    def screen_4_packer(self):
+        # Reset
+        self.reset_screen(4, self.screen_4)
+
+    def screen_5_packer(self):
+        # Reset
+        self.reset_screen(5, self.screen_5)
+
+    def reset_screen(self, index: int, screen: tk.Frame):
+        self.show_error("")
+        self.current_screen_index = index
+        self.clear_master_screen()
+        screen.pack(fill=tk.BOTH, expand=True)
+        try:
+            for item in screen.winfo_children():
+                try:
+                    item.pack_forget()
+                except:
+                    pass
+        except:
+            pass
+
+    def clear_master_screen(self):
+        for i in {
+            self.screen_0, self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
+            *c(self.screen_0), *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4),
+            *c(self.screen_5)
+        }:
+            try:
+                i.pack_forget()
+            except Exception as E:
+                _logger.log(
+                    'ERROR',
+                    f"Failed to `pack_forget` `{i}` :: `{E}` - `{traceback.format_exc()}`",
+                    print_d=True
+                )
+
+    # Config Toggle Buttons
+    def toggle_config_acc(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['config_acc'] ^= True
+
+        self.config_acc_action_btn.config(
+            text='Enabled' if self.screen_data[1]['config_acc'] else 'Disabled'
+        )
+
+        self.config_acc_action_btn.config(
+            bg=self.theme['accent' if self.screen_data[1]['config_acc'] else 'bg'],
+            fg=self.theme['bg' if self.screen_data[1]['config_acc'] else 'fg'],
+            highlightbackground=self.theme['accent'],
+            bd='1'
+        )
+
+        self.config_acc_action_btn.update()
+
+    def toggle_config_pa(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['qs_dist_pa'] ^= True
+
+        self.config_qs_pa_selector_btn.config(
+            text='Part' if self.screen_data[1]['qs_dist_pa'] else 'All'
+        )
+
+        self.config_qs_pa_selector_btn.config(
+            bg=self.theme['accent' if self.screen_data[1]['qs_dist_pa'] else 'bg'],
+            fg=self.theme['bg' if self.screen_data[1]['qs_dist_pa'] else 'fg'],
+            highlightbackground=self.theme['accent'],
+            bd='1'
+        )
+
+    def toggle_config_rnd(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['qs_dist_rn'] ^= True
+
+        dsb = self.screen_data[1]['qs_dist_pa']
+
+        if dsb:
+            self.screen_data[1]['qs_dist_rn'] = True
+
+            self.config_qs_rnd_toggle_btn.config(
+                text='Randomize\nOrder',
+                state=tk.DISABLED
+            )
+
+            self.config_qs_rnd_toggle_btn.config(
+                bg=self.theme['bg'],
+                fg=self.theme['gray'],
+                highlightbackground=self.theme['gray'],
+                bd='1'
+            )
+
+        else:
+            self.config_qs_rnd_toggle_btn.config(
+                text='Randomize\nOrder' if self.screen_data[1]['qs_dist_rn'] else 'Don\'t Randomize\nOrder',
+                state=tk.NORMAL
+            )
+
+            self.config_qs_rnd_toggle_btn.config(
+                bg=self.theme['accent' if self.screen_data[1]['qs_dist_rn'] else 'bg'],
+                fg=self.theme['bg' if self.screen_data[1]['qs_dist_rn'] else 'fg'],
+                highlightbackground=self.theme['accent'],
+                bd='1'
+            )
+
+    def m_config_qs_divF_entry(self):
+        if not self.screen_info_mapper[1]['rst_d']:
+            return
+
+        self.screen_info_mapper[1]['rst_d'] = False
+
+        l = self.screen_data[1]['qs_dist_dF']
+        self.config_qs_divF_entry.delete(0, tk.END)
+        self.config_qs_divF_entry.insert(0, l)
+
+    # Update Logic
     def update_ui(self):
         self.show_error('')
 
@@ -576,6 +886,24 @@ Welcome to Administrator Tools, using this application, you can:
         self.sep_style.configure('Horizontal.TSepartor', background=self.theme['accent'])
         self.sep_style.configure('Vertical.TSepartor', background=self.theme['accent'])
 
+        self.entry_style.configure(
+            'TEntry',
+            background=self.theme['bg'],
+            foreground=self.theme['accent'],
+            fieldbackground=self.theme['bg'],
+            selectbackground=self.theme['accent'],
+            selectforeground=self.theme['bg'],
+            bordercolor=self.theme['bg'],
+            lightcolor=self.theme['fg'],
+            insertcolor=self.theme['accent']
+        )
+        self.entry_style.map(
+            'TEntry',
+            background=(('disabled', self.theme['bg']), ('readonly', self.theme['bg'])),
+            foreground=(('disabled', self.theme['gray']), ('readonly', self.theme['gray'])),
+            fieldbackground=(('disabled', self.theme['bg']), ('readonly', self.theme['bg']))
+        )
+
         # Calls
         if upd_buttons:
             self.update_buttons_theme()
@@ -585,205 +913,188 @@ Welcome to Administrator Tools, using this application, you can:
     def update_buttons_theme(self):
         self.toggle_config_acc(False)
         self.toggle_config_pa(False)
+        self.toggle_config_rnd(False)
 
-    def show_error(self, error: str):
-        if not self.init:
+        self.m_config_qs_divF_entry()
+
+    # Reset Logic
+    def reset_config(self, ga: bool = False):
+        global _logger
+
+        d_file = AFIOObject(
+            isFile=True,
+            filename=qa_conf.Files.conf_std_file,
+            encrypt=False,
+            re_type=str,
+            lines_mode=False
+        )
+        d_file.mark_read_only()
+        d_json = AFJSON(d_file.uid).load_file()
+        d_file.delete_instance()
+
+        k = d_json['keys']
+
+        del d_file, d_json
+
+        self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        _0, s, pus, _1, _2, changes = _load_pus_config(self.screen_data[1])
+
+        if pus == s:
+            self.show_error('No changes were made to the configuration.')
             return
 
-        self.error_label.config(text=error)
+        if ga:
+            self.master_screen_index = 1
+            self.master_screen_packer()
 
-    def select_screen(self, index):
-        assert index in (*self.selector_panel_mapper, -1), f"Invalid index '{index}'"
-        if index != -1:
-            self.current_screen_index = index
+            self.screen_info_mapper[1]['rst_d'] = True
+            extra = {**self.screen_data[1]}
+            del extra['saved_data']
+            for key in self.screen_data[1]['saved_data']:
+                del extra[key]
+            n = {**self.screen_data[1]['saved_data'], **extra, 'saved_data': {**self.screen_data[1]['saved_data']}}
+            self.screen_data[1] = n
 
-        self.clear_master_screen()
-        self.selector_panel_mapper[self.current_screen_index]()
-        self.update_ui()
+            trans = {}
+            for key, value in self.screen_data[1]['saved_data'].items():
+                trans[k[key]] = value
 
-    def master_screen_packer(self):
-        try:
-            for sc in list(self.master_screen_map.values()):
-                try:
-                    sc.pack_forget()
-                except:
-                    pass
-        except:
-            pass
+            self.save_config_part_2(
+                trans,
+                self.screen_data[1]['saved_data'],
+                False
+            )
 
-        sc = self.master_screen_map[self.master_screen_index]
-        sc.pack(fill=tk.BOTH, expand=True, pady=(self.theme['padding']['y'] * 2, 0))
+            del extra, n, trans
 
-    def screen_0_packer(self):
-        # Reset
-        self.reset_screen(0, self.screen_0)
+            self.update_ui()
 
-        # Vars
-        padX = self.theme['padding']['x']
-        padY = self.theme['padding']['y']
+        else:
+            self.master_screen_index = 2
+            self.master_screen_packer()
+            self.master_prompt_ask_custom(
+                'Confirm Reset',
+                (
+                    'WARNING: Continuing will revert all unsaved configuration data (other aspects such as questions will NOT' +
+                    'be effected, however); the following changes will occur:\n\t* ' + '\n\t* '.join(
+                        f'{change[0]}: {change[2]} \u2794 {change[1]}' for change in changes.values()
+                    )
+                ),
+                ('Yes, Revert Unsaved Configuration Data', lambda: self.reset_config(True)),
+                ('No, Go Back', self.go_back_to_main_screen),
+                ttl_col_key='warning'
+            )
 
-        # Set
-        self.intro_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=(padY * 2, padY))
-        self.intro_desc_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
-        self.intro_desc_lbl.config(justify=tk.LEFT)
-        self.intro_cr_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
-        self.intro_cr_lbl.config(anchor=tk.E, justify=tk.RIGHT)
+            del changes
 
-        del padX, padY
+        del pus, s
 
-    def screen_1_packer(self):
-        # Reset
-        self.reset_screen(1, self.screen_1)
+    def restore_config(self, ga: bool = False):
+        global _logger
 
-        # Vars
-        padX = self.theme['padding']['x']
-        padY = self.theme['padding']['y']
-
-        # Set
-        for frame, text in {
-            self.configuration_allow_custom_config_container: 'Allow Custom Configuration',
-            self.configuration_question_dist_config_container: 'Distribution Settings',
-            self.configuration_deductions_config_container: 'Point Deduction Settings',
-        }.items():
-            frame.config(text=text)
-            frame.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
-
-        # Each Frame
-        self.config_acc_action_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
-        self.config_acc_description_lbl.config(
-            text=self.screen_info_mapper[1]['info1'],
-            wraplength=self.ws[
-                           0] - self.selector_panel.winfo_width() - padX * 8 - self.config_acc_action_btn.winfo_width(),
-            justify=tk.LEFT
+        d_file = AFIOObject(
+            isFile=True,
+            filename=qa_conf.Files.conf_std_file,
+            encrypt=False,
+            re_type=str,
+            lines_mode=False
         )
-        self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+        d_file.mark_read_only()
+        d_json = AFJSON(d_file.uid).load_file()
+        d_file.delete_instance()
 
-        self.config_qa_pa_rnd_selector_btn.config(text="Part")
-        self.config_qa_pa_rnd_selector_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
-        self.config_qs_pa_rnd_description_lbl.config(
-            text=self.screen_info_mapper[1]['info2'],
-            wraplength=self.ws[
-                           0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qa_pa_rnd_selector_btn.winfo_width(),
-            justify=tk.LEFT
-        )
-        self.config_qs_pa_rnd_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+        k = d_json['keys']
+        d = d_json['defaults']
 
-        # Save Button
-        self.config_save_btn.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
+        del d_file, d_json
 
-        if not self.screen_info_mapper[1]['cmd_1_r']:
-            self.screen_info_mapper[1]['cmd_1_r'] ^= True
-            self.screen_info_mapper[1]['cmd_1_c']()
+        self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        ns = {**d}
 
-        del padX, padY
+        for nk, ok in k.items():
+            v = ns[ok]
+            del ns[ok]
+            ns[nk] = v
 
-    def screen_2_packer(self):
-        # Reset
-        self.reset_screen(2, self.screen_2)
+        self.screen_data[1]['saved_data'] = ns
 
-    def screen_3_packer(self):
-        # Reset
-        self.reset_screen(3, self.screen_3)
+        _0, s, pus, _1, _2, changes = _load_pus_config(self.screen_data[1])
 
-    def screen_4_packer(self):
-        # Reset
-        self.reset_screen(4, self.screen_4)
+        if ga:
+            self.master_screen_index = 1
+            self.master_screen_packer()
 
-    def screen_5_packer(self):
-        # Reset
-        self.reset_screen(5, self.screen_5)
+            self.screen_info_mapper[1]['rst_d'] = True
+            extra = {**self.screen_data[1]}
+            del extra['saved_data']
+            for key in self.screen_data[1]['saved_data']:
+                del extra[key]
+            n = {**self.screen_data[1]['saved_data'], **extra, 'saved_data': {**self.screen_data[1]['saved_data']}}
+            self.screen_data[1] = n
 
-    def reset_screen(self, index: int, screen: tk.Frame):
-        self.show_error("")
-        self.current_screen_index = index
-        self.clear_master_screen()
-        screen.pack(fill=tk.BOTH, expand=True)
-        try:
-            for item in screen.winfo_children():
-                try:
-                    item.pack_forget()
-                except:
-                    pass
-        except:
-            pass
+            trans = {}
+            for key, value in self.screen_data[1]['saved_data'].items():
+                trans[k[key]] = value
 
-    def clear_master_screen(self):
-        for i in {
-            self.screen_0, self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
-            *c(self.screen_0), *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4),
-            *c(self.screen_5)
-        }:
-            try:
-                i.pack_forget()
-            except Exception as E:
-                _logger.log(
-                    'ERROR',
-                    f"Failed to `pack_forget` `{i}` :: `{E}` - `{traceback.format_exc()}`",
-                    print_d=True
-                )
+            self.save_config_part_2(
+                trans,
+                self.screen_data[1]['saved_data'],
+                False
+            )
 
-    def toggle_config_acc(self, change_state: bool = True):
-        if change_state:
-            self.screen_data[1]['config_acc'] ^= 1
+            del extra, n, trans
+            self.update_ui()
 
-        self.config_acc_action_btn.config(
-            text='Enabled' if self.screen_data[1]['config_acc'] else 'Disabled'
-        )
+        else:
+            self.master_screen_index = 2
+            self.master_screen_packer()
+            self.master_prompt_ask_custom(
+                'Confirm Reset',
+                (
+                    'WARNING: Continuing will restore all configuration data to its default state (other aspects such as questions will NOT' +
+                    'be effected, however); the following changes will occur:\n\t* ' + '\n\t* '.join(
+                        f'{change[0]}: {change[2]} \u2794 {change[1]}' for change in changes.values()
+                    )
+                ),
+                ('Yes, Restore ALL Configuration Data', lambda: self.restore_config(True)),
+                ('No, Go Back', self.go_back_to_main_screen),
+                ttl_col_key='warning'
+            )
 
-        self.config_acc_action_btn.config(
-            bg=self.theme['accent' if self.screen_data[1]['config_acc'] else 'bg'],
-            fg=self.theme['bg' if self.screen_data[1]['config_acc'] else 'fg'],
-            highlightbackground=self.theme['accent'],
-            bd='1'
-        )
+            del changes
 
-        self.config_acc_action_btn.update()
+        del pus, s, k
 
-    def toggle_config_pa(self, change_state: bool = True):
-        if change_state:
-            m = {'p': 1, 'a': 0}
-            self.screen_data[1]['qs_dist_pa'] ^= 1
-
-        self.config_qa_pa_rnd_selector_btn.config(
-            text='Part' if self.screen_data[1]['qs_dist_pa'] else 'All'
-        )
-
-        self.config_qa_pa_rnd_selector_btn.config(
-            bg=self.theme['accent' if self.screen_data[1]['qs_dist_pa'] else 'bg'],
-            fg=self.theme['bg' if self.screen_data[1]['qs_dist_pa'] else 'fg'],
-            highlightbackground=self.theme['accent'],
-            bd='1'
-        )
-
+    # Extra Logic
     def save_config(self, close_after: bool = False):
-        pus_config = {**self.screen_data[1]}
-        s_d = pus_config['saved_data']
-        for i in list(pus_config.keys()):
-            if i not in s_d:
-                del pus_config[i]
+        global _logger
 
-        if s_d == pus_config:
+        self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        s, s_config, pus_config, failures, translated, changes = _load_pus_config(self.screen_data[1])
+
+        if s:
             self.show_error("No changes were made to the configuration.")
             return
 
-        c_key_data_file = AFIOObject(
-            filename=qa_conf.Files.conf_std_file,
-            isFile=True,
-            encrypt=False
+        self.master_screen_index = 2
+        self.master_screen_packer()
+
+        print(changes)
+
+        self.master_prompt_ask_custom(
+            "Confirm New Settings",
+            "Are you sure you want to save the following changes:\n\t* " + "\n\t* ".join(
+                f"{change[0]}: {change[1]} \u2794 {change[2]}" for change in changes.values()
+            ),
+            ('Yes, save these changes', lambda: self.save_config_part_2(translated, pus_config, close_after)),
+            ('No, do NOT save these changes', self.go_back_to_main_screen if not close_after else lambda: g_exit('<unknown code>'))
         )
-        c_key_data = AFJSON(c_key_data_file.uid).load_file()['keys']
-        c_key_data_file.delete_instance()
 
-        translated_pus_config = {}
-        for k, v in c_key_data.items():
-            translated_pus_config[v] = pus_config[k]
-
-        res, reas = _save_configuration(translated_pus_config)
+    def save_config_part_2(self, translated, pus_config, close_after):
+        res, reas = _save_configuration(translated)
 
         if res:
             self.screen_data[1]['saved_data'] = pus_config
-
-        del c_key_data
 
         if not res:
             self.master_screen_index = 2
@@ -858,14 +1169,14 @@ Welcome to Administrator Tools, using this application, you can:
 
             if btn_follow_ttl_col and ttl_col_key != 'accent':
                 u = AFDATA.Functions.generate_uid()
-                self.theme_update_req['custom_command'][u] = (
+                self.theme_update_req['custom_command'][u] = [
                     _UI_mpt_custom_button,
                     (
                         (False, temp_button),
                         (True, 'bg'),
                         (True, ttl_col_key)
                     )
-                )
+                ]
 
         self.theme_update_req['lbl'].extend([title_lbl, description_lbl])
         self.theme_update_req['custom_color'][title_lbl] = ('bg', ttl_col_key)
@@ -885,16 +1196,53 @@ Welcome to Administrator Tools, using this application, you can:
 
     def screen_1_aft_packer(self):
         padX = self.theme['padding']['x']
-        self.config_qs_pa_rnd_description_lbl.config(
-            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qa_pa_rnd_selector_btn.winfo_width()),
+        self.config_qs_pa_description_lbl.config(
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_pa_selector_btn.winfo_width()),
             justify=tk.LEFT
         )
 
         self.config_acc_description_lbl.config(
-            wraplength= \
-                self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - \
-                self.config_acc_action_btn.winfo_width(),
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_acc_action_btn.winfo_width()),
             justify=tk.LEFT
+        )
+
+        p = self.screen_data[1]['qs_dist_pa']
+
+        self.config_qs_rnd_description_lbl.config(
+            text=(
+                    self.screen_info_mapper[1]['info3'] + (
+                        '\nSet "Distribution/Part or All" to "All" to enable this option.' if p else ''
+                    )
+            ),
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_rnd_toggle_btn.winfo_width()),
+            justify=tk.LEFT
+        )
+
+        self.config_qs_rnd_toggle_btn.config(
+            bg=self.theme['bg'] if p else self.theme['accent' if self.screen_data[1]['qs_dist_rn'] else 'bg'],
+            fg=self.theme['gray'] if p else self.theme['bg' if self.screen_data[1]['qs_dist_rn'] else 'fg'],
+            highlightbackground=self.theme['gray' if p else 'accent'],
+            bd='1',
+            state=tk.DISABLED if p else tk.NORMAL
+        )
+
+        if p and not self.screen_data[1]['qs_dist_rn']:
+            self.screen_data[1]['qs_dist_rn'] = True
+            self.config_qs_rnd_toggle_btn.config(text='Randomize\nOrder')
+
+        if not p:
+            self.config_qs_divF_entry.config(state=tk.DISABLED)
+            self.config_qs_divF_description_lbl.config(
+                text=self.screen_info_mapper[1]['info4'] + '\nSet "Distribution/Part or All" to "Part" to modify this field.'
+            )
+        else:
+            self.config_qs_divF_entry.config(state=tk.NORMAL)
+            self.config_qs_divF_description_lbl.config(
+                text=self.screen_info_mapper[1]['info4']
+            )
+
+        self.config_qs_divF_description_lbl.config(
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_divF_entry.winfo_width())
         )
 
         del padX
@@ -1075,6 +1423,94 @@ def _save_configuration(config_data: dict) -> tuple:
         config_file.close()
 
     return True, ""
+
+
+def _load_pus_config(screen_data_1: dict) -> tuple:
+    global _logger
+
+    cd_file = AFIOObject(
+        isFile=True,
+        filename=qa_conf.Files.conf_std_file,
+        encrypt=False,
+        re_type=str,
+        lines_mode=False
+    )
+    cd_file.mark_read_only()
+    cd_file_json = AFJSON(cd_file.uid).load_file()
+    cd_file.delete_instance()
+
+    failures = []
+    translated = {}
+    changes = {}
+    translated_s_config = {}
+
+    pus_config = {**screen_data_1}
+    del pus_config['saved_data']
+    s_config = {**screen_data_1['saved_data']}
+    for k, v in tuple(pus_config.items()):
+        if k not in s_config:
+            del pus_config[k]
+
+    s = (pus_config == s_config)
+
+    if not len(s_config) == len(pus_config):
+        failures.append("FAILURE: Difference in length of saved data dict. and PU saved data dict. [CRITICAL]")
+
+    else:
+        if not s:
+            cd_k = cd_file_json['keys']
+            cd_d = cd_file_json['defaults']
+            cd_h = cd_file_json['hr_names']
+
+            # Translate
+            for key_got, key_expected in cd_k.items():
+                if key_got not in pus_config:
+                    failures.append(f"FAILURE: Key '{key_got}' not found in PU saved data dict.")
+                    _logger.log(
+                        'ERROR',
+                        "Key '{key_got}' not found in PU saved data dict.",
+                        print_d=True
+                    )
+                    continue
+
+                translated[key_expected] = pus_config[key_got]
+
+            for key_got in s_config:
+                translated_s_config[cd_k[key_got]] = s_config[key_got]
+
+            # Data types
+            for key, value in cd_d.items():
+                try:
+                    if key not in translated:
+                        failures.append(f"FAILURE: Key '{key}' not found in translated PU saved data dict.")
+                        _logger.log(
+                            'ERROR',
+                            "Key '{key_got}' not found in PU translated saved data dict.",
+                            print_d=True
+                        )
+                        continue
+
+                    n = type(value)(translated[key])
+                    translated[key] = n
+
+                except Exception as E:
+                    _logger.log(
+                        'WARNING',
+                        f"Failed to change data type of key '{key}' from {type(translated[key])} to {type(value)} :: {E}"
+                    )
+
+            # Changes
+            changes = {}
+            for k, v in translated.items():
+                if v != translated_s_config[k]:
+                    changes[k] = (cd_h[k], translated_s_config[k], v)
+
+            s = len(changes) <= 0
+
+            del cd_k, cd_d, translated_s_config
+
+    del cd_file, cd_file_json
+    return s, s_config, pus_config, failures, translated, changes
 
 
 _set_boot_progress(5)

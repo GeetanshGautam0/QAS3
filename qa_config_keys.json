@@ -15,6 +15,14 @@
     "rs_deduc_b": true,
     "rs_deduc_i": 1
   },
+  "hr_names": {
+    "c_acc": "Allow custom configuration",
+    "qs_dist_rn": "Randomize question order",
+    "qs_dist_p": "Prompt with a PART of the questions",
+    "qs_dist_dF": "Divisor for 'Part of Questions' mode",
+    "rs_deduc_b": "Enable point deductions",
+    "rs_deduc_i": "Amount of points to deduct on incorrect responses"
+  },
   "translations": {
     "2": {
 

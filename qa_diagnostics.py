@@ -228,8 +228,8 @@ class Configuration:
             if k not in (*data.keys(),):
                 failures = (*failures, f"FAILURE: Key '{k}' not found.")
                 failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data.")
-            elif not isinstance(v, type(data[k])):
-                failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data.")
+            elif not type(v) is type(data[k]):
+                failures = (*failures, f"FAILURE: Key '{k}' does not have the right type of data; expected '{type(v)}' got '{type(data[k])}'")
 
         if not len(data) == len(b['defaults']):
             failures = (*failures, f"FAILURE: Invalid data length.")

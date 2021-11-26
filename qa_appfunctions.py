@@ -1013,6 +1013,8 @@ class AFFileIO:
 
         global _SELF_LOG
 
+        assert not self.file.instance._read_only, "Cannot save to this file; marked as 'read_only'"
+
         function_name = "FIO_NR_SAVE"
         self.update_instance()
 
@@ -1726,9 +1728,9 @@ class AFLogger:
                 d2l = "\n"
             else:
                 time = AFDATA.Functions.time().strftime(for_log)
-                d2l = f"[{lvl}]" + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
+                d2l = f"[{lvl}] " + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
 
-            d2l = "\n" + d2l
+            d2l += "\n"
 
             AFFileIO(self.log_file.uid).save(d2l, append=True, strip_data=False)
 
@@ -1788,11 +1790,11 @@ class AFLogger:
                 d2l = "\n"
             else:
                 time = AFDATA.Functions.time().strftime(for_log)
-                d2l = f"[{lvl}]" + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
+                d2l = f"[{lvl}] " + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
                 if e is not None:
                     d2l += " \n\t>>EXCEP_REPORT::" + str(e)
 
-            d2l = "\n" + d2l
+            d2l += "\n"
 
             AFFileIO(self.log_file.uid).secure_save(d2l, append=True, strip_data=False)
 
@@ -2064,7 +2066,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 
         self.refresh()
         if print_d:
-            print(f'[{lvl}]', *data)
+            print(f'[{lvl}]\n\t', '\n\t'.join(i for i in data))
 
         try:
             self.performance_logger.log(lvl, *data, empty_line=empty_line)
