@@ -213,10 +213,11 @@ Welcome to Administrator Tools, using this application, you can:
             1: {
                 'title': 'Configuration',
                 'button': self.selector_panel_screen_1,
-                'info1': """Should the quiz taker be allowed to configure the quiz themselves?""",
-                'info2': """Should the quiz taker be presented with all questions, or only a sample of the question database?""",
                 'cmd_1_r': False,
                 'cmd_1_c': self.screen_1_aft_packer,
+                'info1': """Should the quiz taker be allowed to configure the quiz themselves?""",
+                'info2': """Should the quiz taker be presented with all questions, or only a sample of the question database?""",
+                'info3': """Should the question order be randomized?"""
             },
             2: {
                 'title': 'Question Database Editor',
@@ -302,14 +303,21 @@ Welcome to Administrator Tools, using this application, you can:
             command=self.toggle_config_acc
         )
         self.config_save_btn = tk.Button(self.screen_1, text="Save Configuration", command=self.save_config)
-        self.config_qs_pa_rnd_description_lbl = tk.Label(self.configuration_question_dist_config_container)
-        self.config_qa_pa_rnd_selector_btn = tk.Button(self.configuration_question_dist_config_container, command=self.toggle_config_pa)
+
+        self.config_qs_pa_container = tk.LabelFrame(self.configuration_question_dist_config_container)
+        self.config_qs_pa_description_lbl = tk.Label(self.config_qs_pa_container)
+        self.config_qs_pa_selector_btn = tk.Button(self.config_qs_pa_container, command=self.toggle_config_pa)
+
+        self.config_qs_rnd_container = tk.LabelFrame(self.configuration_question_dist_config_container)
+        self.config_qs_rnd_description_lbl = tk.Label(self.config_qs_rnd_container)
+        self.config_qs_rnd_toggle_btn = tk.Button(self.config_qs_rnd_container, command=self.toggle_config_rnd)
 
         # Screen 1 Theming Requests
         self.theme_update_req['lbl'].extend(
             [
                 self.config_acc_description_lbl,
-                self.config_qs_pa_rnd_description_lbl
+                self.config_qs_pa_description_lbl,
+                self.config_qs_rnd_description_lbl
             ]
         )
         for elem in (
@@ -320,15 +328,18 @@ Welcome to Administrator Tools, using this application, you can:
                 self.configuration_deductions_amnt_container,
                 self.config_acc_description_lbl,
                 self.config_acc_action_btn,
-                self.config_qs_pa_rnd_description_lbl,
-                self.config_qa_pa_rnd_selector_btn
+                self.config_qs_pa_description_lbl,
+                self.config_qs_pa_selector_btn,
+                self.config_qs_rnd_description_lbl,
+                self.config_qs_rnd_toggle_btn,
         ):
             self.theme_update_req['font'][elem] = ('<face>', '<normal>')
         self.theme_update_req['btn'].extend(
             [
                 self.config_acc_action_btn,
                 self.config_save_btn,
-                self.config_qa_pa_rnd_selector_btn
+                self.config_qs_pa_selector_btn,
+                self.config_qs_rnd_toggle_btn
             ]
         )
         self.theme_update_req['borderless'].extend(
@@ -346,6 +357,10 @@ Welcome to Administrator Tools, using this application, you can:
             ]
         )
         self.theme_update_req['font'][self.config_save_btn] = ("<face>", "<medium>")
+        self.theme_update_req['invis_container'].extend([
+            self.config_qs_rnd_container,
+            self.config_qs_pa_container,
+        ])
 
         # Screen 2 elements [Question Editing Screen]
         # Screen 3 elements [Scores IO Screen]
@@ -357,6 +372,8 @@ Welcome to Administrator Tools, using this application, you can:
         self.init = True
         self.root.deiconify()
         self.root.mainloop()
+
+    # UI Setup
 
     def run(self):
         self.root.protocol("WM_DELETE_WINDOW", self.close_window)
@@ -446,6 +463,205 @@ Welcome to Administrator Tools, using this application, you can:
             '<alt_face>': self.theme['font']['alt_font_face']
         }
 
+    def show_error(self, error: str):
+        if not self.init:
+            return
+
+        self.error_label.config(text=error)
+
+    def select_screen(self, index):
+        assert index in (*self.selector_panel_mapper, -1), f"Invalid index '{index}'"
+        if index != -1:
+            self.current_screen_index = index
+
+        self.clear_master_screen()
+        self.selector_panel_mapper[self.current_screen_index]()
+        self.update_ui()
+
+    def master_screen_packer(self):
+        try:
+            for sc in list(self.master_screen_map.values()):
+                try:
+                    sc.pack_forget()
+                except:
+                    pass
+        except:
+            pass
+
+        sc = self.master_screen_map[self.master_screen_index]
+        sc.pack(fill=tk.BOTH, expand=True, pady=(self.theme['padding']['y'] * 2, 0))
+
+    def screen_0_packer(self):
+        # Reset
+        self.reset_screen(0, self.screen_0)
+
+        # Vars
+        padX = self.theme['padding']['x']
+        padY = self.theme['padding']['y']
+
+        # Set
+        self.intro_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=(padY * 2, padY))
+        self.intro_desc_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+        self.intro_desc_lbl.config(justify=tk.LEFT)
+        self.intro_cr_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
+        self.intro_cr_lbl.config(anchor=tk.E, justify=tk.RIGHT)
+
+        del padX, padY
+
+    def screen_1_packer(self):
+        # Reset
+        self.reset_screen(1, self.screen_1)
+
+        # Vars
+        padX = self.theme['padding']['x']
+        padY = self.theme['padding']['y']
+
+        # Set
+        for frame, text in {
+            self.configuration_allow_custom_config_container: 'Allow Custom Configuration',
+            self.configuration_question_dist_config_container: 'Distribution Settings',
+            self.configuration_deductions_config_container: 'Point Deduction Settings',
+        }.items():
+            frame.config(text=text)
+            frame.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
+
+        # Each Frame
+        self.config_acc_action_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+        self.config_acc_description_lbl.config(text=self.screen_info_mapper[1]['info1'], justify=tk.LEFT, anchor=tk.W)
+        self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+
+        self.config_qs_pa_container.pack(fill=tk.BOTH, expand=True)
+        self.config_qs_pa_description_lbl.config(text=self.screen_info_mapper[1]['info2'], justify=tk.LEFT, anchor=tk.W)
+        self.config_qs_pa_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+        self.config_qs_pa_selector_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+
+        self.config_qs_rnd_container.pack(fill=tk.BOTH, expand=True)
+        self.config_qs_rnd_description_lbl.config(text=self.screen_info_mapper[1]['info3'], justify=tk.LEFT, anchor=tk.W)
+        self.config_qs_rnd_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
+        self.config_qs_rnd_toggle_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+
+        # Save Button
+        self.config_save_btn.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
+
+        if not self.screen_info_mapper[1]['cmd_1_r']:
+            self.screen_info_mapper[1]['cmd_1_r'] ^= True
+            self.screen_info_mapper[1]['cmd_1_c']()
+
+        del padX, padY
+
+    def screen_2_packer(self):
+        # Reset
+        self.reset_screen(2, self.screen_2)
+
+    def screen_3_packer(self):
+        # Reset
+        self.reset_screen(3, self.screen_3)
+
+    def screen_4_packer(self):
+        # Reset
+        self.reset_screen(4, self.screen_4)
+
+    def screen_5_packer(self):
+        # Reset
+        self.reset_screen(5, self.screen_5)
+
+    def reset_screen(self, index: int, screen: tk.Frame):
+        self.show_error("")
+        self.current_screen_index = index
+        self.clear_master_screen()
+        screen.pack(fill=tk.BOTH, expand=True)
+        try:
+            for item in screen.winfo_children():
+                try:
+                    item.pack_forget()
+                except:
+                    pass
+        except:
+            pass
+
+    def clear_master_screen(self):
+        for i in {
+            self.screen_0, self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
+            *c(self.screen_0), *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4),
+            *c(self.screen_5)
+        }:
+            try:
+                i.pack_forget()
+            except Exception as E:
+                _logger.log(
+                    'ERROR',
+                    f"Failed to `pack_forget` `{i}` :: `{E}` - `{traceback.format_exc()}`",
+                    print_d=True
+                )
+
+    # Config Toggle Buttons
+    def toggle_config_acc(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['config_acc'] ^= 1
+
+        self.config_acc_action_btn.config(
+            text='Enabled' if self.screen_data[1]['config_acc'] else 'Disabled'
+        )
+
+        self.config_acc_action_btn.config(
+            bg=self.theme['accent' if self.screen_data[1]['config_acc'] else 'bg'],
+            fg=self.theme['bg' if self.screen_data[1]['config_acc'] else 'fg'],
+            highlightbackground=self.theme['accent'],
+            bd='1'
+        )
+
+        self.config_acc_action_btn.update()
+
+    def toggle_config_pa(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['qs_dist_pa'] ^= 1
+
+        self.config_qs_pa_selector_btn.config(
+            text='Part' if self.screen_data[1]['qs_dist_pa'] else 'All'
+        )
+
+        self.config_qs_pa_selector_btn.config(
+            bg=self.theme['accent' if self.screen_data[1]['qs_dist_pa'] else 'bg'],
+            fg=self.theme['bg' if self.screen_data[1]['qs_dist_pa'] else 'fg'],
+            highlightbackground=self.theme['accent'],
+            bd='1'
+        )
+
+    def toggle_config_rnd(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['qs_dist_rn'] ^= 1
+
+        dsb = self.screen_data[1]['qs_dist_pa']
+
+        if dsb:
+            self.screen_data[1]['qs_dist_rn'] = True
+
+            self.config_qs_rnd_toggle_btn.config(
+                text='Randomize\nOrder',
+                state=tk.DISABLED
+            )
+
+            self.config_qs_rnd_toggle_btn.config(
+                bg=self.theme['bg'],
+                fg=self.theme['gray'],
+                highlightbackground=self.theme['gray'],
+                bd='1'
+            )
+
+        else:
+            self.config_qs_rnd_toggle_btn.config(
+                text='Randomize\nOrder' if self.screen_data[1]['qs_dist_rn'] else 'Don\'t Randomize\nOrder',
+                state=tk.NORMAL
+            )
+
+            self.config_qs_rnd_toggle_btn.config(
+                bg=self.theme['accent' if self.screen_data[1]['qs_dist_rn'] else 'bg'],
+                fg=self.theme['bg' if self.screen_data[1]['qs_dist_rn'] else 'fg'],
+                highlightbackground=self.theme['accent'],
+                bd='1'
+            )
+
+    # Update Logic
     def update_ui(self):
         self.show_error('')
 
@@ -585,176 +801,9 @@ Welcome to Administrator Tools, using this application, you can:
     def update_buttons_theme(self):
         self.toggle_config_acc(False)
         self.toggle_config_pa(False)
+        self.toggle_config_rnd(False)
 
-    def show_error(self, error: str):
-        if not self.init:
-            return
-
-        self.error_label.config(text=error)
-
-    def select_screen(self, index):
-        assert index in (*self.selector_panel_mapper, -1), f"Invalid index '{index}'"
-        if index != -1:
-            self.current_screen_index = index
-
-        self.clear_master_screen()
-        self.selector_panel_mapper[self.current_screen_index]()
-        self.update_ui()
-
-    def master_screen_packer(self):
-        try:
-            for sc in list(self.master_screen_map.values()):
-                try:
-                    sc.pack_forget()
-                except:
-                    pass
-        except:
-            pass
-
-        sc = self.master_screen_map[self.master_screen_index]
-        sc.pack(fill=tk.BOTH, expand=True, pady=(self.theme['padding']['y'] * 2, 0))
-
-    def screen_0_packer(self):
-        # Reset
-        self.reset_screen(0, self.screen_0)
-
-        # Vars
-        padX = self.theme['padding']['x']
-        padY = self.theme['padding']['y']
-
-        # Set
-        self.intro_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=(padY * 2, padY))
-        self.intro_desc_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
-        self.intro_desc_lbl.config(justify=tk.LEFT)
-        self.intro_cr_lbl.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
-        self.intro_cr_lbl.config(anchor=tk.E, justify=tk.RIGHT)
-
-        del padX, padY
-
-    def screen_1_packer(self):
-        # Reset
-        self.reset_screen(1, self.screen_1)
-
-        # Vars
-        padX = self.theme['padding']['x']
-        padY = self.theme['padding']['y']
-
-        # Set
-        for frame, text in {
-            self.configuration_allow_custom_config_container: 'Allow Custom Configuration',
-            self.configuration_question_dist_config_container: 'Distribution Settings',
-            self.configuration_deductions_config_container: 'Point Deduction Settings',
-        }.items():
-            frame.config(text=text)
-            frame.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
-
-        # Each Frame
-        self.config_acc_action_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
-        self.config_acc_description_lbl.config(
-            text=self.screen_info_mapper[1]['info1'],
-            wraplength=self.ws[
-                           0] - self.selector_panel.winfo_width() - padX * 8 - self.config_acc_action_btn.winfo_width(),
-            justify=tk.LEFT
-        )
-        self.config_acc_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
-
-        self.config_qa_pa_rnd_selector_btn.config(text="Part")
-        self.config_qa_pa_rnd_selector_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
-        self.config_qs_pa_rnd_description_lbl.config(
-            text=self.screen_info_mapper[1]['info2'],
-            wraplength=self.ws[
-                           0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qa_pa_rnd_selector_btn.winfo_width(),
-            justify=tk.LEFT
-        )
-        self.config_qs_pa_rnd_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
-
-        # Save Button
-        self.config_save_btn.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY, side=tk.BOTTOM)
-
-        if not self.screen_info_mapper[1]['cmd_1_r']:
-            self.screen_info_mapper[1]['cmd_1_r'] ^= True
-            self.screen_info_mapper[1]['cmd_1_c']()
-
-        del padX, padY
-
-    def screen_2_packer(self):
-        # Reset
-        self.reset_screen(2, self.screen_2)
-
-    def screen_3_packer(self):
-        # Reset
-        self.reset_screen(3, self.screen_3)
-
-    def screen_4_packer(self):
-        # Reset
-        self.reset_screen(4, self.screen_4)
-
-    def screen_5_packer(self):
-        # Reset
-        self.reset_screen(5, self.screen_5)
-
-    def reset_screen(self, index: int, screen: tk.Frame):
-        self.show_error("")
-        self.current_screen_index = index
-        self.clear_master_screen()
-        screen.pack(fill=tk.BOTH, expand=True)
-        try:
-            for item in screen.winfo_children():
-                try:
-                    item.pack_forget()
-                except:
-                    pass
-        except:
-            pass
-
-    def clear_master_screen(self):
-        for i in {
-            self.screen_0, self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
-            *c(self.screen_0), *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4),
-            *c(self.screen_5)
-        }:
-            try:
-                i.pack_forget()
-            except Exception as E:
-                _logger.log(
-                    'ERROR',
-                    f"Failed to `pack_forget` `{i}` :: `{E}` - `{traceback.format_exc()}`",
-                    print_d=True
-                )
-
-    def toggle_config_acc(self, change_state: bool = True):
-        if change_state:
-            self.screen_data[1]['config_acc'] ^= 1
-
-        self.config_acc_action_btn.config(
-            text='Enabled' if self.screen_data[1]['config_acc'] else 'Disabled'
-        )
-
-        self.config_acc_action_btn.config(
-            bg=self.theme['accent' if self.screen_data[1]['config_acc'] else 'bg'],
-            fg=self.theme['bg' if self.screen_data[1]['config_acc'] else 'fg'],
-            highlightbackground=self.theme['accent'],
-            bd='1'
-        )
-
-        self.config_acc_action_btn.update()
-
-    def toggle_config_pa(self, change_state: bool = True):
-        if change_state:
-            m = {'p': 1, 'a': 0}
-            self.screen_data[1]['qs_dist_pa'] ^= 1
-
-        self.config_qa_pa_rnd_selector_btn.config(
-            text='Part' if self.screen_data[1]['qs_dist_pa'] else 'All'
-        )
-
-        self.config_qa_pa_rnd_selector_btn.config(
-            bg=self.theme['accent' if self.screen_data[1]['qs_dist_pa'] else 'bg'],
-            fg=self.theme['bg' if self.screen_data[1]['qs_dist_pa'] else 'fg'],
-            highlightbackground=self.theme['accent'],
-            bd='1'
-        )
-
+    # Extra Logic
     def save_config(self, close_after: bool = False):
         pus_config = {**self.screen_data[1]}
         s_d = pus_config['saved_data']
@@ -885,17 +934,39 @@ Welcome to Administrator Tools, using this application, you can:
 
     def screen_1_aft_packer(self):
         padX = self.theme['padding']['x']
-        self.config_qs_pa_rnd_description_lbl.config(
-            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qa_pa_rnd_selector_btn.winfo_width()),
+        self.config_qs_pa_description_lbl.config(
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_pa_selector_btn.winfo_width()),
             justify=tk.LEFT
         )
 
         self.config_acc_description_lbl.config(
-            wraplength= \
-                self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - \
-                self.config_acc_action_btn.winfo_width(),
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_acc_action_btn.winfo_width()),
             justify=tk.LEFT
         )
+
+        p = self.screen_data[1]['qs_dist_pa']
+
+        self.config_qs_rnd_description_lbl.config(
+            text=(
+                self.screen_info_mapper[1]['info3'] + (
+                    '\nSet "Distribution/Part or All" to "All" to enable this option.' if p else ''
+                )
+            ),
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_rnd_toggle_btn.winfo_width()),
+            justify=tk.LEFT
+        )
+
+        self.config_qs_rnd_toggle_btn.config(
+            bg=self.theme['bg'] if p else self.theme['accent' if self.screen_data[1]['qs_dist_rn'] else 'bg'],
+            fg=self.theme['gray'] if p else self.theme['bg' if self.screen_data[1]['qs_dist_rn'] else 'fg'],
+            highlightbackground=self.theme['gray' if p else 'accent'],
+            bd='1',
+            state=tk.DISABLED if p else tk.NORMAL
+        )
+
+        if p and not self.screen_data[1]['qs_dist_rn']:
+            self.screen_data[1]['qs_dist_rn'] = True
+            self.config_qs_rnd_toggle_btn.config(text='Randomize\nOrder')
 
         del padX
 
