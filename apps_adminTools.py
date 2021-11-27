@@ -225,6 +225,8 @@ Welcome to Administrator Tools, using this application, you can:
                 'info2': """Should the quiz taker be presented with all questions, or only a sample of the question database?""",
                 'info3': """Should the question order be randomized?""",
                 'info4': """Question amount divisor""",
+                'info5': """Should points be deducted for providing incorrect responses?""",
+                'info6': """Number of points to be deducted for incorrect responses""",
                 'rst_d': True
             },
             2: {
@@ -300,11 +302,11 @@ Welcome to Administrator Tools, using this application, you can:
         # Screen 1 containers
         self.configuration_allow_custom_config_container = tk.LabelFrame(self.screen_1)
         self.configuration_question_dist_config_container = tk.LabelFrame(self.screen_1)
-        self.configuration_question_divF_container = tk.LabelFrame(self.configuration_question_dist_config_container)
         self.configuration_deductions_config_container = tk.LabelFrame(self.screen_1)
-        self.configuration_deductions_amnt_container = tk.LabelFrame(self.configuration_deductions_config_container)
 
         # Screen 1 Elements
+        self.screen_title_lbl = tk.Label(self.screen_1, text='Configuration Settings')
+
         self.config_acc_description_lbl = tk.Label(self.configuration_allow_custom_config_container)
         self.config_acc_action_btn = tk.Button(
             self.configuration_allow_custom_config_container,
@@ -326,6 +328,14 @@ Welcome to Administrator Tools, using this application, you can:
         self.config_qs_divF_container = tk.LabelFrame(self.configuration_question_dist_config_container)
         self.config_qs_divF_description_lbl = tk.Label(self.config_qs_divF_container)
         self.config_qs_divF_entry = ttk.Entry(self.config_qs_divF_container)
+
+        self.config_deduc_master_container = tk.LabelFrame(self.configuration_deductions_config_container)
+        self.config_deduc_description_lbl = tk.Label(self.config_deduc_master_container)
+        self.config_deduc_toggle_btn = tk.Button(self.config_deduc_master_container, command=self.toggle_config_deduc)
+
+        self.config_deduc_amnt_container = tk.LabelFrame(self.configuration_deductions_config_container)
+        self.config_deduc_amnt_description_lbl = tk.Label(self.config_deduc_amnt_container)
+        self.config_deduc_amnt_entry = ttk.Entry(self.config_deduc_amnt_container)
 
         # Screen 1 Theming Requests
         self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
@@ -349,14 +359,15 @@ Welcome to Administrator Tools, using this application, you can:
                 self.config_qs_pa_description_lbl,
                 self.config_qs_rnd_description_lbl,
                 self.config_qs_divF_description_lbl,
+                self.config_deduc_description_lbl,
+                self.config_deduc_amnt_description_lbl,
+                self.screen_title_lbl,
             ]
         )
         for elem in (
                 self.configuration_allow_custom_config_container,
                 self.configuration_question_dist_config_container,
-                self.configuration_question_divF_container,
                 self.configuration_deductions_config_container,
-                self.configuration_deductions_amnt_container,
                 self.config_acc_description_lbl,
                 self.config_acc_action_btn,
                 self.config_qs_pa_description_lbl,
@@ -366,6 +377,10 @@ Welcome to Administrator Tools, using this application, you can:
                 self.config_qs_divF_entry,
                 self.config_qs_divF_description_lbl,
                 self.config_rst_container,
+                self.config_deduc_toggle_btn,
+                self.config_deduc_description_lbl,
+                self.config_deduc_amnt_description_lbl,
+                self.config_deduc_amnt_entry,
         ):
             self.theme_update_req['font'][elem] = ('<face>', '<normal>')
 
@@ -377,6 +392,7 @@ Welcome to Administrator Tools, using this application, you can:
                 self.config_qs_rnd_toggle_btn,
                 self.config_reset_btn,
                 self.config_restore_btn,
+                self.config_deduc_toggle_btn,
             ]
         )
         self.theme_update_req['borderless'].extend(
@@ -390,22 +406,24 @@ Welcome to Administrator Tools, using this application, you can:
             [
                 self.configuration_allow_custom_config_container,
                 self.configuration_question_dist_config_container,
-                self.configuration_question_divF_container,
                 self.configuration_deductions_config_container,
-                self.configuration_deductions_amnt_container,
                 self.config_rst_container,
             ]
         )
         self.theme_update_req['font'][self.config_save_btn] = ("<face>", "<medium>")
         self.theme_update_req['font'][self.config_reset_btn] = ("<face>", "<medium>")
         self.theme_update_req['font'][self.config_restore_btn] = ("<face>", "<medium>")
+        self.theme_update_req['font'][self.screen_title_lbl] = ("<face>", "<title>")
         self.theme_update_req['invis_container'].extend(
             [
                 self.config_qs_rnd_container,
                 self.config_qs_pa_container,
                 self.config_qs_divF_container,
+                self.config_deduc_amnt_container,
+                self.config_deduc_master_container,
             ]
         )
+        self.theme_update_req['accent_fg'].append(self.screen_title_lbl)
 
         # Screen 2 elements [Question Editing Screen]
         # Screen 3 elements [Scores IO Screen]
@@ -476,14 +494,17 @@ Welcome to Administrator Tools, using this application, you can:
                 return
 
             self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
-            s = not _load_pus_config(self.screen_data[1])[0]
+            self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
+            s, _0, _1, _2, _3, changes = _load_pus_config(self.screen_data[1])
 
-            if s:
+            if not s:
                 self.master_screen_index = 2
                 self.master_screen_packer()
                 self.master_prompt_ask_custom(
                     'Unsaved Configuration',
-                    'You have made some changes to your configuration; do you want to save the new config. data before exiting?',
+                    'You have made some changes to your configuration; do you want to save the new config. data before exiting?\nThe following are the changes you\'ve made:\n\t* ' + '\n\t* '.join(
+                        f'{change[0]}: {change[1]} \u2794 {change[2]}' for change in changes.values()
+                    ),
                     ('Yes, Save New Data', lambda: self.save_config(True)),
                     ('No, Do NOT Save New Data', lambda: g_exit(code)),
                     ('Do not close application', self.go_back_to_main_screen),
@@ -589,6 +610,10 @@ Welcome to Administrator Tools, using this application, you can:
         padY = self.theme['padding']['y']
 
         # Set
+        # Title
+        self.screen_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+
+        # Frames
         for frame, text in {
             self.configuration_allow_custom_config_container: 'Allow Custom Configuration',
             self.configuration_question_dist_config_container: 'Distribution Settings',
@@ -608,18 +633,24 @@ Welcome to Administrator Tools, using this application, you can:
         self.config_qs_pa_selector_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
 
         self.config_qs_rnd_container.pack(fill=tk.BOTH, expand=True)
-        self.config_qs_rnd_description_lbl.config(
-            text=self.screen_info_mapper[1]['info3'], justify=tk.LEFT, anchor=tk.W
-        )
+        self.config_qs_rnd_description_lbl.config(text=self.screen_info_mapper[1]['info3'], justify=tk.LEFT, anchor=tk.W)
         self.config_qs_rnd_description_lbl.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=padX, pady=padY)
         self.config_qs_rnd_toggle_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
 
         self.config_qs_divF_container.pack(fill=tk.BOTH, expand=True)
-        self.config_qs_divF_description_lbl.config(
-            text=self.screen_info_mapper[1]['info4'], justify=tk.LEFT, anchor=tk.W
-        )
+        self.config_qs_divF_description_lbl.config(text=self.screen_info_mapper[1]['info4'], justify=tk.LEFT, anchor=tk.W)
         self.config_qs_divF_description_lbl.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, side=tk.LEFT)
         self.config_qs_divF_entry.pack(fill=tk.X, expand=False, side=tk.RIGHT, pady=padX, padx=padX, ipadx=padX / 2, ipady=padY / 2)
+
+        self.config_deduc_master_container.pack(fill=tk.BOTH, expand=True)
+        self.config_deduc_description_lbl.config(text=self.screen_info_mapper[1]['info5'], justify=tk.LEFT, anchor=tk.W)
+        self.config_deduc_description_lbl.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, side=tk.LEFT)
+        self.config_deduc_toggle_btn.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
+
+        self.config_deduc_amnt_container.pack(fill=tk.BOTH, expand=True)
+        self.config_deduc_amnt_description_lbl.config(text=self.screen_info_mapper[1]['info6'], justify=tk.LEFT, anchor=tk.W)
+        self.config_deduc_amnt_description_lbl.pack(fill=tk.BOTH, expand=True, padx=padX, pady=padY, side=tk.LEFT)
+        self.config_deduc_amnt_entry.pack(fill=tk.X, expand=False, side=tk.RIGHT, ipadx=padX, padx=padX, pady=padY, ipady=padY)
 
         # Save Button + Reset Button + Restore Button
         self.config_rst_container.pack(fill=tk.X, expand=False, padx=padX, pady=padY, side=tk.BOTTOM)
@@ -745,15 +776,46 @@ Welcome to Administrator Tools, using this application, you can:
                 bd='1'
             )
 
-    def m_config_qs_divF_entry(self):
+    def toggle_config_deduc(self, change_state: bool = True):
+        if change_state:
+            self.screen_data[1]['rs_deduc_b'] ^= True
+
+        self.config_deduc_toggle_btn.config(
+            text='Enabled' if self.screen_data[1]['rs_deduc_b'] else 'Disabled'
+        )
+
+        self.config_deduc_toggle_btn.config(
+            bg=self.theme['accent' if self.screen_data[1]['rs_deduc_b'] else 'bg'],
+            fg=self.theme['bg' if self.screen_data[1]['rs_deduc_b'] else 'fg'],
+            highlightbackground=self.theme['accent'],
+            bd='1'
+        )
+
+    def m_config_qs_divF_entry(self, toggle_rst_flag: bool = True):
         if not self.screen_info_mapper[1]['rst_d']:
             return
 
-        self.screen_info_mapper[1]['rst_d'] = False
+        self.screen_info_mapper[1]['rst_d'] = not toggle_rst_flag
 
         l = self.screen_data[1]['qs_dist_dF']
+        s = self.config_qs_divF_entry.cget('state')
+        self.config_qs_divF_entry.config(state=tk.NORMAL)
         self.config_qs_divF_entry.delete(0, tk.END)
         self.config_qs_divF_entry.insert(0, l)
+        self.config_qs_divF_entry.config(state=s)
+
+    def m_config_deduc_amnt_entry(self, toggle_rst_flag: bool = True):
+        if not self.screen_info_mapper[1]['rst_d']:
+            return
+
+        self.screen_info_mapper[1]['rst_d'] = not toggle_rst_flag
+
+        l = self.screen_data[1]['rs_deduc_i']
+        s = self.config_deduc_amnt_entry.cget('state')
+        self.config_deduc_amnt_entry.config(state=tk.NORMAL)
+        self.config_deduc_amnt_entry.delete(0, tk.END)
+        self.config_deduc_amnt_entry.insert(0, l)
+        self.config_deduc_amnt_entry.config(state=s)
 
     # Update Logic
     def update_ui(self):
@@ -911,11 +973,16 @@ Welcome to Administrator Tools, using this application, you can:
         return
 
     def update_buttons_theme(self):
-        self.toggle_config_acc(False)
-        self.toggle_config_pa(False)
-        self.toggle_config_rnd(False)
+        if self.current_screen_index == 1:
+            self.toggle_config_acc(False)
+            self.toggle_config_pa(False)
+            self.toggle_config_rnd(False)
+            self.toggle_config_deduc(False)
 
-        self.m_config_qs_divF_entry()
+            self.m_config_qs_divF_entry(False)
+            self.m_config_deduc_amnt_entry(False)
+
+            self.screen_info_mapper[1]['rst_d'] = True
 
     # Reset Logic
     def reset_config(self, ga: bool = False):
@@ -937,6 +1004,7 @@ Welcome to Administrator Tools, using this application, you can:
         del d_file, d_json
 
         self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
         _0, s, pus, _1, _2, changes = _load_pus_config(self.screen_data[1])
 
         if pus == s:
@@ -1009,6 +1077,7 @@ Welcome to Administrator Tools, using this application, you can:
         del d_file, d_json
 
         self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
         ns = {**d}
 
         for nk, ok in k.items():
@@ -1070,6 +1139,8 @@ Welcome to Administrator Tools, using this application, you can:
         global _logger
 
         self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
+
         s, s_config, pus_config, failures, translated, changes = _load_pus_config(self.screen_data[1])
 
         if s:
@@ -1078,8 +1149,6 @@ Welcome to Administrator Tools, using this application, you can:
 
         self.master_screen_index = 2
         self.master_screen_packer()
-
-        print(changes)
 
         self.master_prompt_ask_custom(
             "Confirm New Settings",
@@ -1243,6 +1312,21 @@ Welcome to Administrator Tools, using this application, you can:
 
         self.config_qs_divF_description_lbl.config(
             wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_divF_entry.winfo_width())
+        )
+
+        ed = self.screen_data[1]['rs_deduc_b']
+        self.config_deduc_amnt_entry.config(state=tk.NORMAL if ed else tk.DISABLED)
+        self.config_deduc_amnt_description_lbl.config(
+            text=self.screen_info_mapper[1]['info6'] + (
+                "" if ed else "\nSet 'Deductions/Enable' to 'ENABLE' to enable this option."
+            )
+        )
+
+        self.config_deduc_description_lbl.config(
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_deduc_toggle_btn.winfo_width())
+        )
+        self.config_deduc_amnt_description_lbl.config(
+            wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_deduc_amnt_entry.winfo_width())
         )
 
         del padX
