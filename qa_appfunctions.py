@@ -1993,7 +1993,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             a = jfile.readlines()
             jfile.close()
 
-        if len(a) > protected_conf.Application.Logging.critical_point:
+        if len(a) > protected_conf.Application.Logging.critical_point and len(r['closed_files']) != 0:
             a = tk.Tk()
             a.withdraw()
             tkmsb.showwarning(conf.Application.app_name,
@@ -2006,14 +2006,14 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             s2 = json.dumps(o1, indent=4)
             AFFileIO(self._o.uid).secure_save(s2, append=False)
 
-        elif len(a) > protected_conf.Application.Logging.min_crit_point:
+        elif len(a) > protected_conf.Application.Logging.min_crit_point and len(r['closed_files']) != 0:
             ### CLEAR CLOSED FILES LOGS
             tkmsb.showwarning(conf.Application.app_name,
                               "File 'LCF File.json' is approaching a critical point that can cause lag (>%s lines.) Attempting to clear some older application description." % str(
                                   protected_conf.Application.Logging.min_crit_point
                               ))
-            r['closed_files'] = {}
-            s1 = json.dumps(r, indent=4)
+            o1 = {"header": r['header'], self.open_logs_dir: {**r[self.open_logs_dir]}, "closed_files": {}}
+            s1 = json.dumps(o1, indent=4)
             AFFileIO(self._o.uid).secure_save(s1, append=False)
 
         if self.open_logs_dir not in r:

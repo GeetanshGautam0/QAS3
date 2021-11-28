@@ -219,3 +219,15 @@ def check_inp(inp_g, function_name, l_check: bool = True) -> tuple:
                               )
 
     return len(failed) == 0, failed, ("%s: Invalid input(s):\n\t* %s" % (function_name, "\n\t* ".join(_ for _ in failed) if len(failed) != 0 else ''))
+
+
+def copy_to_clipboard(text: str, shell: tk.Toplevel, clear_old: bool = True):
+    assert isinstance(text, str)
+    assert isinstance(shell, tk.Toplevel) or isinstance(shell, tk.Tk)
+    assert len(text) <= 100  # Max length = 100
+    assert isinstance(clear_old, bool)
+
+    if clear_old:
+        shell.clipboard_clear()
+    shell.clipboard_append(text)
+    shell.update()

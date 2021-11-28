@@ -1,6 +1,8 @@
 import qa_conf, qa_splash_screen
 import tkinter as tk
 
+import qa_std
+
 _boot_steps = {
     1: "Importing modules\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
     2: "Loading Globals\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
@@ -305,7 +307,7 @@ Welcome to Administrator Tools, using this application, you can:
         self.configuration_deductions_config_container = tk.LabelFrame(self.screen_1)
 
         # Screen 1 Elements
-        self.screen_title_lbl = tk.Label(self.screen_1, text='Configuration Settings')
+        self.screen_1_title_lbl = tk.Label(self.screen_1, text='Configuration Manager')
 
         self.config_acc_description_lbl = tk.Label(self.configuration_allow_custom_config_container)
         self.config_acc_action_btn = tk.Button(
@@ -361,7 +363,7 @@ Welcome to Administrator Tools, using this application, you can:
                 self.config_qs_divF_description_lbl,
                 self.config_deduc_description_lbl,
                 self.config_deduc_amnt_description_lbl,
-                self.screen_title_lbl,
+                self.screen_1_title_lbl,
             ]
         )
         for elem in (
@@ -413,7 +415,7 @@ Welcome to Administrator Tools, using this application, you can:
         self.theme_update_req['font'][self.config_save_btn] = ("<face>", "<medium>")
         self.theme_update_req['font'][self.config_reset_btn] = ("<face>", "<medium>")
         self.theme_update_req['font'][self.config_restore_btn] = ("<face>", "<medium>")
-        self.theme_update_req['font'][self.screen_title_lbl] = ("<face>", "<title>")
+        self.theme_update_req['font'][self.screen_1_title_lbl] = ("<face>", "<title>")
         self.theme_update_req['invis_container'].extend(
             [
                 self.config_qs_rnd_container,
@@ -423,12 +425,95 @@ Welcome to Administrator Tools, using this application, you can:
                 self.config_deduc_master_container,
             ]
         )
-        self.theme_update_req['accent_fg'].append(self.screen_title_lbl)
+        self.theme_update_req['accent_fg'].append(self.screen_1_title_lbl)
 
         # Screen 2 elements [Question Editing Screen]
         # Screen 3 elements [Scores IO Screen]
         # Screen 4 elements [File IO Screen]
         # Screen 5 elements [Misc. Items Screen]
+        self.screen_5_title_lbl = tk.Label(self.screen_5, text="Miscellaneous Items")
+
+        self.misc_extern_box = tk.LabelFrame(self.screen_5, text='External Links')
+        self.misc_bug_report_btn = tk.Button(self.misc_extern_box, text="Report a Bug", command=lambda: extern('bug_report'))
+
+        self.misc_info_container = tk.LabelFrame(self.screen_5, text="Application Information")
+
+        self.misc_info_app_name_cont = tk.LabelFrame(self.misc_info_container)
+        self.misc_info_app_name = ttk.Entry(self.misc_info_app_name_cont)
+        self.misc_info_app_name_lbl = tk.Label(self.misc_info_app_name_cont, text='Application Name')
+
+        self.misc_info_app_version_cont = tk.LabelFrame(self.misc_info_container)
+        self.misc_info_app_version = ttk.Entry(self.misc_info_app_version_cont)
+        self.misc_info_app_version_lbl = tk.Label(self.misc_info_app_version_cont, text='Application Version')
+
+        self.misc_info_app_author_cont = tk.LabelFrame(self.misc_info_container)
+        self.misc_info_app_author = ttk.Entry(self.misc_info_app_author_cont)
+        self.misc_info_app_author_lbl = tk.Label(self.misc_info_app_author_cont, text='Application Author')
+
+        self.misc_info_app_developer_cont = tk.LabelFrame(self.misc_info_container)
+        self.misc_info_app_developer = ttk.Entry(self.misc_info_app_developer_cont)
+        self.misc_info_app_developer_lbl = tk.Label(self.misc_info_app_developer_cont, text="Application Developer")
+
+        self.misc_info_cpy_button = tk.Button(self.misc_info_container, text="Copy Application Info", command=self.misc_cpy_info)
+
+        # Screen 5 theming requests
+
+        for elem in (
+                self.misc_extern_box,
+                self.misc_info_cpy_button,
+                self.misc_info_app_name_lbl,
+                self.misc_info_app_version_lbl,
+                self.misc_info_app_author_lbl,
+                self.misc_info_app_developer_lbl,
+                self.misc_info_app_name,
+                self.misc_info_app_version,
+                self.misc_info_app_author,
+                self.misc_info_app_developer,
+        ):
+            self.theme_update_req['font'][elem] = ('<face>', '<normal>')
+
+        self.theme_update_req['font'][self.misc_bug_report_btn] = ('<face>', '<medium>')
+
+        self.theme_update_req['lbl'].extend([
+            self.misc_info_app_name_lbl,
+            self.misc_info_app_version_lbl,
+            self.misc_info_app_author_lbl,
+            self.misc_info_app_developer_lbl,
+        ])
+
+        self.theme_update_req['btn'].extend([
+            self.misc_bug_report_btn,
+            self.misc_info_cpy_button,
+        ])
+
+        self.theme_update_req['borderless'].extend([
+            self.misc_bug_report_btn,
+            self.misc_info_cpy_button,
+        ])
+
+        self.theme_update_req['font'][self.screen_5_title_lbl] = ("<face>", "<title>")
+
+        self.theme_update_req['accent_fg'].extend([
+            self.screen_5_title_lbl,
+            self.misc_info_app_name_lbl,
+            self.misc_info_app_version_lbl,
+            self.misc_info_app_author_lbl,
+            self.misc_info_app_developer_lbl,
+        ])
+
+        self.theme_update_req['lbl_frame'].extend(
+            [
+                self.misc_extern_box,
+                self.misc_info_container,
+            ]
+        )
+
+        self.theme_update_req['invis_container'].extend([
+            self.misc_info_app_name_cont,
+            self.misc_info_app_version_cont,
+            self.misc_info_app_author_cont,
+            self.misc_info_app_developer_cont,
+        ])
 
         # Calls
         self.start()
@@ -611,7 +696,7 @@ Welcome to Administrator Tools, using this application, you can:
 
         # Set
         # Title
-        self.screen_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+        self.screen_1_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
 
         # Frames
         for frame, text in {
@@ -679,6 +764,29 @@ Welcome to Administrator Tools, using this application, you can:
     def screen_5_packer(self):
         # Reset
         self.reset_screen(5, self.screen_5)
+
+        # Vars
+        padX = self.theme['padding']['x']
+        padY = self.theme['padding']['y']
+
+        # Set
+        self.screen_5_title_lbl.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+        self.misc_extern_box.pack(fill=tk.BOTH, expand=False, padx=padX, pady=padY)
+        self.misc_bug_report_btn.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY)
+
+        self.misc_info_container.pack(fill=tk.X, expand=False, padx=padX, pady=padY)
+
+        for e, (cont, lbl) in {
+            self.misc_info_app_name: (self.misc_info_app_name_cont, self.misc_info_app_name_lbl),
+            self.misc_info_app_version: (self.misc_info_app_version_cont, self.misc_info_app_version_lbl),
+            self.misc_info_app_author: (self.misc_info_app_author_cont, self.misc_info_app_author_lbl),
+            self.misc_info_app_developer: (self.misc_info_app_developer_cont, self.misc_info_app_developer_lbl),
+        }.items():
+            cont.pack(fill=tk.X, expand=False)
+            lbl.pack(fill=tk.X, expand=False, padx=(padX, 0), pady=padY, side=tk.LEFT)
+            e.pack(fill=tk.X, expand=False, padx=(padX/4, padX), side=tk.LEFT, ipadx=padX)
+
+        self.misc_info_cpy_button.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY)
 
     def reset_screen(self, index: int, screen: tk.Frame):
         self.show_error("")
@@ -816,6 +924,18 @@ Welcome to Administrator Tools, using this application, you can:
         self.config_deduc_amnt_entry.delete(0, tk.END)
         self.config_deduc_amnt_entry.insert(0, l)
         self.config_deduc_amnt_entry.config(state=s)
+
+    # Misc Configurator
+    def misc_config_app_info_fields(self):
+        for f, t in (
+                (self.misc_info_app_name, qa_conf.Application.app_name),
+                (self.misc_info_app_version, qa_conf.Application.version_str),
+                (self.misc_info_app_author, qa_conf.Application.app_author),
+                (self.misc_info_app_developer, "Geetansh Gautam")
+        ):
+            f.delete(0, tk.END)
+            f.insert(0, t)
+            f.config(state=tk.DISABLED)
 
     # Update Logic
     def update_ui(self):
@@ -973,16 +1093,18 @@ Welcome to Administrator Tools, using this application, you can:
         return
 
     def update_buttons_theme(self):
-        if self.current_screen_index == 1:
-            self.toggle_config_acc(False)
-            self.toggle_config_pa(False)
-            self.toggle_config_rnd(False)
-            self.toggle_config_deduc(False)
+        self.toggle_config_acc(False)
+        self.toggle_config_pa(False)
+        self.toggle_config_rnd(False)
+        self.toggle_config_deduc(False)
 
-            self.m_config_qs_divF_entry(False)
-            self.m_config_deduc_amnt_entry(False)
+        self.m_config_qs_divF_entry(False)
+        self.m_config_deduc_amnt_entry(False)
 
-            self.screen_info_mapper[1]['rst_d'] = True
+        self.screen_info_mapper[1]['rst_d'] = True
+
+        if self.current_screen_index == 5:
+            self.misc_config_app_info_fields()
 
     # Reset Logic
     def reset_config(self, ga: bool = False):
@@ -1135,6 +1257,19 @@ Welcome to Administrator Tools, using this application, you can:
         del pus, s, k
 
     # Extra Logic
+    def misc_cpy_info(self):
+        qa_std.copy_to_clipboard(
+            text=".".join(_.strip() for _ in (
+                "CMF",
+                "GeetanshG",
+                "QAS_3",
+                qa_conf.Application.version_str,
+                qa_conf.ConfigFile.raw['app_data']['build']['build_id']
+            )).strip('.') + f" ({qa_conf.ConfigFile.raw['app_data']['build']['build_type']})",
+            shell=self.root,
+            clear_old=True
+        )
+
     def save_config(self, close_after: bool = False):
         global _logger
 
@@ -1382,6 +1517,14 @@ def c(p):
                 print_d=True
             )
     return cl
+
+
+def extern(command) -> None:
+    cmap = {
+        'bug_report': 'https://geetanshgautam.wixsite.com/database/qas3-bug-report'
+    }
+    assert command in cmap
+    os.system(f"start \"\" {cmap[command]}")
 
 
 _set_boot_progress(4)
