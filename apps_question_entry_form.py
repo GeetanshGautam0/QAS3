@@ -2,23 +2,21 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as tkmsb
 import threading, os, sys
-import qa_lookups as lookups
+import qa_lookups as lookups, qa_conf as conf, qa_questions as questions, qa_prompts as prompts, qa_colors as colors,\
+    qa_theme as theme
+import qa_std
 from qa_appfunctions import *
-import qa_conf as conf
-import qa_questions as questions
-import qa_prompts as prompts
-import qa_colors as colors
-import qa_theme as theme
 
 
 class UI(threading.Thread):
-    def __init__(self):
+    def __init__(self, *args):
+        self.args = args
+
         super().__init__()
         self.thread = threading.Thread
         self.thread.__init__(self)
 
         theme.reload_default()
-        # theme.find_preference()
         self.theme = theme.Theme.UserPref.m(theme.TMODE)
 
         self.root = tk.Toplevel()
@@ -178,7 +176,6 @@ class UI(threading.Thread):
         self.xsb.pack(fill=tk.X, expand=False, side=tk.BOTTOM)
         self.canv.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
         self.vsb.pack(fill=tk.Y, expand=False, side=tk.RIGHT)
-        # self.frame.pack(fill=tk.BOTH, expand=True)
 
         # ttk :: SB conf. (After widget placement)
         self.vsb.configure(command=self.canv.yview)
@@ -201,7 +198,6 @@ class UI(threading.Thread):
 
         # Event Handlers
         self.frame.bind("<Configure>", self.onFrameConfig)
-        # self.frame.bind_all("<MouseWheel>", self._on_mousewheel)
 
         self.canv.yview_scroll(1, "units")
         self.canv.xview_scroll(1, "units")
@@ -594,6 +590,56 @@ class UI(threading.Thread):
         self.thread.join(self, 0)
 
 
+class CLI:
+    @staticmethod
+    def cli_handler(script_call, *args):
+        print("Arguments:", *args, sep="\n\t* ")
+        FUNCTION = qa_std.CLI.CLITypes.FUNCTION
+        ARGUMENT = qa_std.CLI.CLITypes.ARGUMENT
+
+        ca_map = {
+            '-edit': {
+                'type': FUNCTION,
+                'path': CLI.edit_question,
+                'num_args': 1,
+                'args': ['quid'],
+                'request_special_call_index': 0,
+            },
+            'quid': {
+                'type': ARGUMENT,
+                'separator': '=',
+                'data_type': str,
+                'tied_to_function': {
+                    'b': True,
+                    'functions': ['-edit', '-test']
+                }
+            },
+        }
+
+        sc_name = 'Question Entry Form'
+        main_script = __name__ == "__main__"
+        pop_args_in_use = True
+
+        s = qa_std.CLI.CLI_handler(
+            args,
+            ca_map,
+            sc_name,
+            main_script,
+            pop_args_in_use
+        )
+
+        if s is None:
+            return
+        else:
+            args_stack, function_stack = s
+
+    @staticmethod
+    def edit_question(*args):
+        arg_map = {
+
+        }
+
+
 def _check_question(question, answer) -> list:
     try:
         def token_type(_token, tok_ls, _is_word=True) -> bool:
@@ -653,5 +699,13 @@ def _check_question(question, answer) -> list:
         return [False, E.__str__(), ]
 
 
+def CLArgs(*args):
+    pass
+
+
 if __name__ == "__main__":
-    UI()
+    if len(sys.argv) > 1:
+        CLI.cli_handler(*sys.argv)
+    else:
+        # Base call
+        UI()

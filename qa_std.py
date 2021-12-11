@@ -1,6 +1,7 @@
-import wcag_contrast_ratio, re
+import wcag_contrast_ratio, re, sys
 import tkinter as tk
 from tkinter import messagebox as tkmsb
+from enum import Enum
 
 
 def float_map(value: float, input_min: float, input_max: float, output_min: float, output_max: float) -> float:
@@ -231,3 +232,209 @@ def copy_to_clipboard(text: str, shell: tk.Toplevel, clear_old: bool = True):
         shell.clipboard_clear()
     shell.clipboard_append(text)
     shell.update()
+
+
+class CLI:
+    class CLITypes(Enum):
+        FUNCTION = 1
+        ARGUMENT = 2
+
+    @staticmethod
+    def help_text(ca_map):
+        pass
+
+    @staticmethod
+    def CLI_handler(args, ca_map, sc_name, exit_on_error, pop_args_in_use) -> tuple:
+        # Use `FUNCTION.args`
+
+        oargs_stack = {}
+        args_stack = {}
+        function_stack = {}
+        prev_function = None
+        prev_function_arg_start = 0
+
+        FUNCTION = CLI.CLITypes.FUNCTION
+        ARGUMENT = CLI.CLITypes.ARGUMENT
+
+        for ind, oarg in enumerate(args):
+            ind -= 1
+            ok = oarg in ca_map
+            arg = oarg
+
+            if not ok:
+                for a in ca_map.keys():
+                    if a in oarg:
+                        ok = True
+                        arg = a
+                        break
+
+            if not ok:
+                CLI.help_text(ca_map)
+                show_bl_err(
+                    sc_name,
+                    f'Invalid Argument `{arg}`'
+                )
+                sys.exit(f'Invalid Argument `{arg}`')
+
+            if ca_map[arg]['type'] == ARGUMENT:
+                arg_data = ca_map[arg]
+                if arg_data['tied_to_function']['b']:
+                    if prev_function not in arg_data['tied_to_function']['functions']:
+                        show_bl_err(
+                            sc_name,
+                            f"[FATAL] Argument `{arg}` can only be used in succession to one of the following functions:\n\t* " + "\n\t* ".join(
+                                function for function in arg_data['tied_to_function']['functions']
+                            )
+                        )
+
+                        if exit_on_error:
+                            sys.exit("inv_arg")
+                        else:
+                            return None
+
+                else:
+                    prev_function_arg_start = ind
+
+                try:
+                    if isinstance(arg_data['separator'], str):
+                        if arg_data['separator'] not in oarg or len(oarg.split(arg_data['separator'])) == 1:
+                            show_bl_err(
+                                sc_name,
+                                f"[FATAL] Argument `{arg}` must have key and value separated with a `{arg_data['separator']}` (no spaces allowed)\n\n" +\
+                                f"Syntax: {arg}=<data>"
+                            )
+
+                            if exit_on_error:
+                                sys.exit("inv_arg")
+                            else:
+                                return None
+
+                        c_arg = "".join(i for i in oarg.split(arg_data['separator'])[1::])
+                        n_arg = oarg.split(arg_data['separator'])[0]
+
+                    else:
+                        c_arg = arg
+                        n_arg = ''
+
+                    args_stack[ind] = arg_data['data_type'](c_arg)
+                    oargs_stack[ind] = n_arg
+
+                except Exception as E:
+                    show_bl_err(
+                        sc_name,
+                        f"[FATAL] Argument `{arg}` expected data with type `{arg_data['data_type']}` - {E}"
+                    )
+
+                    if exit_on_error:
+                        sys.exit("inv_arg")
+                    else:
+                        return None
+
+                ind += 1
+
+                if isinstance(prev_function, str) and ca_map[arg]['tied_to_function']['b']:
+                    if ind == prev_function_arg_start + ca_map[prev_function]['num_args']:
+
+                        function_args = {}
+
+                        f_args_s_ind = ind - ca_map[prev_function]['num_args']
+                        f_args_e_ind = ind
+
+                        for index in range(f_args_s_ind, f_args_e_ind):
+                            function_args[oargs_stack[index]] = args_stack[index]
+
+                        if pop_args_in_use:
+                            for index in range(f_args_s_ind, f_args_e_ind):
+                                del args_stack[index]
+                                del oargs_stack[index]
+
+                        function_stack[len(function_stack)] = {
+                            'call': prev_function,
+                            'function': ca_map[prev_function]['path'],
+                            'args': function_args
+                        }
+
+                        del function_args
+
+                        if ca_map[prev_function]['request_special_call_index'] != -1 and len(function_stack) >= 1:
+                            nindex = ca_map[prev_function]['request_special_call_index']
+                            cindex = len(function_stack) - 1
+
+                            if cindex != nindex:
+                                nd = {}
+
+                                for i in range(nindex):
+                                    if i == nindex:  # Just in case
+                                        continue
+
+                                    nd[i] = function_stack[i]
+
+                                nd[nindex] = function_stack[cindex]
+
+                                for i in range(nindex, cindex):
+                                    nd[i + 1] = function_stack[i]
+
+                                function_stack = nd
+
+                                del nd
+
+                            del nindex, cindex
+
+                        prev_function = None
+
+            elif ca_map[arg]['type'] == FUNCTION:
+                if prev_function is not None:
+                    function_stack[len(function_stack)] = {
+                        'call': prev_function,
+                        'function': ca_map[prev_function]['path'],
+                        'args': {}
+                    }
+                    prev_function = None
+
+                if ca_map[arg]['num_args'] <= 0 or ind == len(args) - 2:
+                    function_stack[len(function_stack)] = {
+                        'call': arg,
+                        'function': ca_map[arg]['path'],
+                        'args': {}
+                    }
+                    prev_function = None
+
+                else:
+                    prev_function = arg
+
+                prev_function_arg_start = ind + 1
+
+            else:
+                show_bl_err(
+                    sc_name,
+                    f"[FATAL] Invalid Command/Argument Mapping Data; failed to parse arguments\n\nFailed to parse argument `{arg}`"
+                )
+
+                if exit_on_error:
+                    sys.exit("inv_ca_map")
+                else:
+                    return None
+
+        for function in function_stack.values():
+            try:
+                assert len(function["args"]) == ca_map[function['call']]['num_args'], \
+                    f"'{function['call']}': expected {ca_map[function['call']]['num_args']} args, got {len(function['args'])}"
+
+                if ca_map[function['call']]['num_args'] > 0:
+                    for arg_name in ca_map[function['call']]['args']:
+                        assert arg_name in function['args'], \
+                            f"Invalid argument name '{arg_name}' for '{function['call']}'; expected the following:\n\t* %s" % \
+                            '\n\t* '.join(_ for _ in ca_map[function['call']]['args'])
+
+            except Exception as E:
+                show_bl_err(
+                    sc_name,
+                    f"Invalid Parameter(s):\n{E}"
+                )
+
+                if exit_on_error:
+                    sys.exit("inv_arg")
+                else:
+                    return None
+
+        return args_stack, function_stack
