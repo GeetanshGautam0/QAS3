@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 import threading, sys, os, shutil, traceback
 from dataclasses import dataclass
 from enum import Enum
+from typing import *
 
 import qa_std, qa_exceptions, qa_lookups, qa_log_cleaner, qa_theme, qa_diagnostics, qa_conf, qa_protected_conf, \
     qa_prompts, qa_nv_flags_system, qa_questions
@@ -44,16 +45,16 @@ class Theme:
     okay_color: str
 
 
-@dataclass
-class Mode:
-    mode: Enum
-    args: list
-
-
 class Modes(Enum):
     View = 1
     Edit = 2
     Add = 3
+
+
+@dataclass
+class Mode:
+    mode: Modes
+    args: list
 
 
 #########################################
@@ -95,7 +96,7 @@ class QuestionMasterFormUI(threading.Thread):
         del def_ws, max_ws  # No longer needed
 
         # Master Data Vars
-        self.args, self.kwargs, self.mode = args, kwargs, mode
+        self.args, self.kwargs, self.init_mode = args, kwargs, mode
 
         # Theming
         self.theme_dict = {}
@@ -126,12 +127,26 @@ class QuestionMasterFormUI(threading.Thread):
         self.shell_1 = tk.Frame(self.shell_1_c)
         self.shell_2 = tk.Frame(self.shell_2_c)
 
-        self.shell_index = 1
-        self.shell_c_mapper = {
-            1: self.shell_1_c,
-            2: self.shell_2_c,
+        self.shell_status = {
+            self.shell_1_c: {
+                'init': False
+            },
+            self.shell_2_c: {
+                'init': False
+            }
         }
 
+        # Frame Controllers
+        self.shell_mode_index: Modes = self.init_mode.mode
+        self.shell_c_mapper = {
+            Modes.View: self.shell_1_c,
+            Modes.Add: self.shell_2_c,
+            Modes.Edit: self.shell_2_c,
+        }
+
+        self.question_id: str = ""
+
+        # Frame Theming Requests
         self.theme_update_req['frame'].extend([
             self.root, self.shell_1, self.shell_2
         ])
@@ -352,8 +367,92 @@ class QuestionMasterFormUI(threading.Thread):
         # Exceptions
         return
 
+    def get_children(self, container, recursive_search: bool = True, *exp) -> tuple:
+        o0 = []
+
+        for element in container.winfo_children():
+            if element in exp:
+                continue
+
+            if element.winfo_children and recursive_search:
+                o0.extend(self.get_children(element, *exp))
+
+            else:
+                o0.append(element)
+
+        return *set(o0),
+
+    def frame_configure(self, *args):
+        if self.shell_status[self.shell_c_mapper[self.shell_mode_index]]['init']:
+            return
+
+        print(f'configuring {self.shell_c_mapper[self.shell_mode_index]}')
+
+        m = {
+            Modes.Add: [self.shell_2_c, self.shell_2, 'self.shell_2', self.shell_2_vsb, self.shell_2_xsb],
+            Modes.Edit: [self.shell_2_c, self.shell_2, 'self.shell_2', self.shell_2_vsb, self.shell_2_xsb],
+            Modes.View: [self.shell_1_c, self.shell_1, 'self.shell_1', self.shell_1_vsb, self.shell_1_xsb],
+        }
+
+        # WARNING: Need to import `typing` to annotate the following as shown:
+        m: Dict[Modes: List[tk.Canvas, tk.Frame, ttk.Scrollbar, ttk.Scrollbar]]
+
+        shell, frame, frame_str, vsb, xsb = m[self.shell_mode_index]
+
+        vsb.configure(command=shell.yview)
+        xsb.configure(command=shell.xview)
+
+        shell.configure(
+            xscrollcommand=xsb.set,
+            yscrollcommand=vsb.set,
+        )
+
+        shell.create_window(
+            (0, 0),
+            window=frame,
+            anchor='nw',
+            tags=frame_str
+        )
+
+        del m, shell, vsb, xsb, frame, frame_str
+
     def update_elements(self):
-        pass
+        m = {
+            Modes.Add: [self.shell_2_c, self.shell_2_vsb, self.shell_2_xsb, self.shell_2_packer],
+            Modes.Edit: [self.shell_2_c, self.shell_2_vsb, self.shell_2_xsb, self.shell_2_packer],
+            Modes.View: [self.shell_1_c, self.shell_1_vsb, self.shell_1_xsb, self.shell_1_packer],
+        }
+
+        # WARNING: Need to import `typing` to annotate the following as shown:
+        m: Dict[Modes: List[tk.Canvas, ttk.Scrollbar, ttk.Scrollbar, Callable]]
+
+        c2r = self.get_children(self.root, False, self.info_label)
+        for child in c2r:
+            try:
+                child.pack_forget()
+            except:
+                pass
+
+        shell, vsb, xsb, packer = m[self.shell_mode_index]
+
+        xsb.pack(fill=tk.X, expand=False, side=tk.BOTTOM)
+        vsb.pack(fill=tk.Y, expand=False, side=tk.RIGHT)
+        shell.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+
+        self.frame_configure()
+        packer()
+
+        del m, shell, vsb, xsb, c2r, packer
+
+    def shell_1_packer(self):
+        # Temporary, of course
+        lbl = tk.Label(self.shell_1, text="Shell 1")
+        lbl.pack(fill=tk.BOTH, expand=True)
+
+    def shell_2_packer(self):
+        # Temporary, of course
+        lbl = tk.Label(self.shell_2, text="Shell 2")
+        lbl.pack(fill=tk.BOTH, expand=True)
 
     def __del__(self):
         self.thread.join(self, 0)
