@@ -1,4 +1,4 @@
-import wcag_contrast_ratio, re, sys
+import wcag_contrast_ratio, re, sys, traceback
 import tkinter as tk
 from tkinter import messagebox as tkmsb
 from enum import Enum
@@ -247,9 +247,7 @@ class CLI:
     def CLI_handler(args, ca_map, sc_name, exit_on_error, pop_args_in_use) -> tuple:
         # Use `FUNCTION.args`
 
-        oargs_stack = {}
-        args_stack = {}
-        function_stack = {}
+        oargs_stack, nargs_stack, args_stack, function_stack = {}, {}, {}, {}
         prev_function = None
         prev_function_arg_start = 0
 
@@ -301,7 +299,7 @@ class CLI:
                             show_bl_err(
                                 sc_name,
                                 f"[FATAL] Argument `{arg}` must have key and value separated with a `{arg_data['separator']}` (no spaces allowed)\n\n" +\
-                                f"Syntax: {arg}=<data>"
+                                f"Syntax: {arg}{arg_data['separator']}<data>"
                             )
 
                             if exit_on_error:
@@ -314,10 +312,11 @@ class CLI:
 
                     else:
                         c_arg = arg
-                        n_arg = ''
+                        n_arg = arg
 
-                    args_stack[ind] = arg_data['data_type'](c_arg)
-                    oargs_stack[ind] = n_arg
+                    args_stack[ind] = c_arg if isinstance(c_arg, arg_data['data_type']) else arg_data['data_type'](c_arg)
+                    oargs_stack[ind] = oarg
+                    nargs_stack[ind] = n_arg
 
                 except Exception as E:
                     show_bl_err(
@@ -416,6 +415,8 @@ class CLI:
                     return None
 
         for function in function_stack.values():
+            print(function, function_stack)
+
             try:
                 assert len(function["args"]) == ca_map[function['call']]['num_args'], \
                     f"'{function['call']}': expected {ca_map[function['call']]['num_args']} args, got {len(function['args'])}"
@@ -426,7 +427,7 @@ class CLI:
                             f"Invalid argument name '{arg_name}' for '{function['call']}'; expected the following:\n\t* %s" % \
                             '\n\t* '.join(_ for _ in ca_map[function['call']]['args'])
 
-            except Exception as E:
+            except AssertionError as E:
                 show_bl_err(
                     sc_name,
                     f"Invalid Parameter(s):\n{E}"
@@ -437,4 +438,24 @@ class CLI:
                 else:
                     return None
 
-        return args_stack, function_stack
+            except Exception as E:
+                show_bl_err(
+                    sc_name,
+                    f"Internal Exception: {E}\n\n{traceback.format_exc()}"
+                )
+
+                print(traceback.format_exc())
+
+                if exit_on_error:
+                    sys.exit("inv_arg")
+                else:
+                    return None
+
+        return args_stack, function_stack, nargs_stack, oargs_stack
+
+
+class InfoState(Enum):
+    ERROR = 0
+    WARNING = 1
+    OK = 2
+    INFO = 3

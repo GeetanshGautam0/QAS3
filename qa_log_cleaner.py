@@ -69,11 +69,10 @@ class Actions:
     @staticmethod
     def del_closed_logs() -> None:
         def write_def(n) -> None:
-            # LTCF = LoggingTemporaryConfigurationFile
             with open(n, 'w') as LTCF:
                 LTCF.write(json.dumps({
                     'header': protected_conf.Application.Logging.TCF_HEADER,
-                    'open_logs': {},
+                    'open_logs': {'header': -1},
                     'closed_files': {}
                 }, indent=4))
                 LTCF.close()
@@ -116,8 +115,10 @@ class Actions:
             return
 
         with open(tcf_n, 'r') as LoggingTemporaryConfigurationFile:
-            _r = json.loads(LoggingTemporaryConfigurationFile.read())
+            _r = LoggingTemporaryConfigurationFile.read()
             LoggingTemporaryConfigurationFile.close()
+
+        _r = json.loads(_r)
 
         if 'open_logs' in _r:
             open_logs = ()
@@ -130,3 +131,9 @@ class Actions:
 
         else:
             write_def(tcf_n)
+
+        _r['closed_files'] = {}
+        _s = json.dumps(_r, indent=4)
+        with open(tcf_n, 'w') as LoggingTemporaryConfigurationFile:
+            LoggingTemporaryConfigurationFile.write(_s)
+            LoggingTemporaryConfigurationFile.close()

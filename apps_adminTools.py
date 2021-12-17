@@ -1,7 +1,6 @@
-import qa_conf, qa_splash_screen
+import qa_conf, qa_splash_screen, qa_std
 import tkinter as tk
 
-import qa_std
 
 _boot_steps = {
     1: "Importing modules\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
@@ -38,16 +37,16 @@ from tkinter import filedialog as tkfldl
 from tkinter import messagebox as tkmsb
 import threading, shutil, traceback, json, time, random, subprocess, sys, os, qa_exceptions
 import qa_exceptions, qa_prompts, qa_pdf_gen, qa_log_cleaner, qa_nv_flags_system, qa_diagnostics, qa_theme
-from qa_appfunctions import AFLog, AFDATA, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, for_log
+from qa_appfunctions import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, for_log
 import qa_online_version_check as ovcc
 from time import sleep
 
 _set_boot_progress(2)
 
-app_title = f"Administrator Tools {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']}"
+_app_title = f"Administrator Tools {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']}"
 _logger = AFLog(
     'qa_apps-admin_tools--core',
-    AFDATA.Functions.generate_uid(qa_conf.Application.uid_seed['admin_tools'])
+    AFData.Functions.generate_uid(qa_conf.Application.uid_seed['admin_tools'])
 )
 
 if isinstance(splRoot, tk.Toplevel):
@@ -67,7 +66,7 @@ class AdminToolsUI(threading.Thread):
         self.root = tk.Toplevel()
         self.root.withdraw()
 
-        # IU Params
+        # UI Params
         def_ws = (*qa_conf.AppContainer.Apps.admin_tools['main']['ws'],)
         self.max_ws = (self.root.winfo_screenwidth(), self.root.winfo_screenheight())
         self.ws = (
@@ -340,17 +339,17 @@ Welcome to Administrator Tools, using this application, you can:
         self.config_deduc_amnt_entry = ttk.Entry(self.config_deduc_amnt_container)
 
         # Screen 1 Theming Requests
-        self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
+        self.theme_update_req['custom_command'][AFData.Functions.generate_uid()] = [
             lambda bg, fg: self.config_reset_btn.config(bg=bg, fg=fg, activebackground=fg, activeforeground=bg),
             ((False, 'red'), (False, 'white'))
         ]
 
-        self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
+        self.theme_update_req['custom_command'][AFData.Functions.generate_uid()] = [
             lambda bg, fg: self.config_restore_btn.config(bg=bg, fg=fg, activebackground=fg, activeforeground=bg),
             ((False, 'red'), (False, 'white'))
         ]
 
-        self.theme_update_req['custom_command'][AFDATA.Functions.generate_uid()] = [
+        self.theme_update_req['custom_command'][AFData.Functions.generate_uid()] = [
             lambda fg: self.config_rst_container.config(fg=fg),
             ((False, 'red'), )
         ]
@@ -602,7 +601,7 @@ Welcome to Administrator Tools, using this application, you can:
                 g_exit(code)
 
         except Exception as E:
-            global app_title, _logger
+            global _app_title, _logger
             try:
                 tkmsb.showerror(
                     app_title,
@@ -614,7 +613,7 @@ Welcome to Administrator Tools, using this application, you can:
             try:
                 _logger.log(
                     'CRASH REPORT',
-                    f'Time: {AFDATA.Functions.time().strftime(for_log)}',
+                    f'Time: {AFData.Functions.time().strftime(for_log)}',
                     f'Exception: {E}',
                     traceback.format_exc(),
                     'LOGGED',
@@ -623,7 +622,7 @@ Welcome to Administrator Tools, using this application, you can:
             except Exception as E1:
                 print(
                     f'[CRASH REPORT (FAILED TO LOG :: {E1}]',
-                    f'Time: {AFDATA.Functions.time().strftime(for_log)}',
+                    f'Time: {AFData.Functions.time().strftime(for_log)}',
                     f'\nException: {E}\n',
                     traceback.format_exc()
                 )
@@ -1374,7 +1373,7 @@ Welcome to Administrator Tools, using this application, you can:
             self.theme_update_req['borderless'].append(temp_button)
 
             if btn_follow_ttl_col and ttl_col_key != 'accent':
-                u = AFDATA.Functions.generate_uid()
+                u = AFData.Functions.generate_uid()
                 self.theme_update_req['custom_command'][u] = [
                     _UI_mpt_custom_button,
                     (
@@ -1496,9 +1495,8 @@ def _load_data(data_key) -> any:
 
 def g_exit(code):
     global _logger
-    _logger.log('EXIT INFO', f'Exiting with code: {code}')
+    _logger.log('EXIT INFO', f'Exiting with code: {code}; Good bye!')
     del _logger
-
     sys.exit(code)
 
 
@@ -1565,7 +1563,7 @@ def _load_configuration() -> dict:
             print(s)
             qa_splash_screen.hide(splObj)
             tkmsb.showerror(
-                app_title,
+                _app_title,
                 "[CRITICAL ERROR] Failed to find 'src:configuration.qaFile'"
             )
             g_exit(1)
@@ -1575,7 +1573,7 @@ def _load_configuration() -> dict:
 
             qa_splash_screen.hide(splObj)
             tkmsb.showinfo(
-                app_title,
+                _app_title,
                 "Created 'dst:configuration.qaFile'"
             )
             qa_splash_screen.show(splObj)
@@ -1587,7 +1585,7 @@ def _load_configuration() -> dict:
             except:
                 qa_splash_screen.hide(splObj)
                 tkmsb.showerror(
-                    app_title,
+                    _app_title,
                     f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}"
                 )
                 g_exit(1)
@@ -1618,7 +1616,7 @@ def _load_configuration() -> dict:
             except:
                 qa_splash_screen.hide(splObj)
                 tkmsb.showerror(
-                    app_title,
+                    _app_title,
                     f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}"
                 )
                 qa_splash_screen.show(splObj)
@@ -1626,7 +1624,7 @@ def _load_configuration() -> dict:
 
             qa_splash_screen.hide(splObj)
             tkmsb.showwarning(
-                app_title,
+                _app_title,
                 "Overwrote (reset) 'dst:configuration.qaFile' [invalid data found]"
             )
             qa_splash_screen.show(splObj)

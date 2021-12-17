@@ -5,3 +5,4 @@ TODO: ADD "IS_CASE_SENSITIVE" OPTION TO FORM
 TODO: ADD "NOTES" SECTION FOR RESPONSE FORM
 TODO: ADD translator from old version files to new version's files
 TODO: ADD option to edit EXTERNAL databases.
+TODO: ADD option to select between 'entry' and 'text' widgets (question form)

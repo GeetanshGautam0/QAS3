@@ -62,7 +62,7 @@ class AppContainer:
             'main': {
                 'ws': (1000, 900),
             },
-            'question_entry': {
+            'question_master': {
                 'ws': (840, 800)
             }
         }

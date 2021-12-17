@@ -644,7 +644,7 @@ class InputPrompts:
                 "contrast_key": [-1, str, False, True]
             }
 
-            self.fls = AFDATA.Functions.flags(fls, kwargs)
+            self.fls = AFData.Functions.flags(fls, kwargs)
             self._smd = SharedMemoryDict(**self._shared_mem_dict_args)
 
             # UI Objects

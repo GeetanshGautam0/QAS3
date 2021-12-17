@@ -1,70 +1,104 @@
-import qa_conf as conf
+# The following file defines the question standard
+import traceback
+from dataclasses import dataclass
+import json, qa_tk
 
 
-class Conversions:
+@dataclass
+class Question:
+    question: str
+    answer: str
+    type: int
+    widget_requirement: int
+    comments: list
+
+
+class StandardVariables:
+    answer_key = 'answer'
+    type_key = 'type'
+    comments_key = 'comments'
+    widget_key = 'widget'
+
+    question_type_map = {
+        'r': {  # ID : (Code, Human Readable) [REVERSE]
+            0: ('mcq', 'Multiple Choice Question'),
+            1: ('nrm', 'Written Response Question'),
+            2: ('t/f', 'True/False Question'),
+        },
+        'n': {  # Code: ID
+            'mcq': 0,
+            'nrm': 1,
+            't/f': 2,
+        }
+    }
+
+    widget_requirement_map = {
+        'r': {  # ID: Widget
+            0: qa_tk.Text,
+            1: qa_tk.Entry
+        },
+        'n': {
+            'extended_response': 0,
+            'short_response': 1
+        }
+    }
+
+
+class Functions:
     @staticmethod
-    def raw_to_dict(raw: str) -> dict:
-        output: dict = {}
+    def str_to_questions(raw_json_data: str) -> tuple:
+        js0 = json.loads(raw_json_data)
+        qs = (*js0.keys(), )
 
-        newlineSep = conf.FileCodes.question_separators['nl']
-        spaceSep = conf.FileCodes.question_separators['space']
-        questionAnswerSep = conf.FileCodes.question_separators['qas']
+        o0, failures = [], []
 
-        for line in raw.split('\n'):
-            line = line.strip()
-            if len(line) > 0:
-                if questionAnswerSep in line:
-                    q = line.split(questionAnswerSep)[0].strip()
-                    a = line.replace(q, "", 1).replace(questionAnswerSep, '').strip()
+        for ind, q0 in enumerate(qs):
+            q = js0[q0]
+            try:
+                assert StandardVariables.answer_key in q, f"Q{ind}: No answer available"
+                assert StandardVariables.type_key in q, f"Q{ind}: No type data available"
+                assert StandardVariables.widget_key in q, f"Q{ind}: No answer widget data available"
 
-                    if len(q) > 0 and len(a) > 0:
-                        for c, ac in {spaceSep: ' ', newlineSep: '\n'}.items():
-                            q = q.replace(c, ac); a = a.replace(c, ac)
-                        q = q.strip(); a = a.strip()
+                o0.append(
+                    Question(q0,
+                             q[StandardVariables.answer_key],
+                             q[StandardVariables.type_key],
+                             q[StandardVariables.widget_key],
+                             q[StandardVariables.comments_key] if isinstance(
+                                 q.get(StandardVariables.comments_key), list
+                             ) else [])
+                )
 
-                        if len(q) > 0 and len(a) > 0:
-                            output[q] = a
+            except Exception as E:
+                failures.append(str(E))
 
-        return output
+        del qs, js0, raw_json_data
 
-    @staticmethod
-    def convertToQuestionStr(question: str, answer: str):
-        question = question.strip()
-        answer = answer.strip()
-
-        if not len(question) > 0 or not len(answer) > 0:
-            return
-
-        seps = conf.FileCodes.question_separators
-        newlineSep = seps.get('nl')
-        spaceSep = seps.get('space')
-        QASep = seps.get('qas')
-
-        question = question.replace(newlineSep, '').replace(spaceSep, '').strip()
-        answer = answer.replace(newlineSep, '').replace(spaceSep, '').strip()
-
-        if not len(question) > 0 or not len(answer) > 0:
-            return
-
-        # Replace
-        question = question.replace('\n', newlineSep)
-        question = question.replace(' ', spaceSep)
-        answer = answer.replace('\n', newlineSep)
-        answer = answer.replace(' ', spaceSep)
-
-        question = question.strip()
-        answer = answer.strip()
-
-        # Concat
-        output = f"{question}{QASep}{answer}"
-
-        return output
+        return o0, failures
 
     @staticmethod
-    def dictToSaveStr(data: dict) -> str:
-        output = ""
-        for i in data:
-            qa = Conversions.convertToQuestionStr(i, data[i])
-            output += f"{qa}\n"
+    def questions_to_json(ls: list) -> tuple:
+        o0, failures = {}, []
 
-        return output
+        for ind, q0 in enumerate(ls):
+            try:
+                assert isinstance(q0, Question), f"Question {ind + 1}: Expected {Question}, got {type(q0)}."
+                k0, v0, v1, v2, v3 = \
+                    q0.question, q0.answer, q0.type, q0.widget_requirement, q0.comments
+
+                o0[k0] = {
+                    StandardVariables.answer_key: v0,
+                    StandardVariables.type_key: v1,
+                    StandardVariables.widget_key: v2,
+                    StandardVariables.comments_key: v3
+                }
+
+            except Exception as E:
+                failures.append(str(E))
+                print(traceback.format_exc())
+
+        del ls
+
+        o1 = json.dumps(o0, indent=4)
+        return o1, failures
+

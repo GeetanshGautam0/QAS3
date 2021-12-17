@@ -16,7 +16,7 @@ for_log = "%Z(%z)::%w %d %m %y - %H:%M:%S::%f (%j) [%c]"
 for_log_name = "%Z%z%w %d %m %y %H %M %S %f %j %c"
 
 
-class AFDATA:
+class AFData:
     class Data:
         defaults = {
             'container_title': conf.AppContainer.general_title,
@@ -66,8 +66,8 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                 r = tk.Tk()
                 r.withdraw()
                 confirmation = tkmsb.askyesno(
-                    AFDATA.Data.defaults['container_title'],
-                    AFDATA.Data.prompts['ync']['D_AFI_OWR_EXS:FALSE_EXS:TRUE']
+                    AFData.Data.defaults['container_title'],
+                    AFData.Data.prompts['ync']['D_AFI_OWR_EXS:FALSE_EXS:TRUE']
                 )
                 r.after(0, r.destroy)
 
@@ -88,8 +88,8 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                 r = tk.Tk()
                 r.withdraw()
                 confirmation = tkmsb.askyesnocancel(
-                    AFDATA.Data.defaults['container_title'],
-                    AFDATA.Data.prompts['ync']['D_AFI_OWR_EXS:FALSE_EXS:TRUE']
+                    AFData.Data.defaults['container_title'],
+                    AFData.Data.prompts['ync']['D_AFI_OWR_EXS:FALSE_EXS:TRUE']
                 )
                 r.after(0, r.destroy)
 
@@ -147,11 +147,11 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             return datetime.now()
 
         @staticmethod
-        def generate_uid(seed=0.00) -> str:
+        def generate_uid(number_to_incorporate=0.00) -> str:
             I = str(random.randint(100000000000000, 999999999999999)) + "." + \
                 str(random.random() * (random.random() * 10 ** 5)) + \
                 "." + str(random.random() * random.randint(0, 9)) + ":" + \
-                str(random.random() * seed)
+                str(random.random() * number_to_incorporate)
             _time = datetime.now().strftime("%d:%m:%Y:%H:%M:%S:%f::%z::%j---%X")
             _rs = ["~~", "1~", "`@", "3~@", "#@~", "$%@~"]
             return _time + I + _rs[random.randint(0, len(_rs) - 1)]
@@ -247,7 +247,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             global _SELF_LOG
 
             if use_default:
-                lst = (*AFDATA.Data.encoding_lookup,)
+                lst = (*AFData.Data.encoding_lookup,)
 
             if len(lst) < 0:
                 E = exceptions.ParameterException(
@@ -304,7 +304,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                 raise E
 
             for encoding in lst:
-                if type(encoding) is str and encoding not in (enco[-1] for enco in AFDATA.Data.blacklists['encoding']):
+                if type(encoding) is str and encoding not in (enco[-1] for enco in AFData.Data.blacklists['encoding']):
                     try:
                         data.decode(encoding)
                     except:
@@ -380,23 +380,23 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
             for item in _data:
                 if type(item) in [list, tuple, set]:
-                    _output_comp.append(AFDATA.Functions.recursive_list_conversion(item, sep, kv_sep))
+                    _output_comp.append(AFData.Functions.recursive_list_conversion(item, sep, kv_sep))
                 elif type(item) is str:
                     _output_comp.append(item.strip())
                 elif type(item) is bytes:
-                    _output_comp.append(item.decode(AFDATA.Functions.check_encoding(item, True)).strip())
+                    _output_comp.append(item.decode(AFData.Functions.check_encoding(item, True)).strip())
                 elif type(item) is dict:
-                    _output_comp.append(AFDATA.Functions.recursive_dict_conversion(item, sep, kv_sep))
+                    _output_comp.append(AFData.Functions.recursive_dict_conversion(item, sep, kv_sep))
                 elif type(item) in [int, float]:
                     _output_comp.append(str(item))
 
             _sample = _output_comp[0]
 
             if type(_sample) is bytes and type(sep) is str:
-                sep2use = sep.encode(AFDATA.Functions.check_encoding(_sample, True))
+                sep2use = sep.encode(AFData.Functions.check_encoding(_sample, True))
 
             elif isinstance(_sample, str) and isinstance(sep, bytes):
-                sep2use = sep.decode(AFDATA.Functions.check_encoding(sep, True))
+                sep2use = sep.decode(AFData.Functions.check_encoding(sep, True))
 
             else:
                 sep2use = sep
@@ -437,25 +437,25 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
 
                 # Key
                 if type(key) in [list, tuple, set]:
-                    k = AFDATA.Functions.recursive_list_conversion(key, sep, kv_sep)
+                    k = AFData.Functions.recursive_list_conversion(key, sep, kv_sep)
                 elif type(key) is dict:
-                    k = AFDATA.Functions.recursive_dict_conversion(key, sep, kv_sep)
+                    k = AFData.Functions.recursive_dict_conversion(key, sep, kv_sep)
                 elif type(key) is str:
                     k = key.strip()
                 elif type(key) is bytes:
-                    k = key.decode(AFDATA.Functions.check_encoding(key, True)).strip()
+                    k = key.decode(AFData.Functions.check_encoding(key, True)).strip()
                 elif type(key) in [int, float]:
                     k = str(key)
 
                 # Value
                 if type(value) in [list, tuple, set]:
-                    v = AFDATA.Functions.recursive_list_conversion(value, sep, kv_sep)
+                    v = AFData.Functions.recursive_list_conversion(value, sep, kv_sep)
                 elif type(value) is dict:
-                    v = AFDATA.Functions.recursive_dict_conversion(value, sep, kv_sep)
+                    v = AFData.Functions.recursive_dict_conversion(value, sep, kv_sep)
                 elif type(value) is str:
                     v = value.strip()
                 elif type(value) is bytes:
-                    v = value.decode(AFDATA.Functions.check_encoding(value, True)).strip()
+                    v = value.decode(AFData.Functions.check_encoding(value, True)).strip()
                 elif type(value) in [int, float]:
                     v = str(value)
 
@@ -465,13 +465,13 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             return output
 
 
-SELF_DATA = AFDATA.ScriptData()
+SELF_DATA = AFData.ScriptData()
 SELF_DATA.data['class']['AFIOObject']['flags_template'] = {
     'isFile': [False, True, True],
-    'encoding': [AFDATA.Data.defaults['encoding'], True, True],
+    'encoding': [AFData.Data.defaults['encoding'], True, True],
     'encrypt': [False, True, True],
     'filename': [None, str, False, True],
-    'enc_key': [AFDATA.Data.defaults['enc_key'], True, True],
+    'enc_key': [AFData.Data.defaults['enc_key'], True, True],
     're_type': [bytes, True, True],
     'lines_mode': [False, True, True]
 }
@@ -572,7 +572,7 @@ class AFIOObject:
             SELF_DATA.del_instance(self.uid)
 
         while not sel_uid:
-            self.uid = AFDATA.Functions.generate_uid(seed=-random.random())
+            self.uid = AFData.Functions.generate_uid(number_to_incorporate=-random.random())
             if not SELF_DATA.check_uid_exs(self.uid): sel_uid = True
 
         ### ADD INSTANCE
@@ -598,20 +598,20 @@ class AFIOObject:
             raise E
 
         if template is None:
-            self.flags = AFDATA.Functions.flags({**self.flags_template}, user_in)
+            self.flags = AFData.Functions.flags({**self.flags_template}, user_in)
 
         else:
-            n_flags = AFDATA.Functions.flags(template, user_in)
+            n_flags = AFData.Functions.flags(template, user_in)
             for k, nv in n_flags.items():
                 if k not in self._protected_flags:
                     self.flags[k] = nv
                 else:
                     self._protected_flags[k] = nv
 
-        self.flags['encoding'] = AFDATA.Functions.check_blacklist(self.flags['encoding'],
-                                                                  AFDATA.Data.blacklists['encoding'],
-                                                                  AFDATA.Data.defaults['encoding'])
-        self.flags['re_type'] = AFDATA.Functions.check_blacklist(self.flags['re_type'], ["!!", [str, bytes]], str)
+        self.flags['encoding'] = AFData.Functions.check_blacklist(self.flags['encoding'],
+                                                                  AFData.Data.blacklists['encoding'],
+                                                                  AFData.Data.defaults['encoding'])
+        self.flags['re_type'] = AFData.Functions.check_blacklist(self.flags['re_type'], ["!!", [str, bytes]], str)
 
         if not self.flags_loaded:
             self._protected_flags = {'enc_key': self.flags['enc_key']}
@@ -891,10 +891,10 @@ class AFEncryption:
                 _l = _line.encode(self.instance.encoding)
 
             elif type(_line) in [list, tuple, set]:
-                _l = (AFDATA.Functions.recursive_list_conversion(_line)).encode(self.instance.encoding)
+                _l = (AFData.Functions.recursive_list_conversion(_line)).encode(self.instance.encoding)
 
             elif type(_line) is dict:
-                _l = (AFDATA.Functions.recursive_dict_conversion(_line)).encode(self.instance.encoding)
+                _l = (AFData.Functions.recursive_dict_conversion(_line)).encode(self.instance.encoding)
 
             _enc = (*_enc, _l.strip(), "\n".encode(self.instance.encoding))
 
@@ -1024,7 +1024,7 @@ class AFFileIO:
             'dict_kv_sep': [' ', True, True],
             'strip_data': [True, True, True]
         }
-        flags = AFDATA.Functions.flags(flags, kwargs)
+        flags = AFData.Functions.flags(flags, kwargs)
 
         flags['separator'] = flags['separator'].encode(self.file.encoding)
         flags['dict_kv_sep'] = flags['dict_kv_sep'].encode(self.file.encoding)
@@ -1036,7 +1036,7 @@ class AFFileIO:
                 if _SELF_LOG is not None:
                     _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
-                pass
+                print('[ERROR]', function_name + ": " + E.__str__())
 
             raise E
 
@@ -1048,19 +1048,19 @@ class AFFileIO:
             new_data: bytes = _data.encode(self.file.encoding)
 
         elif type(_data) is bytes:
-            cenco = AFDATA.Functions.check_encoding(_data, True)
+            cenco = AFData.Functions.check_encoding(_data, True)
             if cenco != self.file.encoding:
                 new_data = _data.decode(cenco).encode(self.file.encoding)
             else:
                 new_data = _data
 
         elif type(_data) in [list, tuple, set]:
-            new_data = AFDATA.Functions.recursive_list_conversion(_data, flags['separator'],
+            new_data = AFData.Functions.recursive_list_conversion(_data, flags['separator'],
                                                                   flags['dict_kv_sep']).encode(
                 self.file.encoding)
 
         elif type(_data) is dict:
-            new_data = AFDATA.Functions.recursive_dict_conversion(_data, flags['separator'],
+            new_data = AFData.Functions.recursive_dict_conversion(_data, flags['separator'],
                                                                   flags['dict_kv_sep']).encode(
                 self.file.encoding)
 
@@ -1101,7 +1101,7 @@ class AFFileIO:
                 if _SELF_LOG is not None:
                     _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
             except:
-                pass
+                print('[ERROR]', function_name + ": " + E.__str__())
 
             raise E
 
@@ -1112,17 +1112,18 @@ class AFFileIO:
             'strip_data': [True, True, True],
             'delete_backup_after': [True, True, True]
         }
-        flags = AFDATA.Functions.flags(flags, kwargs)
+        flags = AFData.Functions.flags(flags, kwargs)
 
         flags['separator'] = flags['separator'].encode(self.file.encoding)
         flags['dict_kv_sep'] = flags['dict_kv_sep'].encode(self.file.encoding)
 
+        # Method Structure:
         # Step 1: Create Backup
         # Step 2: Store Backup to file
         # Step 3: Save New Data ([+] encryption)
         #   3-1: If OK, delete backup (FLAGGED)
         #   3-2: Else, restore backup
-        #       - Then delete backup
+        #       - Then delete backup [optional w/ `delete_backup_after`]
 
         if not os.path.exists(self.file.filename):
             self.save(_data=_data,
@@ -1135,6 +1136,8 @@ class AFFileIO:
         else:
             # Step 1: Create backup
             try:
+                # READ + WRITE BACKUP IN BYTES ONLY
+
                 with open(self.file.filename, 'rb') as file:
                     _backup_data = file.read()
                     file.close()
@@ -1147,11 +1150,11 @@ class AFFileIO:
                     if _SELF_LOG is not None:
                         _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
-                    pass
+                    print('[ERROR]', function_name + ": " + E.__str__())
 
                 raise E
 
-            time = AFDATA.Functions.time().strftime('%d%m%y%S%f%z%Z%j')
+            time = AFData.Functions.time().strftime('%d%m%y%S%f%z%Z%j')
             _backup_file_name = SELF_DATA.apploc + "\\Temporary Files\\AFFileIO\\%s\\%s\\%s.cmfbackup" % (
                 function_name, "__".join(i for i in self.file.filename.split("\\")[-1].split('.')), time)
             _backup_directory = "\\".join(i for i in _backup_file_name.split("\\")[:-1])
@@ -1172,7 +1175,7 @@ class AFFileIO:
                     if _SELF_LOG is not None:
                         _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                 except:
-                    pass
+                    print('[ERROR]', function_name + ": " + E.__str__())
 
                 raise E
 
@@ -1202,8 +1205,9 @@ class AFFileIO:
                         try:
                             if _SELF_LOG is not None:
                                 _SELF_LOG.log('ERROR', function_name + ": _br.strip() != _backup_data.strip() (P_B_R)")
-                        except:
-                            pass
+
+                        except Exception as E:
+                            print('[ERROR]', function_name + ": " + E.__str__())
 
                         raise Exception  # Passes on to the exception handler (1)
 
@@ -1217,7 +1221,7 @@ class AFFileIO:
                         if _SELF_LOG is not None:
                             _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                     except:
-                        pass
+                        print('[ERROR]', function_name + ": " + E.__str__())
 
                     raise E
 
@@ -1231,7 +1235,7 @@ class AFFileIO:
                         if _SELF_LOG is not None:
                             _SELF_LOG.log('ERROR', function_name + ": " + E.__str__())
                     except:
-                        pass
+                        print('[ERROR]', function_name + ": " + E.__str__())
 
                     raise E
 
@@ -1286,7 +1290,7 @@ class AFFileIO:
 
         if type(raw) is bytes:
             if len(raw) > 0:
-                enco = AFDATA.Functions.check_encoding(raw, True)
+                enco = AFData.Functions.check_encoding(raw, True)
                 Str = raw.decode(enco)
             else:
                 Str = ""
@@ -1394,9 +1398,9 @@ class AFJSON:
 
                         else:
                             if isinstance(dv_sep, bytes):
-                                dv = dv_sep.decode(AFDATA.Functions.check_encoding(dv_sep, True))
+                                dv = dv_sep.decode(AFData.Functions.check_encoding(dv_sep, True))
                             else:
-                                dv = dv_sep.encode(AFDATA.Functions.check_encoding(v, True))
+                                dv = dv_sep.encode(AFData.Functions.check_encoding(v, True))
 
                         # AFDATA, V
                         # SAME
@@ -1406,40 +1410,40 @@ class AFJSON:
                         # STR/BYTES
                         elif type(data) in [str, bytes]:
                             if type(v) is bytes:
-                                v += dv + data.decode(AFDATA.Functions.check_encoding(v, True))
+                                v += dv + data.decode(AFData.Functions.check_encoding(v, True))
 
                             else:
-                                v += dv + data.decode(AFDATA.Functions.check_encoding(data, True))
+                                v += dv + data.decode(AFData.Functions.check_encoding(data, True))
 
                         # LIST/TUPLE/SET
                         elif type(data) in [list, tuple, set]:
-                            d = AFDATA.Functions.recursive_list_conversion(data, ls_sep, kv_sep)
+                            d = AFData.Functions.recursive_list_conversion(data, ls_sep, kv_sep)
                             if type(d) is type(v):
                                 v += dv + d
 
                             elif type(d) in [str, bytes]:
                                 if isinstance(v, bytes):
-                                    v += dv + d.decode(AFDATA.Functions.check_encoding(v, True))
+                                    v += dv + d.decode(AFData.Functions.check_encoding(v, True))
 
                                 elif isinstance(d, bytes):
-                                    v += dv + d.decode(AFDATA.Functions.check_encoding(d, True))
+                                    v += dv + d.decode(AFData.Functions.check_encoding(d, True))
 
                             else:
                                 raise Exception("-1")
 
                         # DICT
                         elif type(data) is dict:
-                            d = AFDATA.Functions.recursive_dict_conversion(data, kv_sep, ls_sep)
+                            d = AFData.Functions.recursive_dict_conversion(data, kv_sep, ls_sep)
 
                             if type(d) is type(v):
                                 v += dv + d
 
                             elif type(d) in [str, bytes]:
                                 if type(v) is bytes:
-                                    v += dv + d.decode(AFDATA.Functions.check_encoding(v, True))
+                                    v += dv + d.decode(AFData.Functions.check_encoding(v, True))
 
                                 else:
-                                    v += dv + d.decode(AFDATA.Functions.check_encoding(d, True))
+                                    v += dv + d.decode(AFData.Functions.check_encoding(d, True))
 
                             else:
                                 raise Exception("-1")
@@ -1453,10 +1457,10 @@ class AFJSON:
 
                             elif type(d) in [str, bytes]:
                                 if type(v) is bytes:
-                                    v += d.decode(AFDATA.Functions.check_encoding(v, True))
+                                    v += d.decode(AFData.Functions.check_encoding(v, True))
 
                                 else:
-                                    v += d.decode(AFDATA.Functions.check_encoding(d, True))
+                                    v += d.decode(AFData.Functions.check_encoding(d, True))
 
                         # EXCEPTION
                         else:
@@ -1727,7 +1731,7 @@ class AFLogger:
             if empty_line:
                 d2l = "\n"
             else:
-                time = AFDATA.Functions.time().strftime(for_log)
+                time = AFData.Functions.time().strftime(for_log)
                 d2l = f"[{lvl}] " + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
 
             d2l += "\n"
@@ -1789,7 +1793,7 @@ class AFLogger:
             if empty_line:
                 d2l = "\n"
             else:
-                time = AFDATA.Functions.time().strftime(for_log)
+                time = AFData.Functions.time().strftime(for_log)
                 d2l = f"[{lvl}] " + self.scname + "@" + time + ": " + "\n\t".join(str(i) for i in data).strip()
                 if e is not None:
                     d2l += " \n\t>>EXCEP_REPORT::" + str(e)
@@ -1849,7 +1853,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
     def refresh(self):
         global SELF_DATA
 
-        ndate = AFDATA.Functions.time()
+        ndate = AFData.Functions.time()
         ndate_f = ndate.strftime("%w %d %m %Y")
 
         if ndate_f != self.date:
@@ -2005,9 +2009,9 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             o1 = {"header": r['header'], self.open_logs_dir: op1, "closed_files": {}}
             s2 = json.dumps(o1, indent=4)
             AFFileIO(self._o.uid).secure_save(s2, append=False)
+            r = self.j.load_file()
 
         elif len(a) > protected_conf.Application.Logging.min_crit_point and len(r['closed_files']) != 0:
-            ### CLEAR CLOSED FILES LOGS
             tkmsb.showwarning(conf.Application.app_name,
                               "File 'LCF File.json' is approaching a critical point that can cause lag (>%s lines.) Attempting to clear some older application description." % str(
                                   protected_conf.Application.Logging.min_crit_point
@@ -2015,6 +2019,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
             o1 = {"header": r['header'], self.open_logs_dir: {**r[self.open_logs_dir]}, "closed_files": {}}
             s1 = json.dumps(o1, indent=4)
             AFFileIO(self._o.uid).secure_save(s1, append=False)
+            r = self.j.load_file()
 
         if self.open_logs_dir not in r:
             r[self.open_logs_dir] = {}
@@ -2029,10 +2034,10 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
                     conf.Application.AppDataLoc,
                     "Logs",
                     self.script_name,
-                    AFDATA.Functions.time().strftime(for_log_name).replace(":", "-")
+                    AFData.Functions.time().strftime(for_log_name).replace(":", "-")
                 ), protected_conf.Application.Logging.extention
             ),
-            'time': AFDATA.Functions.time().strftime(for_log),
+            'time': AFData.Functions.time().strftime(for_log),
             'is_open': True
         }
 
@@ -2048,8 +2053,7 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
         if self.script_identifier_code in sci:
             d = sci[self.script_identifier_code]
             r[d][self.script_identifier_code]['is_open'] = False
-            r[d][self.script_identifier_code][
-                'NOTICE1'] = "THIS FILE WAS PRODUCED BY AN INSTANCE OF THE SCRIPT THAT IS STILL RUNNING"
+            r[d][self.script_identifier_code]['NOTICE1'] = "THIS FILE WAS PRODUCED BY AN INSTANCE OF THE SCRIPT THAT IS STILL RUNNING"
 
             s = json.dumps(r, indent=4)
             AFFileIO(self._o.uid).secure_save(s, append=False)
@@ -2118,5 +2122,5 @@ class AFLog:  # AFLog-USER_ACCESS-interface:auto
 if __name__ == "__main__" and protected_conf.dsb_mod_run_stdnalone:
     sys.exit(-1)
 
-_SELF_LOG = AFLog("appfunctions-core", AFDATA.Functions.generate_uid())
+_SELF_LOG = AFLog("appfunctions-core", AFData.Functions.generate_uid())
 _SELF_LOG.log('INFO', "Started appfunctions script at '%s'" % datetime.now().strftime("%H:%M:%S"))
