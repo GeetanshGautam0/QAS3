@@ -1,4 +1,4 @@
-from qa_appfunctions import *
+from qa_af_master import *
 import qa_conf as conf, re, qa_theme, sys, random, qa_colors as colors, \
     qa_protected_conf as protected_conf, qa_theme as theme
 import tkinter as tk

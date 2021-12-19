@@ -37,7 +37,8 @@ from tkinter import filedialog as tkfldl
 from tkinter import messagebox as tkmsb
 import threading, shutil, traceback, json, time, random, subprocess, sys, os, qa_exceptions
 import qa_exceptions, qa_prompts, qa_pdf_gen, qa_log_cleaner, qa_nv_flags_system, qa_diagnostics, qa_theme
-from qa_appfunctions import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, for_log
+from qa_af_master import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption
+from qa_af_module_AFLogging import for_log
 import qa_online_version_check as ovcc
 from time import sleep
 

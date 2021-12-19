@@ -7,7 +7,7 @@ from typing import *
 
 import qa_std, qa_exceptions, qa_lookups, qa_log_cleaner, qa_theme, qa_diagnostics, qa_conf, qa_protected_conf, \
     qa_prompts, qa_nv_flags_system, standards_qa_question
-from qa_appfunctions import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, AFLogger
+from qa_af_master import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, LoggerModule
 
 
 #########################################

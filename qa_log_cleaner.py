@@ -32,15 +32,16 @@ class Actions:
 
             c = {}
 
-            for k in r[open_logs_dir].keys():
-                if k != "header":
-                    date = k  # Date
-                    for sci, data in r[open_logs_dir][date].items():
-                        # if description['is_open']:
-                        if date not in c:
-                            c[date] = (sci,)
-                        else:
-                            c[date] = (*c[date], sci,)
+            if isinstance(r[open_logs_dir], dict):
+                for k in r[open_logs_dir].keys():
+                    if k != "header":
+                        date = k  # Date
+                        for sci, data in r[open_logs_dir][date].items():
+                            # if description['is_open']:
+                            if date not in c:
+                                c[date] = (sci,)
+                            else:
+                                c[date] = (*c[date], sci,)
 
             if 'closed_files' not in o:
                 o['closed_files'] = {}
@@ -56,7 +57,7 @@ class Actions:
                     if "NOTICE1" in o['closed_files'][date][sci]:
                         del o['closed_files'][date][sci]['NOTICE1']
 
-            o = {"header": {**o['header']}, open_logs_dir: [], "closed_files": {**o['closed_files']}}
+            o = {"header": {**o['header']}, open_logs_dir: {}, "closed_files": {**o['closed_files']}}
             s = json.dumps(o, indent=4)
 
             with open(n, 'w') as jfile:

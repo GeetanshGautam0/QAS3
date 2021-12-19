@@ -1,4 +1,4 @@
-from qa_appfunctions import *
+from qa_af_master import *
 import os, re
 import qa_conf as conf
 import qa_user_pref as user_pref
