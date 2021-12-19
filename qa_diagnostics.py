@@ -1,4 +1,5 @@
 import os, qa_conf as conf, json, re, qa_protected_conf as protected_conf, traceback, qa_std as std
+from typing import *
 
 FALSE = 0
 TRUE = 1
@@ -218,7 +219,7 @@ class DataDiagnostics:
 
 class Configuration:
     @staticmethod
-    def general(data: dict) -> tuple:
+    def general(data: Dict[str, Union[str, int, float, bool]]) -> tuple:
         failures = ()
         with open(conf.Files.conf_std_file, 'r') as conf_std_file:
             b = json.loads(conf_std_file.read())
@@ -237,7 +238,7 @@ class Configuration:
         return len(failures) == 0, "The following conf. file checks failed:\n\t *" + "\n\t *".join(i for i in failures)
 
 
-#### STRUCT: Functions \/ ;; Classes /\ ####
+# STRUCT: Functions \/ ;; Classes /\
 
 
 def _check_directory(direc) -> tuple:

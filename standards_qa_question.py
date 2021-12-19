@@ -2,6 +2,7 @@
 import traceback
 from dataclasses import dataclass
 import json, qa_tk
+from typing import *
 
 
 @dataclass
@@ -11,7 +12,7 @@ class Question:
     type: int
     widget_requirement: int
     quid: str
-    comments: list
+    comments: List[str]
 
 
 class StandardVariables:
@@ -60,7 +61,7 @@ class Functions:
                 assert StandardVariables.answer_key in q, f"Q{ind + 1}: No answer available"
                 assert StandardVariables.type_key in q, f"Q{ind + 1}: No type data available"
                 assert StandardVariables.widget_key in q, f"Q{ind + 1}: No answer widget data available"
-                assert StandardVariables.question_id_key in q, f"Q{ind + 1}: No question ID supplemented"
+                assert StandardVariables.question_id_key in q, f"Q{ind + 1}: No question ID available"
 
                 o0.append(
                     Question(q0,
@@ -81,7 +82,7 @@ class Functions:
         return o0, failures
 
     @staticmethod
-    def questions_to_json(ls: list) -> tuple:
+    def questions_to_json(ls: list, re_dict: bool = False) -> tuple:
         o0, failures = {}, []
 
         for ind, q0 in enumerate(ls):
@@ -104,6 +105,6 @@ class Functions:
 
         del ls
 
-        o1 = json.dumps(o0, indent=4)
+        o1 = o0 if re_dict else json.dumps(o0, indent=4)
         return o1, failures
 

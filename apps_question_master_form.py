@@ -6,7 +6,7 @@ from enum import Enum
 from typing import *
 
 import qa_std, qa_exceptions, qa_lookups, qa_log_cleaner, qa_theme, qa_diagnostics, qa_conf, qa_protected_conf, \
-    qa_prompts, qa_nv_flags_system, qa_questions
+    qa_prompts, qa_nv_flags_system, standards_qa_question
 from qa_appfunctions import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption, AFLogger
 
 
@@ -395,7 +395,7 @@ class QuestionMasterFormUI(threading.Thread):
         }
 
         # WARNING: Need to import `typing` to annotate the following as shown:
-        m: Dict[Modes: List[tk.Canvas, tk.Frame, ttk.Scrollbar, ttk.Scrollbar]]
+        m: Dict[Modes, List[tk.Canvas, tk.Frame, ttk.Scrollbar, ttk.Scrollbar]]
 
         shell, frame, frame_str, vsb, xsb = m[self.shell_mode_index]
 
@@ -424,7 +424,7 @@ class QuestionMasterFormUI(threading.Thread):
         }
 
         # WARNING: Need to import `typing` to annotate the following as shown:
-        m: Dict[Modes: List[tk.Canvas, ttk.Scrollbar, ttk.Scrollbar, Callable]]
+        m: Dict[Modes, List[tk.Canvas, ttk.Scrollbar, ttk.Scrollbar, Callable]]
 
         c2r = self.get_children(self.root, False, self.info_label)
         for child in c2r:

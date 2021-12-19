@@ -84,7 +84,8 @@ def data_at_dict_path(path: str, dictionary: dict) -> tuple:
             continue
 
         found = token in data
-        data = data.get(token)
+        data = data[token] if found else None
+
         if index != len(path_tokens) - 1:
             if type(data) is not dict:
                 found = False

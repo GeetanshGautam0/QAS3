@@ -1,4 +1,4 @@
-import os, sys, json, threading, random, traceback, datetime, cryptography
+import os, sys, json, threading, random, traceback, datetime, cryptography, hashlib
 from datetime import datetime
 from datetime import timedelta
 import tkinter as tk
@@ -147,14 +147,18 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             return datetime.now()
 
         @staticmethod
-        def generate_uid(number_to_incorporate=0.00) -> str:
+        def generate_uid(salt=0.00) -> str:
             I = str(random.randint(100000000000000, 999999999999999)) + "." + \
                 str(random.random() * (random.random() * 10 ** 5)) + \
                 "." + str(random.random() * random.randint(0, 9)) + ":" + \
-                str(random.random() * number_to_incorporate)
-            _time = datetime.now().strftime("%d:%m:%Y:%H:%M:%S:%f::%z::%j---%X")
+                str(random.random() * salt)
+            _time = datetime.now().strftime(f"%d:%m:%Y:%H:%M:%S:%f::%z::%j--{str(salt)}-%X")
             _rs = ["~~", "1~", "`@", "3~@", "#@~", "$%@~"]
-            return _time + I + _rs[random.randint(0, len(_rs) - 1)]
+            _o0 = _time + I + _rs[random.randint(0, len(_rs) - 1)]
+            _o1 = hashlib.sha3_512(_o0.encode()).hexdigest()  # Because hashed hex looks better.
+
+            del I, _time, _rs, _o0
+            return _o1
 
         @staticmethod
         def flags(template_dict: dict, user_in_dict: dict) -> dict:
@@ -572,7 +576,7 @@ class AFIOObject:
             SELF_DATA.del_instance(self.uid)
 
         while not sel_uid:
-            self.uid = AFData.Functions.generate_uid(number_to_incorporate=-random.random())
+            self.uid = AFData.Functions.generate_uid(salt=-random.random())
             if not SELF_DATA.check_uid_exs(self.uid): sel_uid = True
 
         ### ADD INSTANCE
