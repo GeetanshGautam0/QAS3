@@ -1,8 +1,8 @@
-import os, sys, json
+import sys
 from datetime import datetime
-
-import qa_exceptions as exceptions
 import qa_protected_conf as protected_conf
+
+# The following are imported to allow legacy inheritance
 
 from qa_af_module_AFIOObject import IOObjectModule as AFIOObject, IOOInterfaceModule as AFIOObjectInterface
 import qa_af_module_AFData
@@ -18,5 +18,5 @@ AFData = qa_af_module_AFData.DataModule
 if __name__ == "__main__" and protected_conf.dsb_mod_run_stdnalone:
     sys.exit(-1)
 
-_self_log = AFLog("appfunctions-core", AFData.Functions.generate_uid())
-_self_log.log('INFO', "Started appfunctions script at '%s'" % datetime.now().strftime("%H:%M:%S"))
+_self_log = AFLog("app_functions-core", AFData.Functions.generate_uid())
+_self_log.log('INFO', "Started app_functions script at '%s'" % datetime.now().strftime("%H:%M:%S"))
