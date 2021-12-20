@@ -557,6 +557,8 @@ Welcome to Administrator Tools, using this application, you can:
         self.root.geometry("%sx%s+%s+%s" % (*self.ws, *self.sp))
         self.root.iconbitmap(qa_conf.Files.app_icons['admin_tools']['ico'])
 
+        tk.Tk.report_callback_exception = error
+
         self.error_label.pack(
             fill=tk.X,
             expand=False,
@@ -1555,6 +1557,11 @@ def extern(command) -> None:
     }
     assert command in cmap
     os.system(f"start \"\" {cmap[command]}")
+
+
+def error(*_):
+    del _
+    raise Exception
 
 
 #################################

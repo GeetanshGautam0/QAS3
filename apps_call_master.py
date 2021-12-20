@@ -1,5 +1,6 @@
-import qa_std, sys, traceback
+import qa_std, sys, traceback, qa_conf, os, hashlib
 from tkinter import messagebox
+from datetime import datetime
 
 
 _file_name = "apps_call_master.py"
@@ -26,19 +27,21 @@ class _Starters:
         try:
             import apps_adminTools as AdminTools
             AdminTools.AdminToolsUI()
-        except Exception as E:
-            print(E, traceback.format_exc(), sep="\n\n")
 
-            messagebox.showerror(
-                f"{_script_name} - Crash Report",
+        except Exception as e:
+            _crash_handler(
+                "AdminToolsShell",
+                e,
                 traceback.format_exc()
             )
+
+            sys.exit(-1)
 
 
 class StartupHandlers:
     @staticmethod
-    def CLIHandler(script_name, *args):
-        del script_name
+    def CLIHandler(_, *args):
+        del _
 
         global _file_name, _script_name
         arguments = list(args)
@@ -102,6 +105,50 @@ class StartupHandlers:
 
         for call in new_function_stack:
             call()
+
+
+def _crash_handler(
+        name,
+        exception,
+        traceback_str
+):
+    global _script_name
+
+    time = datetime.now().strftime("%d %m %y - %H %M %S")
+
+    output_str = f"""Quizzing Application {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']}
+{qa_conf.Application.cr}
+
+========================================
+Crash Log
+
+Time of crash: {time}
+Reason for crash: {exception}
+Code: 0x{hashlib.md5(f"{exception}{traceback_str}".encode()).hexdigest()}
+
+Technical Information:
+{traceback_str}
+"""
+    if not os.path.exists(os.path.join(qa_conf.Application.crash_logs_location, name)):
+        os.makedirs(os.path.join(qa_conf.Application.crash_logs_location, name))
+
+    with open(
+        os.path.join(
+            qa_conf.Application.crash_logs_location,
+            name,
+            f'{time}.cmflog'
+        ),
+        'w'
+    ) as crash_log_file:
+        crash_log_file.write(output_str)
+        crash_log_file.close()
+
+    messagebox.showerror(
+        f"{_script_name} - Crash Report",
+        output_str
+    )
+
+    return
 
 
 if __name__ == "__main__":

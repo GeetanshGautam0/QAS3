@@ -32,6 +32,7 @@ class Application:
     cr = """Coding Made Fun, 2021\n""" + "\n".join(
         u for u in app_urls
     ).strip()
+    crash_logs_location = f"{AppDataLoc}\\Crash Logs"
 
 
 class Encryption:
