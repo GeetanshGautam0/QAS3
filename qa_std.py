@@ -416,8 +416,6 @@ class CLI:
                     return None
 
         for function in function_stack.values():
-            print(function, function_stack)
-
             try:
                 assert len(function["args"]) == ca_map[function['call']]['num_args'], \
                     f"'{function['call']}': expected {ca_map[function['call']]['num_args']} args, got {len(function['args'])}"

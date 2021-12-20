@@ -1,6 +1,15 @@
+# Administrator Tools Application
+
+#################################
+#        Initial Imports        #
+#################################
+
 import qa_conf, qa_splash_screen, qa_std
 import tkinter as tk
 
+##################################
+#    Splash Screen Management    #
+##################################
 
 _boot_steps = {
     1: "Importing modules\nIf app gets stuck, try pressing 'Enter'\nPress [Alt] + [F4] to exit.",
@@ -32,6 +41,12 @@ _set_boot_progress(1)
 if isinstance(splRoot, tk.Toplevel):
     splRoot.attributes('-topmost', False)
 
+
+##################################
+#          More Imports          #
+##################################
+
+
 from tkinter import ttk, Button
 from tkinter import filedialog as tkfldl
 from tkinter import messagebox as tkmsb
@@ -39,10 +54,14 @@ import threading, shutil, traceback, json, time, random, subprocess, sys, os, qa
 import qa_exceptions, qa_prompts, qa_pdf_gen, qa_log_cleaner, qa_nv_flags_system, qa_diagnostics, qa_theme
 from qa_af_master import AFLog, AFData, AFIOObject, AFIOObjectInterface, AFJSON, AFFileIO, AFEncryption
 from qa_af_module_AFLogging import for_log
-import qa_online_version_check as ovcc
+import qa_version_checker as ovcc
 from time import sleep
 
 _set_boot_progress(2)
+
+##################################
+#        Global Variables        #
+##################################
 
 _app_title = f"Administrator Tools {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']}"
 _logger = AFLog(
@@ -52,6 +71,11 @@ _logger = AFLog(
 
 if isinstance(splRoot, tk.Toplevel):
     splRoot.attributes('-topmost', True)
+
+
+##################################
+#          Main Classes          #
+##################################
 
 
 class AdminToolsUI(threading.Thread):
@@ -605,7 +629,7 @@ Welcome to Administrator Tools, using this application, you can:
             global _app_title, _logger
             try:
                 tkmsb.showerror(
-                    app_title,
+                    _app_title,
                     f"Crash Report: {traceback.format_exc()}"
                 )
             except:
@@ -1472,6 +1496,11 @@ Welcome to Administrator Tools, using this application, you can:
         self.thread.join(self, 0)
 
 
+##################################
+#      Function Definitions      #
+##################################
+
+
 _set_boot_progress(3)
 
 
@@ -1526,6 +1555,11 @@ def extern(command) -> None:
     }
     assert command in cmap
     os.system(f"start \"\" {cmap[command]}")
+
+
+#################################
+#       Loading Functions       #
+#################################
 
 
 _set_boot_progress(4)
@@ -1747,6 +1781,10 @@ _set_boot_progress(5)
 
 _set_boot_progress(6)
 
+#################################
+#          Initializer          #
+#################################
+
 ovcc.Check.check(splObj)
 version_notes = ovcc.Check.find_comments()
 if version_notes is not None:
@@ -1775,4 +1813,5 @@ if version_notes is not None:
 qa_splash_screen.set_smooth_progress(splObj, -1, _boot_steps)
 del splRoot
 
-AdminToolsUI()
+if __name__ == "__main__":
+    AdminToolsUI()

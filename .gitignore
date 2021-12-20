@@ -7,3 +7,5 @@ test.py
 conversion_chamber/build/*
 .idea/*
 .idea/workspace.xml
+build/*
+dist/*
