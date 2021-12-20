@@ -1,8 +1,9 @@
-import cryptography, qa_exceptions, os, traceback
+import qa_exceptions, os, traceback, cryptography
 from qa_af_module_AFIOObject import IOObjectModule as AFIOObject, \
     IOOInterfaceModule as AFIOObjectInterface
 from qa_af_module_AFData import DataModule
 import qa_af_module_AFData
+from cryptography import fernet
 
 
 self_data = qa_af_module_AFData.self_data
@@ -10,32 +11,23 @@ self_data = qa_af_module_AFData.self_data
 
 class EncryptionModule:
     def __init__(self, uid):
-        global _self_log
         self.class_name = "ENC_MASTER"
         self.uid = uid
         self.instance = None
         self.raw_instance = None
-        self.fernet: cryptography.fernet.Fernet = None
+        self.fer = None
         self._nObject = None
         try:
             self.update_instance()
         except Exception as e:
-            E = qa_exceptions.InitializationError(
+            raise qa_exceptions.InitializationError(
                 self.class_name,
                 str(e)
             )
 
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', self.class_name + ": " + E.__str__())
-            except:
-                pass
-
-            raise E
+        self.fer: fernet.Fernet
 
     def update_instance(self):
-        global _self_log
-
         function_name = "ENC.UPD_INST"
         self.instance = AFIOObjectInterface(self.uid)
         self.raw_instance = self.instance.instance
@@ -51,22 +43,17 @@ class EncryptionModule:
         )
 
         try:
-            self.fernet = self.raw_instance.fernet
+            self.fer = self.raw_instance.fer
         except Exception as E:
-            E = qa_exceptions.EncryptionException(function_name, 'ENC.UPD.INV_FER', "Failed to create fernet: %s" % E)
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
-            raise E
+            raise qa_exceptions.EncryptionException(
+                function_name,
+                'ENC.UPD.INV_FER', "Failed to create fernet: %s" % E
+            )
 
         return
 
-    def decrypt(self, _raw, *args, **kwargs) -> bytes:
-        global _self_log
+    def decrypt(self, _raw) -> bytes:
+        self.fer: fernet.Fernet
 
         function_name = "ENC.DEC[RE,INP::F]"
         self.update_instance()
@@ -77,24 +64,18 @@ class EncryptionModule:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.DEC[RE,INP::F]::!INST[-0]')
         elif not self.instance.encrypt:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!ENC[-1]')
-        elif self.fernet is None:
+        elif self.fer is None:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!FER[-0]')
         elif type(_raw) is not bytes:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[INP]::TP-RAW!:BYTES')
 
         if E is not None:
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
             raise E
 
-        return self.fernet.decrypt(_raw)
+        return self.fer.decrypt(_raw)
 
-    def encrypt(self, _data, *args, **kwargs) -> bytes:
-        global _self_log
+    def encrypt(self, _data) -> bytes:
+        self.fer: fernet.Fernet
 
         function_name = "ENC.ENC[RE,INP::F]"
         self.update_instance()
@@ -105,25 +86,17 @@ class EncryptionModule:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.ENC[RE,INP::F]::!INST[-0]')
         elif not self.instance.encrypt:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!ENC[-1]')
-        elif self.fernet is None:
+        elif self.fer is None:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!FER[-0]')
         elif type(_data) is not bytes:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[INP]::TP-RAW!:BYTES')
 
         if E is not None:
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
             raise E
 
-        return self.fernet.encrypt(_data)
+        return self.fer.encrypt(_data)
 
-    def _encFile(self, *args, **kwargs) -> None:  # ENC.HDN_EN_FILE_OWR
-        global _self_log
-
+    def encFile(self) -> None:  # ENC.HDN_EN_FILE_OWR
         function_name = 'ENC.HDN_EN_FILE_OWR'
         self.update_instance()
         E = None
@@ -131,18 +104,12 @@ class EncryptionModule:
             E = qa_exceptions.FileIOException(function_name, "Invalid AFIOObject supplied.")
         elif not self.instance.encrypt:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!ENC[-1]')
-        elif self.raw_instance.fernet is None:
+        elif self.raw_instance.fer is None:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!FER[-0]')
         elif not os.path.exists(self.instance.filename):
             return
 
         if E is not None:
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
             raise E
 
         # Used tuples rather than lists as an optimization
@@ -154,7 +121,8 @@ class EncryptionModule:
         for _line in _raw:
             try:
                 _c = (*_c, self.decrypt(_line))
-            except:
+            except Exception as E:
+                print(E)
                 _c = (*_c, _line)
 
         _c = (*_c,)
@@ -180,9 +148,7 @@ class EncryptionModule:
 
         FileIOModule(self.uid).secure_save(_enc, 'DE_ENC_METH', append=False)
 
-    def _decFile(self, *args, **kwargs) -> None:  # ENC.HDN_DE_FILE_OWR
-        global _self_log
-
+    def decFile(self) -> None:  # ENC.HDN_DE_FILE_OWR
         function_name = 'ENC.HDN_DE_FILE_OWR'
         self.update_instance()
 
@@ -192,18 +158,12 @@ class EncryptionModule:
             E = qa_exceptions.FileIOException(function_name, "Invalid AFIOObject supplied.")
         elif not self.instance.encrypt:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!ENC[-1]')
-        elif self.raw_instance.fernet is None:
+        elif self.raw_instance.fer is None:
             E = qa_exceptions.EncryptionException(function_name, 'ENC.GLOBAL[G]::!FER[-0]')
         elif not os.path.exists(self.instance.filename):
             return
 
         if E is not None:
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
             raise E
 
         # Used tuples rather than lists as an optimization
@@ -224,9 +184,8 @@ class EncryptionModule:
 
 class FileIOModule:
     def __init__(self, uid: str):
-        global self_data, _self_log
+        global self_data
         self.class_name = "AFFileIO"
-        function_name = "FIO_INIT"
 
         self.uid = uid
         if uid not in self_data.uid_instance_map:
@@ -235,48 +194,33 @@ class FileIOModule:
                 'Invalid input for parameter \'uid\''
             )
 
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
             raise E
 
-        self.file: AFIOObjectInterface = object
+        self.file = object
         self.update_instance()
+        self.file: AFIOObjectInterface
 
         if not self.file.isFile:
-            E = qa_exceptions.InitializationError(self.class_name,
-                                               "Invalid instance uid provided: parameter 'isFile' is invalid.")
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
+            E = qa_exceptions.InitializationError(
+                self.class_name,
+                "Invalid instance uid provided: parameter 'isFile' is invalid."
+            )
 
             raise E
 
         elif type(self.file.filename) is not str:
-            E = qa_exceptions.InitializationError(self.class_name,
-                                               "Invalid instance uid provided: parameter 'filename' is invalid.")
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
-
+            E = qa_exceptions.InitializationError(
+                self.class_name,
+                "Invalid instance uid provided: parameter 'filename' is invalid."
+            )
             raise E
 
     def update_instance(self):  # FIO_UPD_INST
-        function_name = "FIO_UPD_INST"
         self.file = AFIOObjectInterface(self.uid)  # instance translator
 
     def save(self, _data, **kwargs):  # FIO_NR_SAVE
         """
-        **appfunctions.AFFIleIO.save**
+        **app_functions.AFFIleIO.save**
 
 
         :param _data: data to save
@@ -288,9 +232,9 @@ class FileIOModule:
         :return: None
         """
 
-        global _self_log
+        self.file: AFIOObjectInterface
 
-        assert not self.file.instance._read_only, "Cannot save to this file; marked as 'read_only'"
+        assert not self.file.instance.read_only, "Cannot save to this file; marked as 'read_only'"
 
         function_name = "FIO_NR_SAVE"
         self.update_instance()
@@ -308,13 +252,6 @@ class FileIOModule:
 
         if not self.file.isFile:
             E = qa_exceptions.FileIOException(function_name)
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                print('[ERROR]', function_name + ": " + E.__str__())
-
             raise E
 
         if not os.path.exists(self.file.filename):
@@ -325,21 +262,27 @@ class FileIOModule:
             new_data: bytes = _data.encode(self.file.encoding)
 
         elif type(_data) is bytes:
-            cenco = DataModule.Functions.check_encoding(_data, True)
-            if cenco != self.file.encoding:
-                new_data = _data.decode(cenco).encode(self.file.encoding)
+            check_encoding = DataModule.Functions.check_encoding(_data, True)
+            if check_encoding != self.file.encoding:
+                new_data = _data.decode(check_encoding).encode(self.file.encoding)
             else:
                 new_data = _data
 
         elif type(_data) in [list, tuple, set]:
-            new_data = DataModule.Functions.recursive_list_conversion(_data, flags['separator'],
-                                                                  flags['dict_kv_sep']).encode(
-                self.file.encoding)
+            new_data = DataModule.Functions.recursive_list_conversion(
+                _data,
+                flags['separator'],
+                flags['dict_kv_sep']).encode(
+                    self.file.encoding
+                )
 
         elif type(_data) is dict:
-            new_data = DataModule.Functions.recursive_dict_conversion(_data, flags['separator'],
-                                                                  flags['dict_kv_sep']).encode(
-                self.file.encoding)
+            new_data = DataModule.Functions.recursive_dict_conversion(
+                _data,
+                flags['separator'],
+                flags['dict_kv_sep']).encode(
+                    self.file.encoding
+                )
 
         else:
             new_data = str(_data).encode(self.file.encoding)
@@ -367,19 +310,14 @@ class FileIOModule:
             file.close()
 
     def secure_save(self, _data, *flag_args, **kwargs):  # FIO_SC_SAVE
-        global self_data, _self_log
+        global self_data
+        self.file: AFIOObjectInterface
+
         function_name = "FIO_SC_SAVE"
 
         self.update_instance()
         if not self.file.isFile:
             E = qa_exceptions.FileIOException(function_name)
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                print('[ERROR]', function_name + ": " + E.__str__())
-
             raise E
 
         flags = {
@@ -419,20 +357,18 @@ class FileIOModule:
                     _backup_data = file.read()
                     file.close()
 
-            except:
-                E = qa_exceptions.FileIOException(function_name,
-                                               "Failed to load backup _data; aborting operation for safety.")
+            except Exception as E:
+                print(E)
 
-                try:
-                    if _self_log is not None:
-                        _self_log.log('ERROR', function_name + ": " + E.__str__())
-                except:
-                    print('[ERROR]', function_name + ": " + E.__str__())
+                E = qa_exceptions.FileIOException(
+                    function_name,
+                    "Failed to load backup _data; aborting operation for safety."
+                )
 
                 raise E
 
             time = DataModule.Functions.time().strftime('%d%m%y%S%f%z%Z%j')
-            _backup_file_name = self_data.apploc + "\\Temporary Files\\AFFileIO\\%s\\%s\\%s.cmfbackup" % (
+            _backup_file_name = self_data.appdata_directory + "\\Temporary Files\\AFFileIO\\%s\\%s\\%s.cmfbackup" % (
                 function_name, "__".join(i for i in self.file.filename.split("\\")[-1].split('.')), time)
             _backup_directory = "\\".join(i for i in _backup_file_name.split("\\")[:-1])
 
@@ -443,16 +379,12 @@ class FileIOModule:
                 with open(_backup_file_name, 'wb') as _backup_file:
                     _backup_file.write(_backup_data)
                     _backup_file.close()
-            except:
-                print(traceback.format_exc())
-                E = qa_exceptions.FileIOException(function_name,
-                                               "Failed to save temporary backup; aborting operation for safety.")
-
-                try:
-                    if _self_log is not None:
-                        _self_log.log('ERROR', function_name + ": " + E.__str__())
-                except:
-                    print('[ERROR]', function_name + ": " + E.__str__())
+            except Exception as E:
+                print(E, traceback.format_exc())
+                E = qa_exceptions.FileIOException(
+                    function_name,
+                    "Failed to save temporary backup; aborting operation for safety."
+                )
 
                 raise E
 
@@ -466,9 +398,11 @@ class FileIOModule:
                           )
 
                 if self.file.encrypt and 'DE_ENC_METH' not in flag_args:
-                    EncryptionModule(self.uid)._encFile()
+                    EncryptionModule(self.uid).encFile()
 
-            except:
+            except Exception as E:
+                print(E)
+
                 try:
                     with open(self.file.filename, 'wb') as file:
                         file.write(_backup_data)
@@ -479,26 +413,15 @@ class FileIOModule:
                         file.close()
 
                     if _br.strip() != _backup_data.strip():
-                        try:
-                            if _self_log is not None:
-                                _self_log.log('ERROR', function_name + ": _br.strip() != _backup_data.strip() (P_B_R)")
-
-                        except Exception as E:
-                            print('[ERROR]', function_name + ": " + E.__str__())
-
                         raise Exception  # Passes on to the exception handler (1)
 
-                except:
+                except Exception as E:
+                    print(E)
+
                     E = qa_exceptions.FileIOException(
                         function_name,
                         "FAILED TO SAVE BACKUP [FATAL] [CRITICAL]"
                     )
-
-                    try:
-                        if _self_log is not None:
-                            _self_log.log('ERROR', function_name + ": " + E.__str__())
-                    except:
-                        print('[ERROR]', function_name + ": " + E.__str__())
 
                     raise E
 
@@ -507,13 +430,6 @@ class FileIOModule:
                         function_name,
                         "Failed to save _data (restored backup.) :: %s" % traceback.format_exc()
                     )
-
-                    try:
-                        if _self_log is not None:
-                            _self_log.log('ERROR', function_name + ": " + E.__str__())
-                    except:
-                        print('[ERROR]', function_name + ": " + E.__str__())
-
                     raise E
 
             # Delete backup file after (optional)
@@ -523,18 +439,12 @@ class FileIOModule:
         return
 
     def read_file(self) -> str:  # FIO_RD_FILE
-        global _self_log
+        self.file: AFIOObjectInterface
 
         function_name = "FIO_RD_FILE"
         self.update_instance()
         if not os.path.exists(self.file.filename) or not self.file.isFile:
             E = qa_exceptions.FileIOException(function_name, "File '%s' does not exist." % self.file.filename)
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
 
             raise E
 
@@ -555,20 +465,14 @@ class FileIOModule:
             except Exception as E:
                 E = E.__class__(str(E))
 
-                try:
-                    if _self_log is not None:
-                        _self_log.log('ERROR', function_name + ": " + E.__str__())
-                except:
-                    pass
-
                 raise E
 
         # print('[3]', raw)
 
         if type(raw) is bytes:
             if len(raw) > 0:
-                enco = DataModule.Functions.check_encoding(raw, True)
-                Str = raw.decode(enco)
+                encoding0 = DataModule.Functions.check_encoding(raw, True)
+                Str = raw.decode(encoding0)
             else:
                 Str = ""
 
@@ -580,19 +484,11 @@ class FileIOModule:
         return Str
 
     def load_file(self, *flags):  # FIO_LD_FILE
-        global _self_log
+        self.file: AFIOObjectInterface
 
         self.update_instance()
-        function_name = "FIO_LD_FILE"
-
         if not os.path.exists(self.file.filename) or not self.file.isFile:
             E = qa_exceptions.FileIOException("FIO_LD_FILE", "File '%s' does not exist." % self.file.filename)
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
 
             raise E
 
@@ -608,19 +504,13 @@ class FileIOModule:
         return output
 
     def clear_file(self):
-        global _self_log
+        self.file: AFIOObjectInterface
 
         self.update_instance()
         function_name = "FIO_CLEAR"
 
         if not os.path.exists(self.file.filename) or not self.file.isFile:
             E = qa_exceptions.FileIOException(function_name, "File '%s' does not exist." % self.file.filename)
-
-            try:
-                if _self_log is not None:
-                    _self_log.log('ERROR', function_name + ": " + E.__str__())
-            except:
-                pass
 
             raise E
 
