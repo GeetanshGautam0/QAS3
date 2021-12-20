@@ -281,7 +281,7 @@ class LoggerModule:  # AFLog-USER_ACCESS-interface:auto
                 if 'header' not in self.json.load_file():
                     f_1 = True
             except Exception as E:
-                print(E)
+                print('LoggingModule::0', E)
                 f_1 = True
 
         if f_1:
@@ -469,12 +469,12 @@ class LoggerModule:  # AFLog-USER_ACCESS-interface:auto
         try:
             self.performance_logger.log(lvl, *data, empty_line=empty_line)
         except Exception as E:
-            print(E)
+            print('LoggingModule::1', E)
             try:
                 t = traceback.format_exc()
                 self.reliable_logger.log(lvl, *data, e=t, empty_line=empty_line)
             except Exception as E:
-                print("Failed to log data; E; TB; DATA:", E, traceback.format_exc(), ("\n\t".join(d for d in data)))
+                print("LoggingModule::2 Failed to log data; E; TB; DATA:", E, traceback.format_exc(), ("\n\t".join(d for d in data)))
 
     def performance(self, lvl, *data, empty_line: bool = False):
         """

@@ -104,12 +104,12 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                 return [True, f[filename]]
 
         def del_instance(self, uid: str) -> None:
-            _ins = self.uid_instance_map[uid]
+            _ins = self.uid_instance_map[uid][0]
             del self.uid_instance_map[uid]
             try:
                 self.instances.pop(self.instances.index(_ins))
             except Exception as E:
-                print(E)
+                print('DataModule::0', E)
                 pass
             return None
 
@@ -270,7 +270,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
                     try:
                         data.decode(encoding)
                     except Exception as E:
-                        print(E)
+                        print('DataModule::1', E)
                         pass
                     else:
                         return encoding

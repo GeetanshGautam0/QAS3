@@ -45,7 +45,6 @@ class StartupHandlers:
 
         global _file_name, _script_name
         arguments = list(args)
-        del args
 
         assert len(arguments) > 0, "Insufficient Arguments"
         if arguments[0] == _file_name:
@@ -102,6 +101,18 @@ class StartupHandlers:
             )
 
             del _0
+
+        print(
+            "Initial Arguments:\n\t* %s" % "\n\t* ".join(a for a in args),
+            "Parsed Arguments, Function Stack:\n\t* %s" % "\n\t* ".join(str(a) for a in (
+                *[v['call'] for v in function_stack.values()],
+                *arg_stack.values(),
+                *named_args_stack.values(),
+                *og_args_stack.values()
+            )), sep="\n"
+        )
+
+        del args
 
         for call in new_function_stack:
             call()

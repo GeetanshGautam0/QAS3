@@ -122,7 +122,7 @@ class EncryptionModule:
             try:
                 _c = (*_c, self.decrypt(_line))
             except Exception as E:
-                print(E)
+                print('IOModule::0', E)
                 _c = (*_c, _line)
 
         _c = (*_c,)
@@ -358,7 +358,7 @@ class FileIOModule:
                     file.close()
 
             except Exception as E:
-                print(E)
+                print('IOModule::1', E)
 
                 E = qa_exceptions.FileIOException(
                     function_name,
@@ -380,7 +380,7 @@ class FileIOModule:
                     _backup_file.write(_backup_data)
                     _backup_file.close()
             except Exception as E:
-                print(E, traceback.format_exc())
+                print('IOModule::2', E, traceback.format_exc())
                 E = qa_exceptions.FileIOException(
                     function_name,
                     "Failed to save temporary backup; aborting operation for safety."
@@ -401,7 +401,7 @@ class FileIOModule:
                     EncryptionModule(self.uid).encFile()
 
             except Exception as E:
-                print(E)
+                print('IOModule::3', E)
 
                 try:
                     with open(self.file.filename, 'wb') as file:
@@ -416,7 +416,7 @@ class FileIOModule:
                         raise Exception  # Passes on to the exception handler (1)
 
                 except Exception as E:
-                    print(E)
+                    print('IOModule::4', E)
 
                     E = qa_exceptions.FileIOException(
                         function_name,
@@ -449,25 +449,19 @@ class FileIOModule:
             raise E
 
         raw = self.load_file('cbr')
-        # print('[1]', raw)
         if self.file.encrypt:
             try:
                 raw = EncryptionModule(self.uid).decrypt(raw)
-                # print('[2.1]', raw)
             except qa_exceptions.EncryptionException as E:
                 print(function_name, '[E1.2]', E)
                 raw = raw
-                # print('[2.2]', raw)
             except cryptography.fernet.InvalidToken as E:
                 print(function_name, '[E1.3]', E)
                 raw = raw
-                # print('[2.3]', raw)
             except Exception as E:
                 E = E.__class__(str(E))
 
                 raise E
-
-        # print('[3]', raw)
 
         if type(raw) is bytes:
             if len(raw) > 0:
@@ -478,8 +472,6 @@ class FileIOModule:
 
         else:
             Str = raw
-
-        # print('[4]', type(raw) is bytes, Str)
 
         return Str
 
