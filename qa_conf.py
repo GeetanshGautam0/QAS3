@@ -29,6 +29,7 @@ class Application:
         'recovery_util': random.random(),
         'theming_util': random.random(),
     }
+    simple_cr = "Coding Made Fun, 2021"
     cr = """Coding Made Fun, 2021\n""" + "\n".join(
         u for u in app_urls
     ).strip()
@@ -107,8 +108,13 @@ class Files:
         'dst': f"{Application.AppDataLoc}\\.qs\\.files"
     }
     conf_std_file = "qa_config_keys.json"
-    configuration = {"filename": "configuration.qaFile"}
-    questions_and_answers = {"filename": "qas.qaFile"}
+    configuration = {
+        "filename": "configuration.qaFile"
+    }
+    questions_and_answers = {
+        "folder_name": ".qa_databases",
+        "location": qs_parent_dir
+    }
     scores = {"folder_name": ".local_scores"}
     theme = {
         "default": {
@@ -124,7 +130,7 @@ class Files:
 
     fts = {
         'folder_name': '.fts',
-        'files_req': [configuration['filename'], questions_and_answers['filename']]
+        'files_req': [configuration['filename']]
     }
 
     app_icons = {
@@ -150,20 +156,20 @@ class Files:
         }
     }
 
-    global_enco = 'utf-8'
+    global_encoding = 'utf-8'
 
     files = {
         'cmfbackup': {
             'ico':      '.src\\.icons\\cmfbackup.ico',
             'png':      '.src\\.icons\\cmfbackup.png',
             'encrypt':  True,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         'cmflog': {
             'ico': '.src\\.icons\\cmflog.ico',
             'png': '.src\\.icons\\cmflog.png',
             'encrypt': False,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         '$favicon': {
             'ico': '.src\\.icons\\favicon.ico',
@@ -174,37 +180,37 @@ class Files:
             'ico': '.src\\.icons\\qaExport.ico',
             'png': '.src\\.icons\\qaExport.png',
             'encrypt': True,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         'qaEnc': {
             'ico': '.src\\.icons\\qaEnc.ico',
             'png': '.src\\.icons\\qaEnc.png',
             'encrypt': True,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         'qaFile': {
             'ico': '.src\\.icons\\qaFile.ico',
             'png': '.src\\.icons\\qaFile.png',
             'encrypt': True,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         'qaLog': {
             'ico': '.src\\.icons\\qaLog.ico',
             'png': '.src\\.icons\\qaLog.png',
             'encrypt': False,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         'qaQuiz': {
             'ico': '.src\\.icons\\qaQuiz.ico',
             'png': '.src\\.icons\\qaQuiz.png',
             'encrypt': False,
-            'encoding': global_enco
+            'encoding': global_encoding
         },
         'qaScore': {
             'ico': '.src\\.icons\\qaScore.ico',
             'png': '.src\\.icons\\qaScore.png',
             'encrypt': True,
-            'encoding': global_enco
+            'encoding': global_encoding
         }
     }
 

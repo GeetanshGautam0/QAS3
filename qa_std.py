@@ -458,3 +458,4 @@ class InfoState(Enum):
     WARNING = 1
     OK = 2
     INFO = 3
+    NORMAL = 4

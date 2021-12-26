@@ -128,7 +128,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             return datetime.now()
 
         @staticmethod
-        def generate_uid(salt=0.00) -> str:
+        def generate_uid(salt=0.00, function=hashlib.sha3_512) -> str:
             base = str(random.randint(100000000000000, 999999999999999)) + "." + \
                 str(random.random() * (random.random() * 10 ** 5)) + \
                 "." + str(random.random() * random.randint(0, 9)) + ":" + \
@@ -136,7 +136,7 @@ Do you wish to 'OWR_UID' [yes] or cancel the operation [no]?
             _time = datetime.now().strftime(f"%d:%m:%Y:%H:%M:%S:%f::%z::%j--{str(salt)}-%X")
             _rs = ["~~", "1~", "`@", "3~@", "#@~", "$%@~"]
             _o0 = _time + base + _rs[random.randint(0, len(_rs) - 1)]
-            _o1 = hashlib.sha3_512(_o0.encode()).hexdigest()  # Because hashed hex looks better.
+            _o1 = function(_o0.encode()).hexdigest()  # Because hashed hex looks better.
 
             del base, _time, _rs, _o0
             return _o1

@@ -450,7 +450,7 @@ class LoggerModule:  # AFLog-USER_ACCESS-interface:auto
             s = json.dumps(r, indent=4)
             FileIOModule(self._o.uid).secure_save(s, append=False)
 
-    def log(self, lvl, *data, empty_line: bool = False, print_d: bool = False):
+    def log(self, lvl, *data, empty_line: bool = False, print_d: bool = True):
         """
         **AFLog.log**
         Will log _data (attempts to do so with 'PerformanceLogger,' if fails, will try to use 'ReliableLogger'
@@ -464,7 +464,7 @@ class LoggerModule:  # AFLog-USER_ACCESS-interface:auto
 
         self.refresh()
         if print_d:
-            print(f'[{lvl}]\n\t', '\n\t'.join(i for i in data))
+            print(f'[{lvl}]', '\n\t'.join(i for i in data))
 
         try:
             self.performance_logger.log(lvl, *data, empty_line=empty_line)

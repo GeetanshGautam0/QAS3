@@ -69,6 +69,8 @@ _logger = AFLog(
     AFData.Functions.generate_uid(qa_conf.Application.uid_seed['admin_tools'])
 )
 
+control_debugger = False
+
 if isinstance(splRoot, tk.Toplevel):
     splRoot.attributes('-topmost', True)
 
@@ -452,8 +454,6 @@ Welcome to Administrator Tools, using this application, you can:
         self.theme_update_req['accent_fg'].append(self.screen_1_title_lbl)
 
         # Screen 2 elements [Question Editing Screen]
-
-
         # Screen 3 elements [Scores IO Screen]
         # Screen 4 elements [File IO Screen]
         # Screen 5 elements [Misc. Items Screen]
@@ -550,12 +550,20 @@ Welcome to Administrator Tools, using this application, you can:
     # UI Setup
 
     def run(self):
+        global control_debugger, _logger
+
         self.root.protocol("WM_DELETE_WINDOW", self.close_window)
         self.root.title(
             f"Quizzing Application {qa_conf.ConfigFile.raw['app_data']['build']['frame_vid']} - Admin Tools"
         )
         self.root.geometry("%sx%s+%s+%s" % (*self.ws, *self.sp))
         self.root.iconbitmap(qa_conf.Files.app_icons['admin_tools']['ico'])
+
+        if control_debugger:
+            _logger.log(
+                'INFO', 'Shell <size_x>x<size_y>+<pos_x>+<pos_y>', f"{self.ws[0]}x{self.ws[1]}+{self.sp[0]}+{self.sp[1]}",
+                print_d=True
+            )
 
         tk.Tk.report_callback_exception = error
 
@@ -599,62 +607,49 @@ Welcome to Administrator Tools, using this application, you can:
         self.root.bind('<Configure>', self.onFrameConfig)
 
     def close_window(self, code=0):
-        try:
-            self.show_error('')
+        global _logger, control_debugger
 
-            if self.master_screen_index == 2:
-                self.show_error("Please answer the prompt above before exiting.")
-                return
+        if control_debugger:
+            _logger.log(
+                'INFO', "Entered shutdown routine.", print_d=True
+            )
 
-            self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
-            self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
-            s, _0, _1, _2, _3, changes = _load_pus_config(self.screen_data[1])
+        self.show_error('')
 
-            if not s:
-                self.master_screen_index = 2
-                self.master_screen_packer()
-                self.master_prompt_ask_custom(
-                    'Unsaved Configuration',
-                    'You have made some changes to your configuration; do you want to save the new config. data before exiting?\nThe following are the changes you\'ve made:\n\t* ' + '\n\t* '.join(
-                        f'{change[0]}: {change[1]} \u2794 {change[2]}' for change in changes.values()
-                    ),
-                    ('Yes, Save New Data', lambda: self.save_config(True)),
-                    ('No, Do NOT Save New Data', lambda: g_exit(code)),
-                    ('Do not close application', self.go_back_to_main_screen),
-                    ttl_col_key='warning'
-                )
-
-            else:
-                g_exit(code)
-
-        except Exception as E:
-            global _app_title, _logger
-            try:
-                tkmsb.showerror(
-                    _app_title,
-                    f"Crash Report: {traceback.format_exc()}"
-                )
-            except:
-                pass
-
-            try:
+        if self.master_screen_index == 2:
+            if control_debugger:
                 _logger.log(
-                    'CRASH REPORT',
-                    f'Time: {AFData.Functions.time().strftime(for_log)}',
-                    f'Exception: {E}',
-                    traceback.format_exc(),
-                    'LOGGED',
-                    print_d=True
-                )
-            except Exception as E1:
-                print(
-                    f'[CRASH REPORT (FAILED TO LOG :: {E1}]',
-                    f'Time: {AFData.Functions.time().strftime(for_log)}',
-                    f'\nException: {E}\n',
-                    traceback.format_exc()
+                    'INFO', "Screen Index = 2 (prompted); aborting exit routine", print_d=True
                 )
 
-            g_exit(E)
+            self.show_error("Please answer the prompt above before exiting.")
+            return
+
+        self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
+        self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
+        s, _0, _1, _2, _3, changes = _load_pus_config(self.screen_data[1])
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuration data is saved: {s}", print_d=True
+            )
+
+        if not s:
+            self.master_screen_index = 2
+            self.master_screen_packer()
+            self.master_prompt_ask_custom(
+                'Unsaved Configuration',
+                'You have made some changes to your configuration; do you want to save the new config. data before exiting?\nThe following are the changes you\'ve made:\n\t* ' + '\n\t* '.join(
+                    f'{change[0]}: {change[1]} \u2794 {change[2]}' for change in changes.values()
+                ),
+                ('Yes, Save New Data', lambda: self.save_config(True)),
+                ('No, Do NOT Save New Data', lambda: g_exit(code)),
+                ('Do not close application', self.go_back_to_main_screen),
+                ttl_col_key='warning'
+            )
+
+        else:
+            g_exit(code)
 
     def reload_data(self):
         self.show_error('')
@@ -669,16 +664,30 @@ Welcome to Administrator Tools, using this application, you can:
             '<alt_face>': self.theme['font']['alt_font_face']
         }
 
-    def show_error(self, error: str):
+    def show_error(self, string: str):
+        global control_debugger, _logger
+
         if not self.init:
             return
 
-        self.error_label.config(text=error)
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Info (Error) Label text set to: '{string}'", print_d=True
+            )
+
+        self.error_label.config(text=string)
 
     def select_screen(self, index):
+        global control_debugger, _logger
+
         assert index in (*self.selector_panel_mapper, -1), f"Invalid index '{index}'"
         if index != -1:
             self.current_screen_index = index
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Selected screen with index {index}", print_d=True
+            )
 
         self.clear_master_screen()
         self.selector_panel_mapper[self.current_screen_index]()
@@ -698,6 +707,13 @@ Welcome to Administrator Tools, using this application, you can:
         sc.pack(fill=tk.BOTH, expand=True, pady=(self.theme['padding']['y'] * 2, 0))
 
     def screen_0_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuring screen 0 [INFORMATION SCREEN]", print_d=True
+            )
+
         # Reset
         self.reset_screen(0, self.screen_0)
 
@@ -715,6 +731,13 @@ Welcome to Administrator Tools, using this application, you can:
         del padX, padY
 
     def screen_1_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuring screen 1 [CONFIGURATION SCREEN]", print_d=True
+            )
+
         # Reset
         self.reset_screen(1, self.screen_1)
 
@@ -778,18 +801,46 @@ Welcome to Administrator Tools, using this application, you can:
         del padX, padY
 
     def screen_2_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuring screen 2 [QUESTION DATABASE MODIFICATION SCREEN]", print_d=True
+            )
+
         # Reset
         self.reset_screen(2, self.screen_2)
 
     def screen_3_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuring screen 3 [SCORES SCREEN]", print_d=True
+            )
+
         # Reset
         self.reset_screen(3, self.screen_3)
 
     def screen_4_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuring screen 4 [FILE IO SCREEN]", print_d=True
+            )
+
         # Reset
         self.reset_screen(4, self.screen_4)
 
     def screen_5_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuring screen 5 [MISCELLANEOUS ITEMS SCREEN]", print_d=True
+            )
+
         # Reset
         self.reset_screen(5, self.screen_5)
 
@@ -817,6 +868,13 @@ Welcome to Administrator Tools, using this application, you can:
         self.misc_info_cpy_button.pack(fill=tk.X, expand=False, padx=padX, pady=padY, ipadx=padX, ipady=padY)
 
     def reset_screen(self, index: int, screen: tk.Frame):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Resetting screen; {index=} {screen=}", print_d=True
+            )
+
         self.show_error("")
         self.current_screen_index = index
         self.clear_master_screen()
@@ -831,10 +889,17 @@ Welcome to Administrator Tools, using this application, you can:
             pass
 
     def clear_master_screen(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Clearing Master Screen", print_d=True
+            )
+
         for i in {
             self.screen_0, self.screen_1, self.screen_2, self.screen_3, self.screen_4, self.screen_5,
-            *c(self.screen_0), *c(self.screen_1), *c(self.screen_2), *c(self.screen_3), *c(self.screen_4),
-            *c(self.screen_5)
+            *get_children(self.screen_0), *get_children(self.screen_1), *get_children(self.screen_2), *get_children(self.screen_3), *get_children(self.screen_4),
+            *get_children(self.screen_5)
         }:
             try:
                 i.pack_forget()
@@ -847,6 +912,8 @@ Welcome to Administrator Tools, using this application, you can:
 
     # Config Toggle Buttons
     def toggle_config_acc(self, change_state: bool = True):
+        global control_debugger, _logger
+
         if change_state:
             self.screen_data[1]['config_acc'] ^= True
 
@@ -861,9 +928,16 @@ Welcome to Administrator Tools, using this application, you can:
             bd='1'
         )
 
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuration/'Allow Custom Configuration' new state: {self.screen_data[1]['config_acc']}", print_d=True
+            )
+
         self.config_acc_action_btn.update()
 
     def toggle_config_pa(self, change_state: bool = True):
+        global control_debugger, _logger
+
         if change_state:
             self.screen_data[1]['qs_dist_pa'] ^= True
 
@@ -878,7 +952,14 @@ Welcome to Administrator Tools, using this application, you can:
             bd='1'
         )
 
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuration/Question Distribution/'Part or All' new state: {self.screen_data[1]['qs_dist_pa']} (True='part', False='all')", print_d=True
+            )
+
     def toggle_config_rnd(self, change_state: bool = True):
+        global control_debugger, _logger
+
         if change_state:
             self.screen_data[1]['qs_dist_rn'] ^= True
 
@@ -898,7 +979,6 @@ Welcome to Administrator Tools, using this application, you can:
                 highlightbackground=self.theme['gray'],
                 bd='1'
             )
-
         else:
             self.config_qs_rnd_toggle_btn.config(
                 text='Randomize\nOrder' if self.screen_data[1]['qs_dist_rn'] else 'Don\'t Randomize\nOrder',
@@ -912,7 +992,14 @@ Welcome to Administrator Tools, using this application, you can:
                 bd='1'
             )
 
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuration/Question Distribution/'Randomize Question Order' new state: {self.screen_data[1]['qs_dist_rn']}", print_d=True
+            )
+
     def toggle_config_deduc(self, change_state: bool = True):
+        global control_debugger, _logger
+
         if change_state:
             self.screen_data[1]['rs_deduc_b'] ^= True
 
@@ -926,6 +1013,11 @@ Welcome to Administrator Tools, using this application, you can:
             highlightbackground=self.theme['accent'],
             bd='1'
         )
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Configuration/Response Configuration/'Enable Deductions' new state: {self.screen_data[1]['rs_deduc_b']}", print_d=True
+            )
 
     def m_config_qs_divF_entry(self, toggle_rst_flag: bool = True):
         if not self.screen_info_mapper[1]['rst_d']:
@@ -973,24 +1065,38 @@ Welcome to Administrator Tools, using this application, you can:
         self.update_buttons_theme()
 
     def update_theme(self, upd_buttons: bool = False):
-        global _logger
+        global _logger, control_debugger
 
         self.reload_data()
 
         command_map = {
-            'bg_norm': lambda _elem: _elem.config(bg=self.theme['bg']),
-            'fg_norm': lambda _elem: _elem.config(fg=self.theme['fg']),
-            'bg_accent': lambda _elem: _elem.config(bg=self.theme['accent'], fg=self.theme['bg']),
-            'fg_accent': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['accent']),
+            'bg_norm': lambda _elem: _elem.config(
+                bg=self.theme['bg']
+            ),
+            'fg_norm': lambda _elem: _elem.config(
+                fg=self.theme['fg']
+            ),
+            'bg_accent': lambda _elem: _elem.config(
+                bg=self.theme['accent'], fg=self.theme['bg']
+            ),
+            'fg_accent': lambda _elem: _elem.config(
+                bg=self.theme['bg'], fg=self.theme['accent']
+            ),
             'active_state': lambda _elem: _elem.config(
                 activebackground=self.theme['accent'], activeforeground=self.theme['bg']
             ),
-            'borderless': lambda _elem: _elem.config(bd='0'),
+            'borderless': lambda _elem: _elem.config(
+                bd='0'
+            ),
             'wraplength': lambda _elem: _elem.config(
                 wraplength=(self.ws[0] - self.selector_panel.winfo_width() - self.theme['padding']['x'] * 2)
             ),
-            'invisible': lambda _elem: _elem.config(bg=self.theme['bg'], fg=self.theme['fg'], bd='0'),
-            'button': lambda _elem: _elem.config(bd='1', highlightcolor=self.theme['accent'], relief=tk.GROOVE),
+            'invisible': lambda _elem: _elem.config(
+                bg=self.theme['bg'], fg=self.theme['fg'], bd='0'
+            ),
+            'button': lambda _elem: _elem.config(
+                bd='1', highlightcolor=self.theme['accent'], relief=tk.GROOVE
+            ),
             'wraplength_no_sel_panel': lambda _elem: _elem.config(
                 wraplength=(self.ws[0] - self.theme['padding']['x'] * 2)
             ),
@@ -1014,6 +1120,12 @@ Welcome to Administrator Tools, using this application, you can:
                 for command_request in commands:
                     try:
                         command_map[command_request](element)
+
+                        if control_debugger:
+                            _logger.log(
+                                'INFO', f"Applied command {command_request} (\"{name}\") to {element}", print_d=True
+                            )
+
                     except Exception as E:
                         _logger.log(
                             'ERROR',
@@ -1031,7 +1143,13 @@ Welcome to Administrator Tools, using this application, you can:
                         n_font_data.append(d)
                 font_data = (*n_font_data,)
                 del n_font_data
+
                 element.config(font=font_data)
+
+                if control_debugger:
+                    _logger.log(
+                        'INFO', f"Applied font {font_data} to {element}", print_d=True
+                    )
 
             except Exception as E:
                 _logger.log(
@@ -1040,10 +1158,14 @@ Welcome to Administrator Tools, using this application, you can:
                     print_d=True
                 )
 
-        for element, bf in self.theme_update_req['custom_color'].items():
+        for element, (bg, fg) in self.theme_update_req['custom_color'].items():
             try:
-                bg, fg = bf
                 element.config(bg=self.theme[bg], fg=self.theme[fg])
+
+                if control_debugger:
+                    _logger.log(
+                        'INFO', f"Applied custom color ({bg=}, {fg=}) to {element}", print_d=True
+                    )
 
             except Exception as E:
                 _logger.log(
@@ -1064,6 +1186,11 @@ Welcome to Administrator Tools, using this application, you can:
                         c_args.append(arg_N)
 
                 cc(*c_args)
+
+                if control_debugger:
+                    _logger.log(
+                        'INFO', f"Called custom update function {cc} with args {c_args}", print_d=True
+                    )
 
                 del c_args
 
@@ -1136,7 +1263,12 @@ Welcome to Administrator Tools, using this application, you can:
 
     # Reset Logic
     def reset_config(self, ga: bool = False):
-        global _logger
+        global _logger, control_debugger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Resetting configuration", print_d=True
+            )
 
         d_file = AFIOObject(
             isFile=True,
@@ -1193,10 +1325,10 @@ Welcome to Administrator Tools, using this application, you can:
             self.master_prompt_ask_custom(
                 'Confirm Reset',
                 (
-                    'WARNING: Continuing will revert all unsaved configuration data (other aspects such as questions will NOT' +
-                    'be effected, however); the following changes will occur:\n\t* ' + '\n\t* '.join(
-                        f'{change[0]}: {change[2]} \u2794 {change[1]}' for change in changes.values()
-                    )
+                        'WARNING: Continuing will revert all unsaved configuration data (other aspects such as questions will NOT' +
+                        'be effected, however); the following changes will occur:\n\t* ' + '\n\t* '.join(
+                    f'{change[0]}: {change[2]} \u2794 {change[1]}' for change in changes.values()
+                )
                 ),
                 ('Yes, Revert Unsaved Configuration Data', lambda: self.reset_config(True)),
                 ('No, Go Back', self.go_back_to_main_screen),
@@ -1208,7 +1340,12 @@ Welcome to Administrator Tools, using this application, you can:
         del pus, s
 
     def restore_config(self, ga: bool = False):
-        global _logger
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Restoring configuration to the previously saved state", print_d=True
+            )
 
         d_file = AFIOObject(
             isFile=True,
@@ -1270,10 +1407,10 @@ Welcome to Administrator Tools, using this application, you can:
             self.master_prompt_ask_custom(
                 'Confirm Reset',
                 (
-                    'WARNING: Continuing will restore all configuration data to its default state (other aspects such as questions will NOT' +
-                    'be effected, however); the following changes will occur:\n\t* ' + '\n\t* '.join(
-                        f'{change[0]}: {change[2]} \u2794 {change[1]}' for change in changes.values()
-                    )
+                        'WARNING: Continuing will restore all configuration data to its default state (other aspects such as questions will NOT' +
+                        'be effected, however); the following changes will occur:\n\t* ' + '\n\t* '.join(
+                    f'{change[0]}: {change[2]} \u2794 {change[1]}' for change in changes.values()
+                )
                 ),
                 ('Yes, Restore ALL Configuration Data', lambda: self.restore_config(True)),
                 ('No, Go Back', self.go_back_to_main_screen),
@@ -1286,6 +1423,8 @@ Welcome to Administrator Tools, using this application, you can:
 
     # Extra Logic
     def misc_cpy_info(self):
+        global control_debugger, _logger
+
         qa_std.copy_to_clipboard(
             text=".".join(_.strip() for _ in (
                 "CMF",
@@ -1298,8 +1437,18 @@ Welcome to Administrator Tools, using this application, you can:
             clear_old=True
         )
 
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Copied app info to clipboard", print_d=True
+            )
+
     def save_config(self, close_after: bool = False):
-        global _logger
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Saving configuration information now", print_d=True
+            )
 
         self.screen_data[1]['qs_dist_dF'] = self.config_qs_divF_entry.get().strip()
         self.screen_data[1]['rs_deduc_i'] = self.config_deduc_amnt_entry.get().strip()
@@ -1323,6 +1472,13 @@ Welcome to Administrator Tools, using this application, you can:
         )
 
     def save_config_part_2(self, translated, pus_config, close_after):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"User agreed to confirmation prompt; saving information now", print_d=True
+            )
+
         res, reas = _save_configuration(translated)
 
         if res:
@@ -1352,6 +1508,13 @@ Welcome to Administrator Tools, using this application, you can:
             )
 
     def go_back_to_main_screen(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Going back to main screen", print_d=True
+            )
+
         self.clear_prompts_screen()
         self.clear_master_screen()
         self.master_screen_index = 1
@@ -1360,8 +1523,14 @@ Welcome to Administrator Tools, using this application, you can:
         self.show_error('')
 
     def clear_prompts_screen(self):
-        global _logger
-        cl = c(self.prompts_screen)
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Clearing prompts screen", print_d=True
+            )
+
+        cl = get_children(self.prompts_screen)
         for child in cl:
             try:
                 if child in self.theme_update_req['custom_command']:
@@ -1374,6 +1543,13 @@ Welcome to Administrator Tools, using this application, you can:
                 )
 
     def master_prompt_ask_custom(self, title, description, *buttons, ttl_col_key: str = 'accent', btn_follow_ttl_col: bool = True):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Showing custom prompt: {title=} {description=} {buttons=} {ttl_col_key=} {btn_follow_ttl_col=}", print_d=True
+            )
+
         self.clear_prompts_screen()
 
         padX = self.theme['padding']['x']
@@ -1427,6 +1603,13 @@ Welcome to Administrator Tools, using this application, you can:
         self.ws = (self.root.winfo_width(), self.root.winfo_height())
 
     def screen_1_aft_packer(self):
+        global control_debugger, _logger
+
+        if control_debugger:
+            _logger.log(
+                'INFO', f"Called screen_1 aft_packer", print_d=True
+            )
+
         padX = self.theme['padding']['x']
         self.config_qs_pa_description_lbl.config(
             wraplength=(self.ws[0] - self.selector_panel.winfo_width() - padX * 8 - self.config_qs_pa_selector_btn.winfo_width()),
@@ -1532,14 +1715,14 @@ def g_exit(code):
     sys.exit(code)
 
 
-def c(p):
+def get_children(p):
     global _logger
 
     cl = set()
     for item in p.winfo_children():
         try:
             if len(item.winfo_children()) > 1:
-                cl = {*cl, *c(item)}
+                cl = {*cl, *get_children(item)}
             else:
                 cl.add(item)
         except Exception as E:
@@ -1559,8 +1742,12 @@ def extern(command) -> None:
     os.system(f"start \"\" {cmap[command]}")
 
 
-def error(*_):
-    del _
+def error(*err_info):
+    print(
+        '[ERROR INFO]', f"raising tk exception; err: {err_info}"
+    )
+
+    del err_info
     raise Exception
 
 
@@ -1573,7 +1760,12 @@ _set_boot_progress(4)
 
 
 def _load_configuration() -> dict:
-    global apptitle
+    global control_debugger, _logger, _app_title
+
+    if control_debugger:
+        _logger.log(
+            'INFO', f"Loading configuration information", print_d=True
+        )
 
     r = {}
     d = os.path.join(
@@ -1608,6 +1800,10 @@ def _load_configuration() -> dict:
                 _app_title,
                 "[CRITICAL ERROR] Failed to find 'src:configuration.qaFile'"
             )
+            _logger.log(
+                'ERROR', f"Failed to find 'src:configuration.qaFile'", print_d=True
+            )
+
             g_exit(1)
 
         else:
@@ -1618,6 +1814,12 @@ def _load_configuration() -> dict:
                 _app_title,
                 "Created 'dst:configuration.qaFile'"
             )
+
+            if control_debugger:
+                _logger.log(
+                    'INFO', f"Created 'dst:configuration.qaFile'", print_d=True
+                )
+
             qa_splash_screen.show(splObj)
 
             try:
@@ -1630,6 +1832,11 @@ def _load_configuration() -> dict:
                     _app_title,
                     f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}"
                 )
+
+                _logger.log(
+                    'INFO', f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}", print_d=True
+                )
+
                 g_exit(1)
     else:
         try:
@@ -1661,6 +1868,11 @@ def _load_configuration() -> dict:
                     _app_title,
                     f"[CRITICAL ERROR] Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}"
                 )
+
+                _logger.log(
+                    'ERROR', f"Invalid 'src:configuration.qaFile' file.\n\nTechnical:\n{traceback.format_exc()}", print_d=True
+                )
+
                 qa_splash_screen.show(splObj)
                 g_exit(1)
 
@@ -1669,12 +1881,25 @@ def _load_configuration() -> dict:
                 _app_title,
                 "Overwrote (reset) 'dst:configuration.qaFile' [invalid data found]"
             )
+
+            if control_debugger:
+                _logger.log(
+                    'INFO', f"Overwrote (reset) 'dst:configuration.qaFile' [invalid data found]", print_d=True
+                )
+
             qa_splash_screen.show(splObj)
 
     return r
 
 
 def _save_configuration(config_data: dict) -> tuple:
+    global control_debugger, _logger
+
+    if control_debugger:
+        _logger.log(
+            'INFO', f"Saving the following configuration data: {config_data}", print_d=True
+        )
+
     try:
         p, s = qa_diagnostics.Configuration.general(config_data)
     except Exception as E:
@@ -1813,6 +2038,14 @@ if version_notes is not None:
                     accent_key=_m[i],
                     degree="%s%s" % (i[0].upper(), i[1::].lower()),
                     use_tk=False
+                )
+
+                _logger.log(
+                    'INFO',
+                    "The version of this app has the following notes associated with it:\n\n" + "\n\n\t *".join(
+                        j for j in version_notes[i]
+                    ),
+                    print_d=True
                 )
 
         qa_splash_screen.show(splObj)

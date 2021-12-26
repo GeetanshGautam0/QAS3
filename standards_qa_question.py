@@ -20,7 +20,7 @@ class StandardVariables:
     type_key = 'type'
     comments_key = 'comments'
     widget_key = 'widget'
-    question_id_key = "quid"
+    question_key = "question"
 
     question_type_map = {
         'r': {  # ID : (Code, Human Readable) [REVERSE]
@@ -50,8 +50,14 @@ class StandardVariables:
 class Functions:
     @staticmethod
     def str_to_questions(raw_json_data: str) -> tuple:
-        js0 = json.loads(raw_json_data)
-        qs = (*js0.keys(), )
+        try:
+            js0 = json.loads(raw_json_data)
+            qs = (*js0.keys(),)
+        except Exception as E:
+            print(f'QA Question Standardization - String To Questions - Failed to load data - {E}')
+
+            js0 = {}
+            qs = {}
 
         o0, failures = [], []
 
@@ -61,21 +67,23 @@ class Functions:
                 assert StandardVariables.answer_key in q, f"Q{ind + 1}: No answer available"
                 assert StandardVariables.type_key in q, f"Q{ind + 1}: No type data available"
                 assert StandardVariables.widget_key in q, f"Q{ind + 1}: No answer widget data available"
-                assert StandardVariables.question_id_key in q, f"Q{ind + 1}: No question ID available"
+                assert StandardVariables.question_key in q, f"Q{ind + 1}: No question ID available"
 
                 o0.append(
                     Question(q0,
                              q[StandardVariables.answer_key],
                              q[StandardVariables.type_key],
                              q[StandardVariables.widget_key],
-                             q[StandardVariables.question_id_key],
+                             q[StandardVariables.question_key],
                              q[StandardVariables.comments_key] if isinstance(
                                  q.get(StandardVariables.comments_key), list
                              ) else [])
                 )
 
             except Exception as E:
-                failures.append(str(E))
+                failures.append(
+                    (q0, str(E))
+                )
 
         del qs, js0, raw_json_data
 
@@ -88,14 +96,16 @@ class Functions:
         for ind, q0 in enumerate(ls):
             try:
                 assert isinstance(q0, Question), f"Question {ind + 1}: Expected {Question}, got {type(q0)}."
-                k0, v0, v1, v2, v3, v4 = \
+                v3, v0, v1, v2, k0, v4 = \
                     q0.question, q0.answer, q0.type, q0.widget_requirement, q0.quid, q0.comments
+
+                # QUID: Data [SHA3_512 Hex Digest, because why not]
 
                 o0[k0] = {
                     StandardVariables.answer_key: v0,
                     StandardVariables.type_key: v1,
                     StandardVariables.widget_key: v2,
-                    StandardVariables.question_id_key: v3,
+                    StandardVariables.question_key: v3,
                     StandardVariables.comments_key: v4,
                 }
 
@@ -107,4 +117,3 @@ class Functions:
 
         o1 = o0 if re_dict else json.dumps(o0, indent=4)
         return o1, failures
-

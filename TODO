@@ -1,9 +1,41 @@
-TODO: Add new AdminToolsUI
-TODO: Add option to toggle 'QUESTION_ORDER_RANDOMIZER'
+TODO: All UIs - Refresh UI
+TODO: Add automatic theme refreshing to all UIs for updates
 TODO: Add option to enable/disable custom config. for each setting
 TODO: ADD "IS_CASE_SENSITIVE" OPTION TO FORM
 TODO: ADD "NOTES" SECTION FOR RESPONSE FORM
-TODO: ADD translator from old version files to new version's files
-TODO: ADD option to edit EXTERNAL databases.
 TODO: ADD option to select between 'entry' and 'text' widgets (question form)
-TODO: Modularize `appfunctions` script
+TODO: Modularize `app_functions` script
+TODO: The following are the options to add to the question database system:
+    * .qa folder
+    * Inside: Multiple database files
+    * Question Viewing Form - Select database
+    * Question addition form - Select database
+TODO: Add custom crash report shell (basic UI, not threaded.)
+TODO: Allow unique configuration customization per question database (AdminToolsUI)
+TODO: Add option to edit questions after they have been added
+TODO: Clean up qa_conf.py
+
+==============================
+==          LEGACY          ==
+==============================
+
+TODO: ADD translator from old version files to new version's files
+    * Version 2 > 3 translator for all version 2 files
+    * Add recognition of legacy file extensions
+    * Import existing databases from version 2
+
+==================================
+==          CHANGE LOG          ==
+==================================
+
+[1] Combined Question Viewing Form and Question Editing Form into one common UI (Question Master Form)
+
+[2] Added option to toggle 'QUESTION_ORDER_RANDOMIZER' to AdminToolsUI
+
+[3] Optimized code for performance and minimizing memory usage
+
+[4] Added CLI handlers for shell objects
+
+[5] Added debug flag for CLI for the following:
+    (i) Question Master Form
+    (ii) Administrator Tools
